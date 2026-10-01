@@ -46,6 +46,8 @@ usable build, and every dataset is about the Brahmaputra valley and NE India spe
 Stating these plainly saves us from a hundred feature arguments later.
 
 - **Not a forecast tool.** We do not predict floods or river stage. See §4.
+- **Not a hydrology product.** We present no observed, forecast or modelled river data as
+  though it were live. FLOW runs on scenarios the user sets. See §4.3.
 - **Not a hazard map.** No evacuation routes, no safe/unsafe zones, no parcel-level risk.
 - **Not an early warning system.** There is no official warning to display; we will link
   to the bodies that do.
@@ -72,7 +74,9 @@ The sandbox must never present a visual as a prediction. The correct framing is
 **"here is what happened"** (historical, from data) and **"here is what this process does"**
 (mechanism, from simulation). The forbidden framing is **"here is what will happen"**.
 
-- "Estimated discharge" — allowed.
+- "Scenario inflow 12,000 m³/s — a value you set" — allowed. It names itself as chosen.
+- "Observed discharge at Dibrugarh: 41,200 m³/s" — forbidden. We hold no observed discharge
+  data at all (§4.3), so any figure presented as one would be fabricated.
 - "Expected flood level on 15 June" — forbidden.
 - "This bank will collapse" — forbidden. "This bank erodes fastest where the channel turns
   sharply" — allowed, because it describes the mechanism, not a prediction.
@@ -93,14 +97,21 @@ This is the single most important line in the product.
   come from a cited catalogue. If we generate a synthetic shake for demonstration, the UI
   says so in the same breath.
 
-### 4.3 Flood visuals are illustrative
+### 4.3 FLOW is a sandbox on real terrain, driven by scenarios the user sets
 
-- Any flood simulation is a **simplified model** driven by real terrain and real
-  discharge observations. It is not a hydrodynamic forecast.
+- FLOW runs on **real terrain** — a Copernicus DEM of the Brahmaputra valley — but on **no real
+  hydrology**. The user sets a river level or an inflow scenario, and the water engine
+  responds to it.
+- **Every FLOW input is a user-chosen scenario.** A scenario value is not a measurement, not
+  an observation, and not a forecast. This product holds **no observed or gauge-record
+  discharge data**, and no FLOW number may be presented as if it did. See
+  [`docs/DECISIONS.md` §3](docs/DECISIONS.md).
+- Scenario values are **illustrative**, and the UI labels them as the user's own input so
+  nobody reads a chosen number as a reading of the river.
 - The water engine's parameters (roughness, infiltration, channel geometry) are chosen for
   legibility and speed, then documented in `docs/ARCHITECTURE.md`.
-- If the model diverges from observed reality, the UI does not hide the divergence — it
-  names it.
+- A scenario that produces something alarming must still not be presented as a prediction for
+  a place, a date or an event. The mechanism is the lesson; the numbers are the user's.
 
 ### 4.4 Unknown is a value
 
@@ -173,17 +184,19 @@ locations, sized by magnitude, at their real dates.
 
 *The river moves; the bank gives way.*
 
-Real terrain of the Brahmaputra valley. A discharge control raises or lowers the river,
-water flows across the DEM, and where the flow meets a bank it erodes it — visibly, over
-time. Raise the discharge and watch where the channel migrates.
+Real terrain of the Brahmaputra valley. You set a river level or an inflow scenario, water
+flows across the DEM, and where the flow meets a bank it erodes it — visibly, over time.
+Raise the scenario and watch where the channel migrates.
 
 - Purpose: teach the *mechanism* of bank erosion and channel migration by direct
   manipulation, which no map or chart can do.
 - Data: Copernicus DEM GLO-30 (licence **VERIFIED**, with mandatory DLR/Airbus
-  attribution), discharge observations from official gauge records.
-- Honesty: the model is simplified and labelled as such. It is **not** a flood forecast.
-  It does **not** predict inundation for any real date.
-- Every eroded cell is "modelled", not "measured". The UI must not blur that line.
+  attribution). **No hydrological data** — see §4.3.
+- Inputs: the level or inflow is a **scenario the user sets**, never an observation.
+- Honesty: the model is simplified and labelled as such. It is **not** a flood forecast. It
+  does **not** predict inundation for any real date.
+- Every eroded cell is "modelled", not "measured". Every input is "scenario", not "observed".
+  The UI must not blur either line.
 
 ---
 
@@ -194,11 +207,15 @@ time. Raise the discharge and watch where the channel migrates.
 - [ ] No screen, label, tooltip, or export implies prediction or forecast.
 - [ ] "Earthquakes cannot be predicted" appears in FAULT mode, dismissable but
       re-encountered, and in the app's about/footer.
-- [ ] Every rendered number traces to a row in `docs/DATA.md` with a licence and a URL.
+- [ ] Every **measured** number traces to a row in `docs/DATA.md` with a licence and a URL.
+      Every **scenario** number is labelled as user-chosen. Neither is ever presented as the
+      other.
 - [ ] Every unknown renders as "—" with a reason, never as a placeholder value.
 - [ ] A non-specialist who reads only the UI could not mistake this for an official
       product. (Test: show a screenshot to someone unfamiliar with the project and ask
       "does this look like an official warning?" — the answer must be no.)
+- [ ] A non-specialist who reads only the UI could not mistake a FLOW scenario value for a
+      measurement of the river.
 
 ### Usability
 
@@ -223,7 +240,8 @@ time. Raise the discharge and watch where the channel migrates.
 
 | Risk | Why it is real | Mitigation |
 | --- | --- | --- |
-| **A 3D flood looks like a forecast** | Fluids in motion read as prediction. This is the single most likely way to mislead. | Persistent "illustrative model" framing in FLOW; no date-bearing controls; never a "forecast for" label |
+| **A 3D flood looks like a forecast** | Fluids in motion read as prediction. This is the single most likely way to mislead. | Persistent "illustrative model" framing in FLOW; every input labelled as a scenario the user set; no date-bearing controls; never a "forecast for" label |
+| **A scenario value reads as a measurement** | A plausible number beside a plausible river invites the reader to treat it as a reading of it. | Inputs named as scenarios in the control, the readout and the legend; no gauge figures, no station names and no dates anywhere in FLOW (§4.3) |
 | **DEM size** | GLO-30 tiles are large; a naive commit would blow the repo past 5 MB | Tiles stay in `data/raw/` (gitignored); commit a small preprocessed extract or fetch at build time |
 | **Licence ambiguity** | USGS ComCat and Bird PB2002 licences could not be verified; NCS is explicitly restrictive | Do not ship unverified data. Link and cite instead. See `docs/DATA.md` |
 | **Assamese glyph coverage** | Assamese uses ৰ (U+09F0) and ৱ (U+09F1), which many Bengali-subset fonts lack | Test the shipped font file for the codepoints we actually use; do not assume |
@@ -241,3 +259,4 @@ time. Raise the discharge and watch where the channel migrates.
 | Where did each dataset come from, under what licence? | `docs/DATA.md` |
 | What are the colours, type, and motion values? | `DESIGN.md` |
 | What gets built next? | `docs/ROADMAP.md` |
+| Why is FLOW a scenario sandbox rather than real hydrology? | `docs/DECISIONS.md` §3 |
