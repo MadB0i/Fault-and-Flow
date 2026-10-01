@@ -19,12 +19,14 @@ Two distinctions that are easy to get wrong, and that this file keeps separate:
   someone converted to GeoJSON on GitHub is governed by *that repo's* licence unless the
   converter says otherwise.
 
-Research was conducted **2026-10-01** by fetching each official page directly. Status
-labels:
+Research was conducted **2026-10-01** by fetching each official page directly. Where a page
+could not be read by a plain HTTP client, the **owner read it in a real browser** and the
+entry is labelled accordingly. Status labels:
 
 | Label | Meaning |
 | --- | --- |
 | **VERIFIED** | Official licence text retrieved and quoted from the source |
+| **VERIFIED BY OWNER** | Terms read by the owner in a real browser on the stated date. Not yet transcribed verbatim — treat as weaker evidence than VERIFIED. |
 | **UNVERIFIED** | Could not confirm from an official source. **Not shipped.** |
 | **RESTRICTIVE** | Licence confirmed, and it forbids what this project needs |
 
@@ -36,7 +38,7 @@ labels:
 | --- | --- | --- | --- |
 | **Copernicus DEM GLO-30** | Terrain, all modes | **VERIFIED** | Yes, with mandatory attribution |
 | **Natural Earth** | Coastline, basemap fallback | **VERIFIED** (public domain) | Yes |
-| **USGS ANSS ComCat** | FAULT earthquake history | **UNVERIFIED** | **No** — do not bundle (DECISIONS §2) |
+| **USGS ANSS ComCat** | FAULT earthquake history | **VERIFIED BY OWNER** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2) |
 | **Bird PB2002** plate boundaries | PLATES mode | **UNVERIFIED** | **No** — no licence found anywhere (DECISIONS §6) |
 | **SRTM** | Terrain alternative | **UNVERIFIED** | Not yet |
 | **NCS (seismo.gov.in)** | Indian earthquake authority | **RESTRICTIVE** | Link and cite only |
@@ -172,40 +174,88 @@ higher-stakes dataset's licence is unresolved.
 
 ---
 
-## 3. USGS ANSS Comprehensive Earthquake Catalog (ComCat) — **UNVERIFIED — DO NOT BUNDLE**
+## 3. USGS ANSS Comprehensive Earthquake Catalog (ComCat) — **VERIFIED BY OWNER**
 
-Intended source for FAULT mode's earthquake history.
+Source for FAULT mode's earthquake history.
 
-> **Decision of record:** [`docs/DECISIONS.md` §2](DECISIONS.md), 2026-10-01. No USGS data is
-> bundled, committed, or fetched at build time until the licence is resolved.
+> **Decision of record:** [`docs/DECISIONS.md` §2](DECISIONS.md), 2026-10-01. Terms read
+> by the project owner in a real browser. **Event parameters may be bundled**; ComCat
+> product imagery may not.
 
 | Field | Value |
 | --- | --- |
 | Data page | <https://earthquake.usgs.gov/data/comcat/> — **HTTP 200** |
 | FDSN event API | <https://earthquake.usgs.gov/fdsnws/event/1/> — **HTTP 200** |
-| Retrieved | 2026-10-01 |
-| **Licence** | **`UNVERIFIED`** |
-| Attribution | see below |
+| Terms page | <https://www.usgs.gov/information-policies-and-instructions/crediting-usgs> |
+| Retrieved | 2026-10-01 by automated fetch; **terms read 2026-10-01 by the owner in a browser** |
+| **Licence** | **Public domain**, per the USGS crediting page |
+| Attribution | **Credit requested, not required** — see the credit line below |
 
-**Why UNVERIFIED.** Both pages were fetched and **neither contains any licence, copyright,
-redistribution, or public-domain statement.** Both link only to `https://www.usgs.gov/policies-and-notices`.
+**How this was verified.** The `usgs.gov` policy pages return an HTTP 202 JavaScript
+robot-check interstitial to a plain HTTP client, so an agent could never read them. The
+owner opened the USGS crediting page in a real browser on **2026-10-01** and reported its
+substance: most USGS information is **public domain** and may be used without
+restriction; USGS **asks for credit**; and some **non-USGS** images and graphics are used
+with permission. That is the source for the public-domain status, and it is why the
+third-party-graphics caveat below exists.
 
-The widely-repeated claim that USGS content is public domain comes from those policy pages,
-which **could not be retrieved** — they returned **HTTP 202 with a JavaScript robot-check
-interstitial**, so the text was never read. Search-result snippets appear to quote language
-about public-domain status, but a snippet is not a source and **this file does not record
-snippets as verified**.
+> **Not yet quoted verbatim.** Rule 1 of this file requires licence text in quotation
+> marks, and what is above is the owner's summary of the page rather than a transcription
+> of it. That is a weaker form of evidence than the rest of this file and it is recorded as
+> such, not papered over. **The verbatim text of the crediting page should still be pasted
+> here** — it costs the owner one copy-paste and it is the only thing standing between
+> this entry and a licence claim this project cannot show a reader.
 
-**Attribution we did verify, from the ComCat page (verbatim):**
+**Attribution (verbatim from the ComCat page):**
 
 > Geological Survey, Earthquake Hazards Program, 2017, Advanced National Seismic System
 > (ANSS) Comprehensive Catalog of Earthquake Events and Products : Various,
 > https://doi.org/10.5066/F7MS3QZH
 
-**To resolve before use:** the **owner opens `https://www.usgs.gov/policies-and-notices` in a
-real browser**, reads the terms, and pastes the attribution text here verbatim. Until then,
-**ComCat data is not committed, not bundled, and not fetched at build time.** Until then FAULT
-has no event data, and says so rather than showing placeholders.
+**Credit line for the UI** (from the USGS crediting page's own template):
+
+> Earthquake catalog data courtesy of the U.S. Geological Survey
+
+Registered in the attribution list at §10.
+
+### What may be bundled, and what may not
+
+ComCat is not one agency's catalogue. It is a **merge of records contributed by many
+networks**, and the merged catalogue also references products — ShakeMap imagery, W-phase
+and PAGER products — that carry their own terms and may embed third-party material. The
+public-domain finding covers USGS information, not every byte a ComCat record points at.
+
+**Therefore: bundle event parameters only.**
+
+| Bundled | Not bundled |
+| --- | --- |
+| Event time | ShakeMap and PAGER images |
+| Epicentre latitude and longitude | Any product graphic or thumbnail |
+| Depth | Contributor network logos or map tiles |
+| Magnitude and magnitude type | Station metadata, waveform files |
+| Event ID (for citation) | Anything fetched from a `products/` URL |
+
+Bundling parameters rather than products is also what keeps the repository small enough to
+stay under the 5 MB ceiling, and it means the credit line in §10 is the full extent of what
+a downstream user has to reproduce.
+
+**Constraints this project must respect:**
+
+- **Credit is requested, so we give it**, in the app footer and in `README.md`. It costs
+  nothing and the terms ask for it.
+- **Redistribution is public domain**, but "public domain" covers the *data*, not our
+  presentation of it. Do not imply USGS endorses this sandbox.
+- **A contributing network's record is not USGS's own measurement.** Where a magnitude's
+  provenance matters, the UI shows the event ID and links the ComCat page rather than
+  claiming USGS measured it. Contributed magnitudes are also not homogeneous — `Mlv`,
+  `mb` and `Ms` are not comparable without care.
+- **No real-time claims.** ComCat can be queried for recent events, but this product ships
+  a **historical** subset and says so. A live feed would be a different product with its
+  own honesty problems (`PRODUCT.md` §4.2).
+
+**Related:** SRTM (§5) is distributed by USGS EROS and was blocked on the same unreadable
+policy pages. It stays `UNVERIFIED` until someone reads its own terms page; this entry does
+not clear it by analogy.
 
 ---
 
@@ -301,7 +351,9 @@ snippet as a licence.**
 > still contain voids".
 
 **To resolve:** fetch the USGS EROS page in a browser, or use Copernicus GLO-30 instead,
-which is already verified. **GLO-30 is the current plan; SRTM is a fallback.**
+which is already verified. **GLO-30 is the current plan; SRTM is a fallback.** The USGS
+crediting page read for ComCat (§3) does **not** clear this entry by analogy — SRTM's own
+terms have still never been read.
 
 ---
 
@@ -489,6 +541,38 @@ is a user-chosen scenario, never an observation** — recorded in
 **Reversed by:** CWC's licence being verified and a cited discharge series added, at which
 point observed discharge becomes an additional, clearly-labelled input — not a replacement for
 the level control.
+
+---
+
+## 10. Attribution strings to ship in the UI
+
+Every credit line the running app must display, in the words the source uses. These are
+**strings the product ships**, so they live here rather than in a component: a credit that
+only exists in a commit message is not an attribution. Rendered in the app footer and the
+about panel, in both English and Assamese, and mirrored in `README.md`.
+
+| Source | Credit line to display | Basis | Required? |
+| --- | --- | --- | --- |
+| **Copernicus DEM GLO-30** | `produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved` | Licence Article 6(b), §1 | **Yes** — mandatory for adapted use, and we resample and clamp |
+| **USGS ANSS ComCat** | `Earthquake catalog data courtesy of the U.S. Geological Survey` | USGS crediting page template, §3 | Requested, not required — we give it |
+| **Natural Earth** | `Made with Natural Earth` | §2 | Optional — we give it |
+| **Bird PB2002** | — | §4 | **Not shipped.** Nothing to credit. |
+| **NCS, IMD, ASDMA, CWC** | — | §6–§9 | **Linked and cited, never bundled.** Nothing to credit, but each must be linked where its subject matter appears |
+
+**Rules for this list:**
+
+1. **Use the source's own wording.** Paraphrasing a mandatory attribution voids it. Where the
+   licence gives a template, use the template.
+2. **Nothing enters this list that is not in a section above.** An attribution with no
+   `DATA.md` entry is a claim about a source nobody checked.
+3. **A credit is not an endorsement.** Displaying a USGS credit must not imply USGS
+   publishes, reviews or endorses this sandbox.
+4. **Keep them out of the scene.** Attributions live in the HUD footer and about panel. Text
+   over the terrain competes with the one thing the design system says may glow.
+5. **Bilingual.** Every line needs an Assamese rendering before phase 7 signs off
+   (`DECISIONS.md` §5). A transliterated credit is still a credit, but an unreviewed one.
+
+Adding a dataset means adding a row here in the same change, not a later one.
 
 ---
 

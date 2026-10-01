@@ -41,9 +41,12 @@ Fraunces, Instrument Sans, JetBrains Mono, and correct Assamese.
 - Attach the **mandatory** Article 6(b) "produced using Copernicus WorldDEM-30" attribution
   to every processed file
 - Fetch a quake subset for NE India and compile to `src/data/quakes.ts`
+- **ComCat is unblocked** — terms read by the owner 2026-10-01, public domain with credit
+  requested (`DATA.md` §3, `DECISIONS.md` §2). Bundle **event parameters only** (time,
+  lat, lon, depth, magnitude, id): no ShakeMap or PAGER imagery, nothing from a
+  `products/` URL
 - Commit `scripts/build-terrain.ts` and `scripts/build-quakes.ts` — fully reproducible
-- **Resolve USGS ComCat licence, or drop ComCat and use an alternative** (`DATA.md` §3,
-  `DECISIONS.md` §2 — blocked on the owner pasting the attribution text)
+- Credit lines from `DATA.md` §10 ship in the footer and about panel, in English and Assamese
 - **Decide the plate-boundary source: a clearly licensed dataset, or our own tracing from
   cited published sources.** PB2002 is not shipped either way (`DATA.md` §4,
   `DECISIONS.md` §6 — the choice lands in *this* phase, not phase 6)
@@ -101,13 +104,15 @@ can be mistaken for a flood forecast *or* for a reading of the river.
 - **"Earthquakes cannot be predicted" notice** — present, dismissable, re-encounterable
 - Shake is explicitly labelled an **illustration of ground motion**, never a specific event
 - "—" for any event with no depth or magnitude value
+- Each marker links its ComCat event ID, so a magnitude is traceable to the record it came
+  from rather than to this sandbox
 
 **Done when:** every rendered magnitude traces to a cited record, and no copy in the mode
 implies prediction.
 
-> **Blocked on `DECISIONS.md` §2.** Until the ComCat licence is resolved, FAULT has no event
-> data and shows an honest empty state. Build the timeline, markers and notice against a
-> fixture now; wire real data only once §2 clears.
+> **Data unblocked.** `DECISIONS.md` §2 cleared 2026-10-01 — ComCat terms read by the owner,
+> event parameters only. Build the timeline, markers and notice against a fixture now, and
+> wire the real compiled subset in as it lands from phase 2.
 
 ---
 
@@ -189,7 +194,7 @@ These apply in every phase, not just one:
 
 | Risk | Where it bites | Status |
 | --- | --- | --- |
-| USGS ComCat licence unverified | Phase 2, 5 | **Blocking** FAULT data — owner action, `DECISIONS.md` §2 |
+| USGS ComCat terms not yet transcribed verbatim | Phase 2, 5 | **Licence cleared 2026-10-01** — owner read the crediting page; public domain, credit requested. Bundle event parameters only. **Open:** paste the page text into `DATA.md` §3, `DECISIONS.md` §2 |
 | Bird PB2002 has no verifiable licence | Phase 2 | **Source choice moves to phase 2** — PB2002 not shipped, `DECISIONS.md` §6 |
 | CWC discharge data | — | **Settled: out of scope.** FLOW uses a user-chosen scenario, `DECISIONS.md` §3, §7 |
 | ASDMA not redistributable | — | **Settled: link only, never bundle.** No longer a phase-4 blocker, `DECISIONS.md` §4 |

@@ -85,9 +85,11 @@ That rule is enforced by ESLint, not just documented.
 
 Every dataset traces to a row in [`docs/DATA.md`](docs/DATA.md) with its source URL,
 retrieval date, and licence text quoted verbatim from the source. **Where a licence could
-not be verified, the entry says `UNVERIFIED` and the data is not shipped.** Currently
-verified: Copernicus DEM GLO-30 and Natural Earth. Several intended sources are not yet
-cleared for use — see that file before relying on anything.
+not be verified, the entry says `UNVERIFIED` and the data is not shipped.** Cleared for
+use: Copernicus DEM GLO-30, Natural Earth, and the USGS ANSS earthquake catalogue — event
+parameters only, credited as "Earthquake catalog data courtesy of the U.S. Geological
+Survey". Several intended sources are not yet cleared — see that file before relying on
+anything.
 
 Licence: [MIT](LICENSE).
 

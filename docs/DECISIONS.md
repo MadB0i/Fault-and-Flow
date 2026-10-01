@@ -13,7 +13,7 @@ below.
 | # | Decision | Date | Status |
 | --- | --- | --- | --- |
 | 1 | Terrain and deep-water contrast: keep values, document exception | 2026-10-01 | Settled, re-check in phase 7 |
-| 2 | USGS ComCat: `UNVERIFIED`, do not bundle | 2026-10-01 | Blocked, awaiting owner |
+| 2 | USGS ComCat: terms read by the owner; bundle event parameters only | 2026-10-01 | Settled, with a scope limit |
 | 3 | CWC discharge data: out of scope; FLOW uses user-controlled level | 2026-10-01 | Settled |
 | 4 | ASDMA: link only, never bundle | 2026-10-01 | Settled |
 | 5 | Assamese copy is DRAFT until owner review | 2026-10-01 | Open, blocks phase 7 |
@@ -43,19 +43,38 @@ compliance. **Reversed by:** re-running the contrast check against real 3D rende
 phase 7, when the actual scene is on screen — a judgement made from flat swatches may not
 survive contact with terrain, lighting and hillshade. See `DESIGN.md` §4.3.
 
-## 2. USGS ComCat licence — `UNVERIFIED`; do not bundle until resolved
+## 2. USGS ComCat — terms read by the owner; bundle event parameters, not products
 
-**Date 2026-10-01.** The USGS ANSS Comprehensive Catalog licence stays **`UNVERIFIED`** and
-**no USGS data is bundled** into this repository, committed or fetched at build time. The
-`usgs.gov/policies-and-notices` pages return an HTTP 202 JavaScript robot-check interstitial,
-so the terms have never actually been read, and a search-result snippet is not a source. The
-blocker is now explicitly **the owner pasting the attribution text from usgs.gov in a real
-browser** into `docs/DATA.md` §3; the attribution wording matters as much as the licence
-status, because it is what a downstream user must reproduce. A plausible-sounding
-"USGS content is public domain" claim would be exactly the fabrication `AGENTS.md` §6 exists
-to prevent, and would land in a public repo that anyone may build on. **Reversed by:** the
-verbatim terms being pasted from the official page. Until then FAULT has no event data and
-says so. See `docs/DATA.md` §3.
+**Date 2026-10-01 (original), same date (resolved).** The USGS ANSS Comprehensive Catalog
+licence was originally recorded **`UNVERIFIED`** and no USGS data was to be bundled. The
+blocker was mechanical: the `usgs.gov` policy pages return an HTTP 202 JavaScript robot-check
+interstitial to a plain HTTP client, so an agent could never read them, and a
+search-result snippet is not a source. The owner has now opened
+<https://www.usgs.gov/information-policies-and-instructions/crediting-usgs> in a real browser
+on **2026-10-01** and reported what it says: **most USGS information is public domain and may
+be used without restriction; USGS asks for credit; and some non-USGS images and graphics are
+used with permission.** That resolves the licence status to **`VERIFIED BY OWNER`** —
+deliberately a weaker label than `VERIFIED`, because what the repo holds is the owner's
+summary of a page rather than a transcription of it, and this file's own rule is *quote,
+never paraphrase*. Pasting the page's text verbatim into `docs/DATA.md` §3 remains the one
+outstanding piece of paperwork.
+
+**The decision itself: bundle event parameters, never products.** ComCat merges records from
+many contributing networks and its entries reference ShakeMap and PAGER products that carry
+their own terms and can embed third-party material, so a public-domain finding about USGS
+information does not travel to every byte a ComCat record points at. We therefore commit
+**time, epicentre latitude and longitude, depth, magnitude, and event ID** — and nothing
+else. No ShakeMap imagery, no product graphics, nothing fetched from a `products/` URL. The
+UI carries the credit line *"Earthquake catalog data courtesy of the U.S. Geological
+Survey"*, registered in `docs/DATA.md` §10, because the terms request credit and it costs us
+nothing. This clears the phase 2 earthquake-catalogue fetch and unblocks FAULT's real event
+data, which had been building against fixtures with no date to graduate on. **Reversed by:**
+the terms being found to restrict redistribution of the parameter fields, or a decision to
+ship product imagery once each product's own licence is read. See `docs/DATA.md` §3.
+
+**One boundary this decision does not move.** ComCat can be queried for recent events, and
+FAULT ships a *historical* subset. A live feed would be a different product with its own
+honesty problems (`PRODUCT.md` §4.2), and nothing here authorises one.
 
 ## 3. CWC discharge data — out of scope; FLOW uses a user-controlled river level
 
