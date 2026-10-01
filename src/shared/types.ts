@@ -28,7 +28,14 @@ export type Provenance =
 export interface TerrainSample {
   /** Metres above sea level, or null when unknown. Never a placeholder 0. */
   elevationM: number | null;
-  /** Metres, or null when unknown. */
+  /**
+   * Cubic metres per second at this location, or null when unknown.
+   *
+   * This is the water engine's **scenario-derived** flux — a consequence of the
+   * inflow the user set, not a reading of the river. It can never be
+   * `kind: 'measured'` provenance. Do not render it as an observation.
+   * See docs/DECISIONS.md sections 3 and 7.
+   */
   dischargeM3s: number | null;
   provenance: Provenance;
 }
@@ -64,16 +71,30 @@ export interface QuakeEvent {
 
 /** Parameters of the (illustrative) flood model. */
 export interface FlowParams {
-  /** Cubic metres per second at the inlet. */
-  dischargeM3s: number;
+  /**
+   * User-chosen scenario value in m3/s; NOT an observed discharge.
+   *
+   * Renamed from `dischargeM3s` because the old name implied an instrument
+   * reading. There is no gauge, no station and no observation behind this
+   * number — the user sets it, and the water engine responds. Any UI surface
+   * that renders it must label it as a scenario the user chose.
+   * See docs/DECISIONS.md sections 3 and 7.
+   */
+  scenarioInflowM3s: number;
   /** Manning's n. Chosen for legibility and documented in ARCHITECTURE.md. */
   manningN: number;
   /** Simulation steps per second, independent of frame rate. */
   stepsPerSecond: number;
 }
 
+/**
+ * Starting scenario. The inflow is an arbitrary starting point chosen for
+ * legibility, deliberately not tuned to match any real gauged event — see
+ * AGENTS.md section 6 on never standing a plausible-looking constant in for a
+ * measurement.
+ */
 export const DEFAULT_FLOW_PARAMS: FlowParams = {
-  dischargeM3s: 8000,
+  scenarioInflowM3s: 8000,
   manningN: 0.03,
   stepsPerSecond: 20,
 };

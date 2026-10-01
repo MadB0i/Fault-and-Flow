@@ -475,10 +475,16 @@ something this project claims to know. This is a scope reduction that makes FLOW
 more honest, and it defers the CWC research rather than abandoning it.
 
 **Consequence for the pipeline.** No CWC request is made, no CWC artefact is fetched, and no
-CWC figure appears anywhere in the UI. `FlowParams.dischargeM3s` in `src/shared/types.ts` is
-therefore not yet backed by an observation; it stays provisional until either CWC is verified
-or the parameter is renamed to describe the user-controlled level it actually is. **That
-rename is phase 4 work and is not done in phase 1.**
+CWC figure appears anywhere in the UI. `FlowParams.scenarioInflowM3s` in
+`src/shared/types.ts` carries that contract in its own name and doc comment: a user-chosen
+scenario value in m³/s, **not** an observed discharge. It was renamed from `dischargeM3s`,
+which implied an instrument reading, because a field name is documentation that ships. The
+related `TerrainSample.dischargeM3s` is a *scenario-derived* flux at a location and can never
+carry `measured` provenance.
+
+The same principle is generalised beyond CWC as a standing product rule — **every FLOW input
+is a user-chosen scenario, never an observation** — recorded in
+[`docs/DECISIONS.md` §7](DECISIONS.md).
 
 **Reversed by:** CWC's licence being verified and a cited discharge series added, at which
 point observed discharge becomes an additional, clearly-labelled input — not a replacement for
