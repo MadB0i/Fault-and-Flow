@@ -38,8 +38,9 @@ Three modes, all client-side. No backend, no accounts, no tracking.
   from the Himalaya along the Brahmaputra into Assam.
 - **FAULT** — a timelapse of recorded NE India earthquake history you can scrub through.
   Every marker is a real, cited event.
-- **FLOW** — a Brahmaputra flood and bank-erosion sandbox on real terrain. You move the
-  discharge and watch the channel respond.
+- **FLOW** — a Brahmaputra bank-erosion sandbox on real terrain. You set a river level or
+  an inflow scenario and watch the channel respond. The water is **not** observed hydrology —
+  every input is a value you chose.
 
 Interface languages: **English and Assamese**.
 
