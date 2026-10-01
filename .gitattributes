@@ -1,0 +1,21 @@
+# Normalise line endings in the repository, not just in the working tree.
+#
+# core.autocrlf was true on the machine that created this repo, so files were
+# committed as LF but checked out as CRLF on Windows. Prettier is configured with
+# endOfLine: "lf", so `prettier --check` failed on 19 files that had never been
+# edited - the drift was in the working tree, not in the content.
+#
+# `* text=auto eol=lf` lets git detect text vs binary itself, and pins the working
+# tree to LF on every platform so a Windows contributor and a Linux CI run see the
+# same bytes.
+* text=auto eol=lf
+
+# Generated or vendored assets that must stay byte-exact.
+*.png binary
+*.jpg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary
