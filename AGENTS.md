@@ -176,10 +176,15 @@ defect, not a shortcut.
 2. Earthquakes **cannot** be predicted. Never imply prediction, never use
    future-tense language about an upcoming earthquake.
 3. Flood visuals are **illustrative**, not modelled forecasts.
-4. Link official sources: ASDMA, National Center for Seismology, IMD.
+4. **Every FLOW input is a scenario the user set** — a level or an inflow. Never an
+   observation, never a gauge reading, never a forecast (`docs/DECISIONS.md` §7).
+5. Link official sources: ASDMA, National Center for Seismology, IMD.
 
-Never write UI copy that implies authority the project does not have. "Estimated
-discharge" is fine. "Expected flood level" is not.
+Never write UI copy that implies authority the project does not have. "Scenario inflow
+12,000 m³/s — a value you set" is fine, because it names itself as chosen. "Observed
+discharge at Dibrugarh: 41,200 m³/s" is not — we hold no observed discharge data at all,
+so any figure presented as one would be fabricated. "Expected flood level on 15 June" is
+not.
 
 ---
 
