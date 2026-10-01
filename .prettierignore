@@ -1,0 +1,10 @@
+dist
+coverage
+node_modules
+package-lock.json
+
+docs/screenshots
+
+# Font binaries are shipped as build artefacts from node_modules; never hand-edit.
+*.woff
+*.woff2
