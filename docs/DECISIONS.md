@@ -18,6 +18,11 @@ below.
 | 4 | ASDMA: link only, never bundle | 2026-10-01 | Settled |
 | 5 | Assamese copy is DRAFT until owner review | 2026-10-01 | Open, blocks phase 7 |
 | 6 | Bird PB2002: not shipped | 2026-10-01 | Blocked, decide in phase 2 |
+| 7 | FLOW inputs are user-chosen scenarios, not observations | 2026-10-01 | Settled |
+
+**On numbering.** Decision 3 is the narrower fact — CWC is out of scope. Decision 7 is the
+general rule that supersedes it: *no* FLOW input is an observation, whoever would have supplied
+it. Where 3 and 7 overlap, 7 governs.
 
 ---
 
@@ -110,6 +115,27 @@ for a cinematic, not a full global plate model — which is why this is a deferr
 not a blocked one. **Reversed by:** a verifiable licence for PB2002 itself. See
 `docs/DATA.md` §4.
 
+## 7. FLOW inputs are user-chosen scenarios, not observations
+
+**Date 2026-10-01.** **Every FLOW input is a scenario the user sets.** Not one is a
+measurement, an observation, or a forecast, and no future dataset may be wired in without
+this decision being revisited first. This generalises decision 3: rather than saying only
+"do not use CWC", it states the property that makes CWC unnecessary — if no input is an
+observation, there is nothing for an observation feed to be compared against, and the honest
+framing is available for free. A scenario needs no citation to be truthful, whereas a
+plausible gauge figure needs a real one we do not have, so this is the cheapest integrity
+available here. It also closes off the quiet failure mode in which a later contributor adds
+"just the current river level" as a convenience, breaking a rule that was never written down.
+The rule governs presentation as much as data: every scenario value is labelled as
+user-chosen wherever it appears, the FLOW UI carries no station names, gauge figures or
+dates, and any readout derived from a scenario inherits its label. This is also why
+`FlowParams.dischargeM3s` is now `scenarioInflowM3s` — the name shipped a claim the project
+could not support, and the type is where that claim would otherwise have lived permanently.
+**Reversed by:** a cited, licensed observational source being added to FLOW as an
+*additional* input alongside the scenario control, at which point the labelling rule extends
+to it. It may never replace the scenario control, because the scenario is what makes FLOW a
+sandbox rather than a readout. See `PRODUCT.md` §4.3 and `docs/DATA.md` §9.
+
 ---
 
 ## Superseded
@@ -122,6 +148,6 @@ not a blocked one. **Reversed by:** a verifiable licence for PB2002 itself. See
 | --- | --- |
 | What must an agent not change? | `AGENTS.md` |
 | Why are these decisions necessary at all? | `PRODUCT.md` §4, §6 |
-| Evidence behind decisions 1 | `DESIGN.md` §4.3 |
-| Evidence behind decisions 2–4, 6 | `docs/DATA.md` |
+| Evidence behind decision 1 | `DESIGN.md` §4.3 |
+| Evidence behind decisions 2–4, 6–7 | `docs/DATA.md` |
 | Which phase acts on each decision | `docs/ROADMAP.md` |
