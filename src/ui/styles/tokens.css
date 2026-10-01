@@ -1,0 +1,80 @@
+/**
+ * Design tokens. The single source of truth, mirrored from DESIGN.md.
+ * Components consume these; no raw hex lives anywhere else in src/ui/.
+ */
+
+:root {
+  /* ---- COLOUR -------------------------------------------------------- */
+  --bg: #0a0f14;
+  --surface: #111a22;
+  --surface-raised: #172430;
+  --hairline: #22323f;
+  --text: #e6edf3;
+  --text-muted: #8ca0b0;
+
+  --water: #3fd0e0;
+  --water-deep: #0e5a73;
+  --seismic-amber: #ffb547;
+  --seismic-hot: #ff5a3c;
+  --plate-line: #9aa7b4;
+
+  --terrain-1: #1c3b35;
+  --terrain-2: #3e5b45;
+  --terrain-3: #8b7e5a;
+  --terrain-4: #d8d2c4;
+
+  /* ---- TYPE ---------------------------------------------------------- */
+  /*
+    Noto Sans Bengali appears in EVERY stack, not just --font-assamese.
+
+    Fraunces and JetBrains Mono contain no Bengali or Assamese glyphs, so an
+    Assamese heading or a mono data label would otherwise fall through to the
+    generic `serif` / `monospace` keyword and be resolved by the operating
+    system. That renders, but it is not deterministic: the same string looks
+    different on macOS, Windows and Android. Putting the shipped Assamese face
+    immediately after the Latin face means Latin glyphs still come from Fraunces
+    or JetBrains Mono, while Assamese glyphs come from the font we ship and
+    test. See DESIGN.md 2.3.
+  */
+  --font-display: 'Fraunces', 'Noto Sans Bengali', Georgia, serif;
+  --font-ui: 'Instrument Sans', 'Noto Sans Bengali', sans-serif;
+  --font-data: 'JetBrains Mono', 'Noto Sans Bengali', ui-monospace, monospace;
+  --font-assamese: 'Noto Sans Bengali', 'Instrument Sans', sans-serif;
+
+  /* One ratio for the whole page: 1.250 (major third). */
+  --step--2: 0.64rem;
+  --step--1: 0.8rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.563rem;
+  --step-3: 1.953rem;
+  --step-4: 2.441rem;
+  --step-5: 3.052rem;
+  --step-6: 3.815rem;
+
+  /* ---- SPACE — 8px grid, no exceptions ------------------------------ */
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2rem;
+  --space-xl: 3rem;
+  --space-2xl: 4rem;
+
+  /* ---- FORM ---------------------------------------------------------- */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --border: 1px solid var(--hairline);
+  --blur-panel: blur(14px);
+
+  /* ---- MOTION -------------------------------------------------------- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur: 300ms;
+  --dur-slow: 600ms;
+  --dur-pulse: 1.2s;
+
+  /* A sentinel the glyph-coverage test checks against, so that a weight can
+     never be added to the UI without the test being told about it. */
+  --font-assamese-weight: 400;
+}

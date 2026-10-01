@@ -63,10 +63,15 @@ copied from there verbatim.
   --terrain-3: #8B7E5A;
   --terrain-4: #D8D2C4;
 
-  /* ---- TYPE ------------------------------------------------------------ */
-  --font-display: "Fraunces", Georgia, serif;              /* titles only */
+  /* ---- TYPE ------------------------------------------------------------
+     Noto Sans Bengali appears in EVERY stack, not only --font-assamese.
+     Fraunces and JetBrains Mono carry no Assamese glyphs, so without it an
+     Assamese heading would fall through to the generic `serif` keyword and be
+     resolved by the OS - which renders, but differently on every platform.
+     Latin glyphs still come from the Latin face; only Assamese falls through. */
+  --font-display: "Fraunces", "Noto Sans Bengali", Georgia, serif;
   --font-ui:      "Instrument Sans", "Noto Sans Bengali", sans-serif;
-  --font-data:    "JetBrains Mono", ui-monospace, monospace;
+  --font-data:    "JetBrains Mono", "Noto Sans Bengali", ui-monospace, monospace;
   --font-assamese:"Noto Sans Bengali", "Instrument Sans", sans-serif;
 
   /* One ratio for the whole page: 1.250 (major third). */
