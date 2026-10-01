@@ -20,6 +20,7 @@ trusted.
 - [x] `docs/ARCHITECTURE.md` — engine/UI split, typed API contract, data flow
 - [x] `docs/DATA.md` — sources researched, licences quoted or marked `UNVERIFIED`
 - [x] `docs/ROADMAP.md` — this file
+- [x] `docs/DECISIONS.md` — owner decisions of record, dated, each with a reversal condition
 - [x] Tooling: Vite + strict TS, ESLint flat config, Prettier, Tailwind, Vitest, Playwright
 - [x] `npm run verify` green
 - [x] Placeholder page proving the design system
@@ -41,8 +42,11 @@ Fraunces, Instrument Sans, JetBrains Mono, and correct Assamese.
   to every processed file
 - Fetch a quake subset for NE India and compile to `src/data/quakes.ts`
 - Commit `scripts/build-terrain.ts` and `scripts/build-quakes.ts` — fully reproducible
-- **Resolve USGS ComCat licence, or drop ComCat and use an alternative** (`DATA.md` §3)
-- **Do not use PB2002** until its licence is resolved (`DATA.md` §4)
+- **Resolve USGS ComCat licence, or drop ComCat and use an alternative** (`DATA.md` §3,
+  `DECISIONS.md` §2 — blocked on the owner pasting the attribution text)
+- **Decide the plate-boundary source: a clearly licensed dataset, or our own tracing from
+  cited published sources.** PB2002 is not shipped either way (`DATA.md` §4,
+  `DECISIONS.md` §6 — the choice lands in *this* phase, not phase 6)
 - Natural Earth coastline into `src/data/`
 
 **Done when:** `npm run run-pipeline` from a clean clone produces byte-identical output,
@@ -71,15 +75,18 @@ in Node without a browser.
 **Goal:** the memorable moment. Water that responds and a bank that visibly erodes.
 
 - Headless hydraulic step — `step(sim, params) → sim`, pure, deterministic
-- Discharge control; water spreads across the DEM
+- **Scenario inflow control** — the user sets a level or inflow; water spreads across the DEM.
+  Not a discharge control, and not wired to any gauge (`DECISIONS.md` §3, §7)
 - Erosion at flow/bank contact; channel migration over time
 - Fixed-timestep accumulator so behaviour is frame-rate independent
 - Full state matrix: loading, ready, partial, error, offline, WebGL-absent, unknown
-- **Every eroded cell labelled "modelled". Every unknown discharge is "—".** (`PRODUCT.md` §4.3)
+- **Every eroded cell labelled "modelled". Every input labelled "scenario" — user-chosen, not
+  measured.** (`PRODUCT.md` §4.3)
 - Persistent "illustrative model, not a forecast" framing in FLOW
+- No station names, no gauge figures and no dates anywhere in the FLOW UI
 
 **Done when:** the simulation is covered by unit tests running headless, and no screen
-can be mistaken for a flood forecast.
+can be mistaken for a flood forecast *or* for a reading of the river.
 
 ---
 
@@ -98,6 +105,10 @@ can be mistaken for a flood forecast.
 **Done when:** every rendered magnitude traces to a cited record, and no copy in the mode
 implies prediction.
 
+> **Blocked on `DECISIONS.md` §2.** Until the ComCat licence is resolved, FAULT has no event
+> data and shows an honest empty state. Build the timeline, markers and notice against a
+> fixture now; wire real data only once §2 clears.
+
 ---
 
 ## Phase 6 — Plates opener
@@ -107,8 +118,9 @@ implies prediction.
 - India–Eurasia collision from cited convergence rates
 - Camera flies down from the Himalaya along the Brahmaputra into the sandbox, ~30–45s
 - Skippable at any point; replays on demand
-- **Blocked on PB2002 licence resolution** (`DATA.md` §4). Until then this phase can only
-  use plate geometry from a verified source, or describe the collision without boundaries.
+- **Depends on the plate-boundary source chosen in phase 2** (`DECISIONS.md` §6 — PB2002 is
+  not shipped, and the choice between a licensed dataset and our own tracing lands in phase 2).
+  This phase consumes that decision; it does not make it.
 - `prefers-reduced-motion` reduces the flight to a cut
 
 **Done when:** a first-time viewer understands *why* the landscape exists within 45 seconds,
@@ -121,15 +133,22 @@ and no unsourced plate geometry ships.
 **Goal:** every user, both languages, nothing broken.
 
 - Complete English and Assamese — no English-only string in an Assamese session
+- **Owner (native speaker) reviews the Assamese copy and clears the DRAFT markers** — this is
+  a gate, not a polish item (`DECISIONS.md` §5). Glyph coverage is already proven; whether the
+  words are *right* is not
 - Assamese verified visually, not just by codepoint test
 - Full keyboard operability; focus visible everywhere; no traps
 - axe scan clean on all three modes
 - 390px and 1440px verified by looking at pixels
 - Every state designed: empty, loading, partial, error, offline, reduced-motion
 - Copy pass against `PRODUCT.md` §6 — the honesty criteria first, polish second
+- **Re-check the terrain/deep-water contrast decision against real renders here**
+  (`DECISIONS.md` §1, `DESIGN.md` §4.3) — a judgement made from flat swatches may not hold
+  with hillshade and slope shading applied
 
-**Done when:** the `PRODUCT.md` §6 checklist passes with real evidence, and a non-specialist
-looking at a screenshot cannot mistake this for an official product.
+**Done when:** the `PRODUCT.md` §6 checklist passes with real evidence, a non-specialist
+looking at a screenshot cannot mistake this for an official product *or* for a reading of the
+river, and the Assamese DRAFT markers are cleared.
 
 ---
 
@@ -163,14 +182,17 @@ These apply in every phase, not just one:
 | No raw hex, no off-grid spacing | `AGENTS.md` §8 |
 | Recompute contrast after touching a colour | `DESIGN.md` §4 |
 | Every string in English and Assamese | `AGENTS.md` §11 |
+| Check `docs/DECISIONS.md` before starting a phase — it records settled calls | `docs/DECISIONS.md` |
+| Every FLOW input is a user-chosen scenario, never an observation | `DECISIONS.md` §3, §7 |
 
 ## Open risks carried forward
 
 | Risk | Where it bites | Status |
 | --- | --- | --- |
-| USGS ComCat licence unverified | Phase 2, 5 | **Blocking** for FAULT data |
-| Bird PB2002 licence unverified | Phase 6 | **Blocking** for plate geometry |
-| CWC discharge licence unresearched | Phase 4 | Open — FLOW shows no discharge data yet |
-| ASDMA policy pages unreadable by fetch | Phase 4 | Needs a human with a browser |
-| Two palette pairs fail 3:1 | `DESIGN.md` §4.3 | Proposed, awaiting a decision |
+| USGS ComCat licence unverified | Phase 2, 5 | **Blocking** FAULT data — owner action, `DECISIONS.md` §2 |
+| Bird PB2002 has no verifiable licence | Phase 2 | **Source choice moves to phase 2** — PB2002 not shipped, `DECISIONS.md` §6 |
+| CWC discharge data | — | **Settled: out of scope.** FLOW uses a user-chosen scenario, `DECISIONS.md` §3, §7 |
+| ASDMA not redistributable | — | **Settled: link only, never bundle.** No longer a phase-4 blocker, `DECISIONS.md` §4 |
+| Two palette pairs below 3:1 | Phase 7 | **Settled as a documented exception**, re-checked against real renders, `DECISIONS.md` §1 |
+| Assamese copy unreviewed | Phase 7 | **Open** — owner native-speaker review required, `DECISIONS.md` §5 |
 | GLO-30 is a DSM, not a DTM | Phase 3 | Document limitation; affects slope/flow math |
