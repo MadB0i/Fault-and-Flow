@@ -32,7 +32,13 @@ export default function LangToggle() {
           return (
             <label
               key={code}
-              className="flex min-h-[32px] cursor-pointer items-center gap-[var(--space-2xs)] rounded-[var(--radius-sm)] px-[var(--space-xs)] text-[length:var(--step--1)] transition-colors duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color:var(--surface-raised)] has-[:focus-visible]:bg-[color:var(--surface-raised)]"
+              // min-h-[44px]: the radio glyph itself is 14px, but the label is
+              // what the user actually clicks, so the LABEL is the target and
+              // it must clear WCAG 2.2 SC 2.5.8 (and our own DESIGN.md 6).
+              // Only background-color animates - not Tailwind's blanket
+              // transition-colors, which would also transition fill, stroke and
+              // gradient custom properties we never change.
+              className="flex min-h-[44px] cursor-pointer items-center gap-[var(--space-2xs)] rounded-[var(--radius-sm)] px-[var(--space-xs)] text-[length:var(--step--1)] transition-[background-color] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color:var(--surface-raised)] has-[:focus-visible]:bg-[color:var(--surface-raised)]"
             >
               <input
                 type="radio"

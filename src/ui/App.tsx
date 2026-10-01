@@ -135,7 +135,9 @@ export default function App() {
             role="note"
           >
             <Info
-              className="mt-[2px] shrink-0 text-[color:var(--seismic-amber)]"
+              // Optical alignment with the first line's cap height, using a
+              // space token rather than a raw 2px nudge.
+              className="mt-[var(--space-2xs)] shrink-0 text-[color:var(--seismic-amber)]"
               size={16}
               strokeWidth={1.5}
               aria-hidden="true"
