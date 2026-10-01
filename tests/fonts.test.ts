@@ -16,7 +16,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 import { codePointsInFontFile, codePointsInString } from './helpers/woff2.js';
-import { ASSAMESE_STRINGS } from '@shared/i18n/strings.js';
+import {
+  ASSAMESE_STRINGS,
+  ASSAMESE_COPY_STATUS,
+} from '@shared/i18n/strings.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fontRoot = resolve(here, '../node_modules/@fontsource/noto-sans-bengali/files');
@@ -153,6 +156,27 @@ describe('Noto Sans Bengali — shipped font files', () => {
     // A handful of unassigned codepoints in the block is normal for a font;
     // a wholesale failure would indicate a broken reader.
     expect(gaps.length).toBeLessThan(40);
+  });
+});
+
+describe('Assamese copy review status', () => {
+  it('is still marked DRAFT, pending native-speaker review', () => {
+    // docs/DECISIONS.md section 5, 2026-10-01: glyph coverage is verified, the
+    // words are not. This assertion exists so that dropping the marker - and
+    // with it the signal that the copy is unreviewed - fails a test rather
+    // than passing silently.
+    expect(ASSAMESE_COPY_STATUS).toBe('DRAFT');
+  });
+
+  it('keeps the DRAFT marker in the source file itself', () => {
+    // The exported constant is convenient; the comment is what a human reads
+    // before editing a string. Losing either is a regression.
+    const source = readFileSync(
+      resolve(here, '../src/shared/i18n/strings.ts'),
+      'utf8',
+    );
+    expect(source).toContain('DRAFT');
+    expect(source).toContain('DECISIONS.md');
   });
 });
 

@@ -36,14 +36,20 @@ labels:
 | --- | --- | --- | --- |
 | **Copernicus DEM GLO-30** | Terrain, all modes | **VERIFIED** | Yes, with mandatory attribution |
 | **Natural Earth** | Coastline, basemap fallback | **VERIFIED** (public domain) | Yes |
-| **USGS ANSS ComCat** | FAULT earthquake history | **UNVERIFIED** | Not yet — confirm first |
-| **Bird PB2002** plate boundaries | PLATES mode | **UNVERIFIED** | **No** — no licence found anywhere |
+| **USGS ANSS ComCat** | FAULT earthquake history | **UNVERIFIED** | **No** — do not bundle (DECISIONS §2) |
+| **Bird PB2002** plate boundaries | PLATES mode | **UNVERIFIED** | **No** — no licence found anywhere (DECISIONS §6) |
 | **SRTM** | Terrain alternative | **UNVERIFIED** | Not yet |
 | **NCS (seismo.gov.in)** | Indian earthquake authority | **RESTRICTIVE** | Link and cite only |
 | **IMD** | Weather / hydrology | No licence asserted | Link only |
+| **ASDMA** | Flood authority, Assam | **UNVERIFIED** | **Link only — never bundle** (DECISIONS §4) |
+| **CWC** discharge / river stage | FLOW | Out of scope | Not used — FLOW uses a user-controlled level (DECISIONS §3) |
 
 **Nothing from this table is committed to git in Phase 1.** These are research findings and
 a plan, recorded now so the data pipeline can be built against verified terms later.
+
+Decisions of record that govern this table live in [`docs/DECISIONS.md`](DECISIONS.md) —
+notably §2 (ComCat), §3 (CWC), §4 (ASDMA) and §6 (PB2002). Where this file and
+`DECISIONS.md` disagree, `DECISIONS.md` is the newer word.
 
 ---
 
@@ -166,9 +172,12 @@ higher-stakes dataset's licence is unresolved.
 
 ---
 
-## 3. USGS ANSS Comprehensive Earthquake Catalog (ComCat) — **UNVERIFIED**
+## 3. USGS ANSS Comprehensive Earthquake Catalog (ComCat) — **UNVERIFIED — DO NOT BUNDLE**
 
 Intended source for FAULT mode's earthquake history.
+
+> **Decision of record:** [`docs/DECISIONS.md` §2](DECISIONS.md), 2026-10-01. No USGS data is
+> bundled, committed, or fetched at build time until the licence is resolved.
 
 | Field | Value |
 | --- | --- |
@@ -193,15 +202,21 @@ snippets as verified**.
 > (ANSS) Comprehensive Catalog of Earthquake Events and Products : Various,
 > https://doi.org/10.5066/F7MS3QZH
 
-**To resolve before use:** open `https://www.usgs.gov/policies-and-notices` in a real
-browser, read the terms, and quote them here. Until then, **ComCat data is not committed
-and not bundled.**
+**To resolve before use:** the **owner opens `https://www.usgs.gov/policies-and-notices` in a
+real browser**, reads the terms, and pastes the attribution text here verbatim. Until then,
+**ComCat data is not committed, not bundled, and not fetched at build time.** Until then FAULT
+has no event data, and says so rather than showing placeholders.
 
 ---
 
-## 4. Bird (2003) PB2002 plate boundaries — **UNVERIFIED — DO NOT SHIP**
+## 4. Bird (2003) PB2002 plate boundaries — **UNVERIFIED — NOT SHIPPED**
 
 Intended source for PLATES mode's boundary geometry.
+
+> **Decision of record:** [`docs/DECISIONS.md` §6](DECISIONS.md), 2026-10-01. PB2002 files are
+> not shipped and PLATES must not depend on them. The replacement source — a licence that can
+> be quoted verbatim, or our own tracing from cited published sources — is **decided in
+> phase 2**.
 
 | Field | Value |
 | --- | --- |
@@ -239,6 +254,16 @@ licence statement either.
 
 **To resolve:** contact P. Bird directly, or read the data-availability statement in the
 AGU article. Until then **PB2002 files stay out of this repo entirely.**
+
+**The phase 2 choice.** Two acceptable paths (`DECISIONS.md` §6):
+
+1. **A clearly licensed source** whose terms can be quoted verbatim in this file, or
+2. **Our own tracing** of the India–Eurasia boundary from cited published sources, with every
+   input cited.
+
+Path 2 is viable because PLATES needs only that one boundary drawn as a line for a cinematic,
+not a full global plate model — which is why this is a deferred decision rather than a blocked
+one.
 
 ---
 
@@ -386,9 +411,13 @@ Precipitation Forecast; and hydrology and forecasting SOPs.
 
 ---
 
-## 8. ASDMA — Assam State Disaster Management Authority — **UNVERIFIED**
+## 8. ASDMA — Assam State Disaster Management Authority — **UNVERIFIED — link only, never bundle**
 
 The most locally relevant authority, and the one we most want to cite properly.
+
+> **Decision of record:** [`docs/DECISIONS.md` §4](DECISIONS.md), 2026-10-01. ASDMA is linked
+> and cited; no ASDMA map, inundation layer, report or document is redistributed through this
+> repository.
 
 | Field | Value |
 | --- | --- |
@@ -419,23 +448,41 @@ general public use only" or "not for legal use" and **found nothing.** Only
 to what we expected but is not the "maps are for general public use only, not for legal use"
 language. Writing that as an ASDMA quote would be fabrication.
 
-**To resolve:** open the `/policy/disclaimer` page in a real browser. A human with a browser
-can read what a scripted fetch could not.
+**Consequence for this project.** **Link and cite; never bundle.** No redistribution
+permission exists in any retrievable text, and the resource pages return 200 with empty
+bodies, so there is nothing to quote and nothing to rely on. For this project's audience the
+cost of not bundling is low and the cost of bundling is a legal one: students who need real
+warnings are better served by a link to ASDMA than by a cached copy with unknown terms.
+
+**To resolve:** explicit redistribution permission in writing from ASDMA, quoted verbatim
+here. A browser session may also read the empty `/policy/disclaimer` page.
 
 ---
 
-## 9. Discharges and river data — **not yet researched**
+## 9. Discharges and river data (CWC) — **out of scope; FLOW uses a user-controlled level**
 
-FLOW mode needs Brahmaputra discharge and river-stage observations. **No source has been
-researched or verified yet.** Likely candidates to investigate:
+> **Decision of record:** [`docs/DECISIONS.md` §3](DECISIONS.md), 2026-10-01. CWC discharge
+> and river-stage data is **out of scope for now**.
 
-- **Central Water Commission (CWC)** — the actual authority for Brahmaputra river-stage data
-  and flood warnings. Highest priority.
-- **ASDMA** flood reports and inundation mapping, once the repository is reachable.
+FLOW is driven by a **user-controlled river level**, not by observed or modelled discharge.
 
-**Until a source is verified and a row is added to this file, FLOW mode displays no
-discharge data at all.** Per `AGENTS.md`, an unknown value renders as "—" — it does not
-render as an invented discharge figure.
+**Why.** CWC is the correct authority for Brahmaputra river-stage data and flood warnings —
+IMD is only advisory input to it. But CWC's licence has never been verified, and a
+plausible-looking discharge figure would be exactly the fabrication `AGENTS.md` §6 and
+`PRODUCT.md` §4 forbid. A user-chosen level is a **control input, not a measurement**, so it
+can be labelled correctly for free: where the water sits is something the user set, not
+something this project claims to know. This is a scope reduction that makes FLOW smaller and
+more honest, and it defers the CWC research rather than abandoning it.
+
+**Consequence for the pipeline.** No CWC request is made, no CWC artefact is fetched, and no
+CWC figure appears anywhere in the UI. `FlowParams.dischargeM3s` in `src/shared/types.ts` is
+therefore not yet backed by an observation; it stays provisional until either CWC is verified
+or the parameter is renamed to describe the user-controlled level it actually is. **That
+rename is phase 4 work and is not done in phase 1.**
+
+**Reversed by:** CWC's licence being verified and a cited discharge series added, at which
+point observed discharge becomes an additional, clearly-labelled input — not a replacement for
+the level control.
 
 ---
 
@@ -453,3 +500,6 @@ render as an invented discharge figure.
    stated otherwise. This already burned us once with PB2002 (§4).
 6. **Re-verify before every release.** Terms change. A `RETRIEVED` date older than a year
    is stale and flagged as such.
+7. **Record the decision, not just the finding.** When a dataset's status is settled rather
+   than merely observed, add an entry to [`docs/DECISIONS.md`](DECISIONS.md) and reference it
+   from this file. A licence finding with no decision attached gets re-litigated.

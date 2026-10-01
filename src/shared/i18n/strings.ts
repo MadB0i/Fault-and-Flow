@@ -6,6 +6,23 @@
  * to English. Per DESIGN.md section 2.3, every Assamese string must render in
  * Noto Sans Bengali -- tests/fonts.test.ts parses the shipped font binary and
  * asserts coverage of every codepoint below.
+ *
+ * ## The Assamese block below is DRAFT
+ *
+ * @see ../../docs/DECISIONS.md section 5 -- 2026-10-01
+ *
+ * All Assamese copy is an unreviewed first draft written from standard
+ * orthography by a non-native speaker. It has been verified for GLYPH COVERAGE
+ * ONLY -- that the shipped font contains ৰ (U+09F0), ৱ (U+09F1) and every other
+ * codepoint used. Coverage proves the characters render; it says nothing about
+ * whether the words are right.
+ *
+ * DO NOT ship this as reviewed copy. The owner, a native speaker, reviews it
+ * before phase 7 (docs/ROADMAP.md). Until then the English below is
+ * authoritative and the Assamese is not a translation of record.
+ *
+ * When a string is reviewed, strike the DRAFT marker on that line rather than
+ * deleting this notice, so the remaining unreviewed strings stay visible.
  */
 
 import type { Locale, Mode } from '../types.js';
@@ -89,39 +106,59 @@ export const EN: Strings = {
  * Assamese. Sourced from the official Assamese orthography; every string here
  * is rendered in Noto Sans Bengali and its glyph coverage is asserted in
  * tests/fonts.test.ts. `languageAssamese` uses the U+09F0 letter ৰ in আৰু.
+ *
+ * DRAFT -- every string below is unreviewed. See docs/DECISIONS.md section 5.
+ * Delete this marker only when the owner has reviewed the whole block.
  */
 export const AS: Strings = {
-  title: 'ফল্ট আৰু ফ্লো',
-  tagline: 'এখন টেটোচে ঠেলা দিয়ে, সেই নদী সঙ্গে দিয়ে।',
+  title: 'ফল্ট আৰু ফ্লো', // DRAFT
+  tagline: 'এখন টেটোচে ঠেলা দিয়ে, সেই নদী সঙ্গে দিয়ে।', // DRAFT
 
-  wordmark: 'ফল্ট আৰু ফ্লো',
+  wordmark: 'ফল্ট আৰু ফ্লো', // DRAFT
 
-  modeFlow: 'বান',
-  modeFault: 'ভূমিকম্প',
-  modePlates: 'টেবল',
+  modeFlow: 'বান', // DRAFT
+  modeFault: 'ভূমিকম্প', // DRAFT
+  modePlates: 'টেবল', // DRAFT
 
-  modeRailLabel: 'বালিৰ বোক্সৰ ধৰন',
-  modeUnavailable: 'এতিয়ালৈ তৈয়া হোৱা নহয়',
+  modeRailLabel: 'বালিৰ বোক্সৰ ধৰন', // DRAFT
+  modeUnavailable: 'এতিয়ালৈ তৈয়া হোৱা নহয়', // DRAFT
 
-  canvasEmptyTitle: 'এই খাতৰ ইয়াত দেখা যাব',
+  canvasEmptyTitle: 'এই খাতৰ ইয়াত দেখা যাব', // DRAFT
   canvasEmptyBody:
+    // DRAFT
     'তিনিটা মাপৰ দৃশ্য তৃতীয় পৰ্যায়ত আহব। এই পৃষ্ঠাটো কেৱল আমৰ নকশাপত্ৰ পৰীক্ষা ' +
     'কৰিবলৈ বনানো হৈছে — আখৰ, ৰং, ভাষা বদলেৰা আৰু পেনেলৰ বিন্যাস।',
 
-  languageToggleLabel: 'ভাষা',
-  languageEnglish: 'ইংৰাজী',
-  languageAssamese: 'অসমীয়া',
+  languageToggleLabel: 'ভাষা', // DRAFT
+  languageEnglish: 'ইংৰাজী', // DRAFT
+  languageAssamese: 'অসমীয়া', // DRAFT
 
   disclaimerShort:
+    // DRAFT
     'এখন শিক্ষামূলক বালিৰ বোক্স। ইয়া কোনো পূৰ্বাভাস বা বিপদ মানচিত্ৰ নহয়।',
   earthquakesCannotBePredicted:
+    // DRAFT
     'ভূমিকম্প আগমন কৰিব নোৱাৰা যায়। কোনেও কাৰিও পুৱা নাই কোন সময়ত বা কোথাত ' +
     'পৰৱৰ্তী ভূমিকম্প হ’ব।',
 
-  phaseLabel: 'প্ৰথম পৰ্যায়, আটাৰ পৰা প্ৰথম',
+  phaseLabel: 'প্ৰথম পৰ্যায়, আটাৰ পৰা প্ৰথম', // DRAFT
   phaseBody:
+    // DRAFT
     'কেৱল নকশাপত্ৰ আৰু পুৱা-সংৰক্ষণ। কোনো নকশা, তিনিটা-মাপৰ দৃশ্য বা তথ্য নহয়।',
 };
+
+/**
+ * Review status of the Assamese copy. `DRAFT` means no native-speaker review
+ * has happened; nothing marked DRAFT may ship as final copy.
+ *
+ * Surfaced here rather than only in a comment so that a test or an about
+ * screen can read it, and so deleting the comment block above cannot quietly
+ * drop the signal.
+ *
+ * @see ../../docs/DECISIONS.md section 5
+ */
+export const ASSAMESE_COPY_STATUS = 'DRAFT' as const;
+export type AssameseCopyStatus = typeof ASSAMESE_COPY_STATUS;
 
 /**
  * Every Assamese string, for the glyph-coverage test to walk.
