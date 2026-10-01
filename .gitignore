@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+dist-ssr/
+*.local
+build/
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.nightly/
+
+# Raw data — large, reproducible, never committed. See docs/DATA.md
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed data: only small, committed files are tracked. See docs/DATA.md
+data/processed/*
+!data/processed/.gitkeep
+# Anything in data/processed over 5 MB must not be committed (see AGENTS.md)
+data/processed/**/*
+!data/processed/.gitkeep
+!data/processed/README.md
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vite / TS
+.vite/
+*.tsbuildinfo
+
+# Editors' caches
+.cache/
+.parcel-cache/
+.eslintcache
