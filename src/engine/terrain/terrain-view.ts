@@ -152,7 +152,14 @@ export type WaterLayerState = {
   readonly simHeight: number;
 };
 
-/** Provisional sim width; the bench in the tune-up commit sets the final default. */
+/**
+ * Sim grid width. Benched on this machine's software renderer: running fps
+ * is 3.6 at width 256 and 3.2 at 1024, so size is not the bottleneck here —
+ * fixed rasterization cost is. 512 is the largest grid with negligible
+ * marginal cost and modest memory (~10 MB on the overview) that still
+ * resolves the channel (inflow 90 m, outlet 7 m on the real DEM). Re-bench
+ * on real hardware before raising it; `?sim=` overrides it for measurement.
+ */
 export const DEFAULT_SIM_WIDTH = 512;
 const MIN_SIM_WIDTH = 64;
 const MAX_SIM_WIDTH = 1024;
