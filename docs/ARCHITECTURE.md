@@ -159,11 +159,35 @@ Three distinct paths, deliberately kept separate:
 1. **Static import (small data).** Earthquake catalogue subsets and terrain metadata are
    compiled into `src/data/*.ts` at build time. No fetch, no loading state, no failure
    mode. Chosen wherever the artefact is small enough.
-2. **Runtime fetch (large data).** Terrain heightfields exceed what should be in the
-   bundle. They load via `fetch` from `/public` with progress reported through the API.
-   Handled by the loading state in §5.
+2. **Runtime fetch (large data).** The committed terrain heightfields are fetched at
+   runtime from `/public` with progress reported through the API, handled by the loading
+   state in §5.
 3. **Procedural (no data at all).** Synthetic shake illustration, and any decorative
    motion. **Must be visibly synthetic** — see `AGENTS.md` §6.
+
+### Decoding terrain in the browser, and why the decode options are load-bearing
+
+Terrain PNGs are **Terrain-RGB**: a 16-bit elevation packed across R, G, B. That is a
+_measurement_ encoding, not a picture, which changes how the browser may touch it.
+
+> **Decode with `createImageBitmap` using `premultiplyAlpha: 'none'` and
+> `colorSpaceConversion: 'none'`.** Both are required, and neither is a performance tweak.
+>
+> - Default alpha handling **premultiplies RGB by alpha**. Terrain files are written
+>   colour-type 2 with no alpha precisely so this cannot bite — but the option is set
+>   explicitly rather than left to a default that would one day be unsafe.
+> - Default colour management **transforms values** through a colour profile. Elevations
+>   are not colours, and a transform would shift every one.
+
+The failure mode is what makes this worth writing down: a mis-decoded heightfield still
+_looks_ like terrain. It is not obviously wrong, it is wrong.
+
+The headless decoder in `src/engine/terrain/` exists for the same reason. It is pure
+TypeScript with no DOM, so the values the tests assert on come from the same arithmetic the
+browser will use, and a pipeline fault surfaces in `npm test` rather than on screen. The
+decode path is byte-based and identical in both environments: `decodePng` parses the
+container, `decodeTerrainRgba` unpacks elevations and marks no-data as `NaN` with an
+explicit mask.
 
 ### The honesty boundary in the data layer
 

@@ -10,15 +10,16 @@ This file records decisions, not research. The evidence behind each one — lice
 computed ratios, HTTP responses — lives in `docs/DATA.md` and `DESIGN.md`, cross-referenced
 below.
 
-| #   | Decision                                                           | Date       | Status                       |
-| --- | ------------------------------------------------------------------ | ---------- | ---------------------------- |
-| 1   | Terrain and deep-water contrast: keep values, document exception   | 2026-10-01 | Settled, re-check in phase 7 |
-| 2   | USGS ComCat: terms read by the owner; bundle event parameters only | 2026-10-01 | Settled, with a scope limit  |
-| 3   | CWC discharge data: out of scope; FLOW uses user-controlled level  | 2026-10-01 | Settled                      |
-| 4   | ASDMA: link only, never bundle                                     | 2026-10-01 | Settled                      |
-| 5   | Assamese copy is DRAFT until owner review                          | 2026-10-01 | Open, blocks phase 7         |
-| 6   | Bird PB2002: not shipped                                           | 2026-10-01 | Blocked, decide in phase 2   |
-| 7   | FLOW inputs are user-chosen scenarios, not observations            | 2026-10-01 | Settled                      |
+| #   | Decision                                                                      | Date       | Status                                                    |
+| --- | ----------------------------------------------------------------------------- | ---------- | --------------------------------------------------------- |
+| 1   | Terrain and deep-water contrast: keep values, document exception              | 2026-10-01 | Settled, re-check in phase 7                              |
+| 2   | USGS ComCat: terms read by the owner; bundle event parameters only            | 2026-10-01 | Settled, with a scope limit                               |
+| 3   | CWC discharge data: out of scope; FLOW uses user-controlled level             | 2026-10-01 | Settled                                                   |
+| 4   | ASDMA: link only, never bundle                                                | 2026-10-01 | Settled                                                   |
+| 5   | Assamese copy is DRAFT until owner review                                     | 2026-10-01 | Open, blocks phase 7                                      |
+| 6   | Bird PB2002: not shipped                                                      | 2026-10-01 | Blocked, decide in phase 2                                |
+| 7   | FLOW inputs are user-chosen scenarios, not observations                       | 2026-10-01 | Settled                                                   |
+| 8   | DEM: Copernicus GLO-30; three areas as Terrain-RGB, overview at a 0.15 m step | 2026-10-01 | Settled; re-check if a verified bare-earth source appears |
 
 **On numbering.** Decision 3 is the narrower fact — CWC is out of scope. Decision 7 is the
 general rule that supersedes it: _no_ FLOW input is an observation, whoever would have supplied
@@ -157,6 +158,53 @@ sandbox rather than a readout. See `PRODUCT.md` §4.3 and `docs/DATA.md` §9.
 
 ---
 
+## 8. DEM — Copernicus GLO-30; three areas of Terrain-RGB, and an explicit vertical step
+
+**Date 2026-10-01.** Terrain comes from **Copernicus DEM GLO-30 Public**, fetched from the
+anonymous AWS Open Data mirror, and is committed as **Terrain-RGB PNG plus a JSON sidecar**
+for three areas: `assam-overview`, `majuli`, `sadiya-dibrugarh`. The rejected alternatives
+and the reasoning are in `docs/DATA.md` §11; the limitations that constrain the product are
+in §12.
+
+Four decisions inside that are worth stating separately, because in each case the obvious
+implementation is wrong.
+
+**The overview area is encoded at a 0.15 m vertical step, not 0.1 m.** 16-bit Terrain-RGB
+holds 65,535 codes, so at 0.1 m the maximum span is 6,554 m. The overview's bbox includes
+the Mishmi Hills to 7,446.5 m — a 7,447 m span — and therefore _cannot_ be encoded at 0.1 m
+at all. At 0.15 m the budget is 9,830 m and it fits. This is not a shortcut: one step is
+0.0003 of that area's 530 m pixel and an order of magnitude below the source's own 1.472 m
+vertical error, so the coarsening gives away nothing. The step is per-area and recorded in
+each sidecar, because it follows from the data's range rather than from the format.
+
+**No-data is code 0 and is declared, never inferred.** The source sentinel −32767 exists
+only in the tile's sidecar XML, not in any GeoTIFF tag, so a reader that trusts the GeoTIFF
+alone reads −32.7 km as an elevation. Committed files reserve code 0 and record
+`noDataPixels` per area; the decoder returns `NaN` plus an explicit mask, and
+`encodeElevation` throws on an out-of-range value rather than wrapping.
+
+**The source tile path is asserted, not trusted.** GLO-30 and GLO-90 differ only in pixel
+spacing and live in adjacent buckets, and the GLO-30 tiles are named `COG_10_*` because
+that number is arcseconds — so a glob for `_30_` silently returns terrain three times too
+coarse, with no error anywhere. `assertSpacing` throws on any spacing that is not
+1/3600°, names the mistake when it recognises it, and has a regression test.
+
+**Pixel size is recorded as a pair, never a number.** GLO-30 is a 1 arcsecond angular grid,
+so at Assam's latitude a pixel is ~31 × 28 m rather than 30 × 30. Any sidecar that recorded
+a single "30 m" would be quietly wrong about every derived area and slope.
+
+**What this does not establish.** The elevation checks are **self-consistency**, not accuracy
+validation: a monotonic fall from Sadiya to Dhubri can catch a pipeline fault but cannot
+detect an error in Copernicus itself. Two loose plausibility checks against published figures
+are in place, one of them resting on a tertiary source. Proper validation needs benchmark
+levelling data from the Survey of India or GSI, which we do not hold. Recorded as an open
+gap in `docs/DATA.md` §13 and `docs/ROADMAP.md`. **Reversed or extended by:** a verified
+bare-earth (DTM) source for NE India, which would remove the surface-model limitation that
+most constrains FLOW; or benchmark levelling data, which would turn the plausibility checks
+into real validation.
+
+---
+
 ## Superseded
 
 _(none yet — this is the first decisions record)_
@@ -168,5 +216,5 @@ _(none yet — this is the first decisions record)_
 | What must an agent not change?            | `AGENTS.md`         |
 | Why are these decisions necessary at all? | `PRODUCT.md` §4, §6 |
 | Evidence behind decision 1                | `DESIGN.md` §4.3    |
-| Evidence behind decisions 2–4, 6–7        | `docs/DATA.md`      |
+| Evidence behind decisions 2–4, 6–8        | `docs/DATA.md`      |
 | Which phase acts on each decision         | `docs/ROADMAP.md`   |

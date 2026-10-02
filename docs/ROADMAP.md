@@ -36,24 +36,46 @@ Fraunces, Instrument Sans, JetBrains Mono, and correct Assamese.
 
 **Goal:** real, licensed, reproducible data on disk. No rendering yet.
 
-- Fetch Copernicus DEM GLO-30 tiles for the Brahmaputra valley into `data/raw/` (gitignored)
-- Clamp, reproject, and resample to a committed artefact under the 5 MB ceiling
-- Attach the **mandatory** Article 6(b) "produced using Copernicus WorldDEM-30" attribution
-  to every processed file
-- Fetch a quake subset for NE India and compile to `src/data/quakes.ts`
+- [x] Fetch Copernicus DEM GLO-30 tiles for the Brahmaputra valley into `data/raw/`
+      (gitignored) — over HTTP range requests against the anonymous AWS Open Data mirror,
+      reading the cheapest COG overview that still supports the output grid (`DATA.md` §1)
+- [x] Clamp, reproject, and resample to committed artefacts under the 5 MB ceiling — three
+      areas as Terrain-RGB PNG plus a JSON sidecar: `assam-overview`, `majuli`,
+      `sadiya-dibrugarh` (`DATA.md` §13, `DECISIONS.md` §8)
+- [x] Attach the **mandatory** Article 6(b) "produced using Copernicus WorldDEM-30"
+      attribution to every processed file — in each sidecar and in `manifest.json`
+- [x] `scripts/build-dem.ts` — deterministic; writes `data/processed/manifest.json` with
+      source URLs, tile IDs, SHA-256 of outputs, tool versions, attribution and
+      licence. `npm run data:dem` rebuilds from scratch, `--check` runs the landmark
+      assertions alone, `--previews` writes throwaway hillshades to `data/raw/previews/`
+- [x] Headless decoder in `src/engine/terrain/` — PNG bytes to `Float32Array` plus
+      metadata, no DOM and no React, no-data as `NaN` plus an explicit mask
+- [ ] **Record SHA-256 of the input tile windows.** `manifest.json` records the SHA-256 of
+      every output and identifies each source tile by ID and URL, but the bytes fetched
+      over HTTP range requests are not hashed, so a silent upstream change cannot be
+      distinguished from a pipeline fault. Needs a decision on whether to hash the raw
+      window, the containing tile, or both — hashing a range request is only meaningful
+      alongside the exact byte range it covered
+- [ ] **Independent elevation validation is still missing.** The committed tests assert
+      GLO-30 self-consistency and two loose plausibility checks; a real check needs benchmark
+      levelling from the Survey of India or GSI, which we do not hold and have not verified a
+      licence for (`DATA.md` §13, open gap)
+- [ ] Fetch a quake subset for NE India and compile to `src/data/quakes.ts`
 - **ComCat is unblocked** — terms read by the owner 2026-10-01, public domain with credit
   requested (`DATA.md` §3, `DECISIONS.md` §2). Bundle **event parameters only** (time,
   lat, lon, depth, magnitude, id): no ShakeMap or PAGER imagery, nothing from a
   `products/` URL
-- Commit `scripts/build-terrain.ts` and `scripts/build-quakes.ts` — fully reproducible
+- Commit `scripts/build-quakes.ts` — fully reproducible
 - Credit lines from `DATA.md` §10 ship in the footer and about panel, in English and Assamese
 - **Decide the plate-boundary source: a clearly licensed dataset, or our own tracing from
   cited published sources.** PB2002 is not shipped either way (`DATA.md` §4,
   `DECISIONS.md` §6 — the choice lands in _this_ phase, not phase 6)
 - Natural Earth coastline into `src/data/`
 
-**Done when:** `npm run run-pipeline` from a clean clone produces byte-identical output,
-every committed artefact has a `DATA.md` row, and nothing is over 5 MB.
+**Done when:** `npm run data:dem` from a clean clone produces byte-identical output,
+every committed artefact has a `DATA.md` row, and nothing is over 5 MB. **Not yet done:**
+the earthquake catalogue and the plate-boundary source are outstanding, and independent
+elevation validation is an open gap rather than a completed item.
 
 ---
 
@@ -192,12 +214,13 @@ These apply in every phase, not just one:
 
 ## Open risks carried forward
 
-| Risk                                           | Where it bites | Status                                                                                                                                                                                            |
-| ---------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| USGS ComCat terms not yet transcribed verbatim | Phase 2, 5     | **Licence cleared 2026-10-01** — owner read the crediting page; public domain, credit requested. Bundle event parameters only. **Open:** paste the page text into `DATA.md` §3, `DECISIONS.md` §2 |
-| Bird PB2002 has no verifiable licence          | Phase 2        | **Source choice moves to phase 2** — PB2002 not shipped, `DECISIONS.md` §6                                                                                                                        |
-| CWC discharge data                             | —              | **Settled: out of scope.** FLOW uses a user-chosen scenario, `DECISIONS.md` §3, §7                                                                                                                |
-| ASDMA not redistributable                      | —              | **Settled: link only, never bundle.** No longer a phase-4 blocker, `DECISIONS.md` §4                                                                                                              |
-| Two palette pairs below 3:1                    | Phase 7        | **Settled as a documented exception**, re-checked against real renders, `DECISIONS.md` §1                                                                                                         |
-| Assamese copy unreviewed                       | Phase 7        | **Open** — owner native-speaker review required, `DECISIONS.md` §5                                                                                                                                |
-| GLO-30 is a DSM, not a DTM                     | Phase 3        | Document limitation; affects slope/flow math                                                                                                                                                      |
+| Risk                                           | Where it bites | Status                                                                                                                                                                                                                      |
+| ---------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| USGS ComCat terms not yet transcribed verbatim | Phase 2, 5     | **Licence cleared 2026-10-01** — owner read the crediting page; public domain, credit requested. Bundle event parameters only. **Open:** paste the page text into `DATA.md` §3, `DECISIONS.md` §2                           |
+| Bird PB2002 has no verifiable licence          | Phase 2        | **Source choice moves to phase 2** — PB2002 not shipped, `DECISIONS.md` §6                                                                                                                                                  |
+| CWC discharge data                             | —              | **Settled: out of scope.** FLOW uses a user-chosen scenario, `DECISIONS.md` §3, §7                                                                                                                                          |
+| ASDMA not redistributable                      | —              | **Settled: link only, never bundle.** No longer a phase-4 blocker, `DECISIONS.md` §4                                                                                                                                        |
+| Two palette pairs below 3:1                    | Phase 7        | **Settled as a documented exception**, re-checked against real renders, `DECISIONS.md` §1                                                                                                                                   |
+| Assamese copy unreviewed                       | Phase 7        | **Open** — owner native-speaker review required, `DECISIONS.md` §5                                                                                                                                                          |
+| GLO-30 is a DSM, not a DTM                     | Phase 3, 4     | **Settled: accepted and documented.** Canopy and buildings sit on the eroded surface; no riverbed bathymetry. `DATA.md` §12, `limitations` in every sidecar, `DECISIONS.md` §8                                              |
+| No independent elevation validation            | Phase 2, 4     | **Open gap.** Terrain tests are GLO-30 self-consistency plus two loose plausibility checks, one on a tertiary source. Needs Survey of India / GSI benchmark levelling, licence unverified. `DATA.md` §13, `DECISIONS.md` §8 |

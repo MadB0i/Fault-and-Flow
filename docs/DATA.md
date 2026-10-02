@@ -34,17 +34,18 @@ entry is labelled accordingly. Status labels:
 
 ## Status summary
 
-| Dataset                          | Purpose                     | Status                                                  | Ship it?                                                           |
-| -------------------------------- | --------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
-| **Copernicus DEM GLO-30**        | Terrain, all modes          | **VERIFIED**                                            | Yes, with mandatory attribution                                    |
-| **Natural Earth**                | Coastline, basemap fallback | **VERIFIED** (public domain)                            | Yes                                                                |
-| **USGS ANSS ComCat**             | FAULT earthquake history    | **VERIFIED BY OWNER** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2) |
-| **Bird PB2002** plate boundaries | PLATES mode                 | **UNVERIFIED**                                          | **No** — no licence found anywhere (DECISIONS §6)                  |
-| **SRTM**                         | Terrain alternative         | **UNVERIFIED**                                          | Not yet                                                            |
-| **NCS (seismo.gov.in)**          | Indian earthquake authority | **RESTRICTIVE**                                         | Link and cite only                                                 |
-| **IMD**                          | Weather / hydrology         | No licence asserted                                     | Link only                                                          |
-| **ASDMA**                        | Flood authority, Assam      | **UNVERIFIED**                                          | **Link only — never bundle** (DECISIONS §4)                        |
-| **CWC** discharge / river stage  | FLOW                        | Out of scope                                            | Not used — FLOW uses a user-controlled level (DECISIONS §3)        |
+| Dataset                          | Purpose                     | Status                                                  | Ship it?                                                                |
+| -------------------------------- | --------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **Copernicus DEM GLO-30**        | Terrain, all modes          | **VERIFIED**                                            | **Yes — chosen source**, with mandatory attribution (DECISIONS §8, §11) |
+| **Natural Earth**                | Coastline, basemap fallback | **VERIFIED** (public domain)                            | Yes                                                                     |
+| **USGS ANSS ComCat**             | FAULT earthquake history    | **VERIFIED BY OWNER** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2)      |
+| **Bird PB2002** plate boundaries | PLATES mode                 | **UNVERIFIED**                                          | **No** — no licence found anywhere (DECISIONS §6)                       |
+| **SRTM**                         | Terrain alternative         | **UNVERIFIED** + no keyless route                       | **No** — rejected for the DEM (§5, §11)                                 |
+| **Mapzen Terrain Tiles**         | Bare-earth DEM alternative  | Composite, per-source terms                             | **No** — untraceable provenance (§11)                                   |
+| **NCS (seismo.gov.in)**          | Indian earthquake authority | **RESTRICTIVE**                                         | Link and cite only                                                      |
+| **IMD**                          | Weather / hydrology         | No licence asserted                                     | Link only                                                               |
+| **ASDMA**                        | Flood authority, Assam      | **UNVERIFIED**                                          | **Link only — never bundle** (DECISIONS §4)                             |
+| **CWC** discharge / river stage  | FLOW                        | Out of scope                                            | Not used — FLOW uses a user-controlled level (DECISIONS §3)             |
 
 **Nothing from this table is committed to git in Phase 1.** These are research findings and
 a plan, recorded now so the data pipeline can be built against verified terms later.
@@ -126,6 +127,87 @@ Primary terrain source. 30m global surface elevation.
   `docs/ARCHITECTURE.md`.
 - Because Article 6(b) applies to anything we process, **every processed terrain artefact
   must carry the "produced using Copernicus WorldDEM-30" string** in its attribution.
+
+### Technical profile, measured from the source (2026-10-01)
+
+Not copied from marketing. Every figure below was read out of the delivered files over
+HTTP range requests, so it is what the pipeline will actually see.
+
+**Distribution route — anonymous S3, no account, no key.** The AWS Open Data mirror is the
+route. `aws s3 ls --no-sign-request` works, which means a plain `GET` works too.
+
+| Field          | Value                                                                 |
+| -------------- | --------------------------------------------------------------------- |
+| GLO-30 bucket  | `s3://copernicus-dem-30m` (eu-central-1)                              |
+| GLO-90 bucket  | `s3://copernicus-dem-90m` (eu-central-1)                              |
+| Registry entry | <https://registry.opendata.aws/copernicus-dem/> — **HTTP 200**        |
+| Tile manifest  | `s3://copernicus-dem-30m/tileList.txt` — 26,450 entries, **HTTP 200** |
+| Managed by     | Sinergise (per the registry), on behalf of the Copernicus Programme   |
+
+> **Naming trap, verified — read this before writing any fetch code.** The bucket called
+> `copernicus-dem-30m` contains the **GLO-30** product, and its files are named
+> `Copernicus_DSM_COG_10_<tile>_DEM/`. **The `10` is 10 arcseconds, not the resolution in
+> metres, and GLO-30 is the _1_-arcsecond product.** Confirmed by reading the sidecar XML
+> inside the bucket:
+>
+> | Path                                            | `resolutionVariant` | `productCustomizationDescr` | Grid      | arcsec  |
+> | ----------------------------------------------- | ------------------- | --------------------------- | --------- | ------- |
+> | `copernicus-dem-30m/…COG_10_N27_00_E094_00_DEM` | **10**              | **Copernicus GLO-30 DGED**  | 3601×3601 | **1.0** |
+> | `copernicus-dem-90m/…COG_30_N27_00_E094_00_DEM` | **30**              | **Copernicus GLO-90 DGED**  | 1201×1201 | **3.0** |
+>
+> So the `10`/`30` in the path tracks the _arcsecond_ figure and is offset by one step from
+> the product name: GLO-30 is `…COG_10…`, GLO-90 is `…COG_30…`. **Globbing for `_30_`
+> returns the 90 m product.** The bucket names, by contrast, are correct and
+> unambiguous. Both facts were verified against the registry page, not assumed.
+
+**Raster characteristics**, read from `N27_00_E094_00` (NE Assam):
+
+| Property          | Value                                                         | Source                           |
+| ----------------- | ------------------------------------------------------------- | -------------------------------- |
+| Format            | GeoTIFF, DEFLATE (8), floating-point predictor (3)            | TIFF tags                        |
+| Sample type       | 32-bit float                                                  | tag 258                          |
+| No-data value     | **-32767** (not in a GeoTIFF tag — see below)                 | sidecar XML `valueInvalidPixels` |
+| Internal tiling   | 1024×1024                                                     | tags 322/323                     |
+| Full tile         | 3600×3600 (from 3601×3601, shared edge rows removed)          | tag 256/257                      |
+| Overview levels   | 1800×1800, 900×900, 450×450                                   | IFD chain                        |
+| Layout            | `LAYOUT=IFDS_BEFORE_DATA` — all metadata precedes pixel data  | GDAL structural metadata         |
+| Horizontal CRS    | WGS 84-G1150, geographic, EPSG:4326                           | sidecar XML                      |
+| Vertical datum    | **EGM2008 geoid** (EPSG vertical CS 6499, datum 1027)         | sidecar XML                      |
+| Vertical spacing  | 0.1 m                                                         | sidecar XML                      |
+| Vertical accuracy | **LE90 1.472 m, LE68 1.810 m**                                | sidecar XML                      |
+| Acquisition       | TanDEM-X, 2011–2015, 13 acquisitions / 44 scenes on this tile | sidecar XML                      |
+| Release           | 2020-11-11, edition 03, quality remark `Approved`             | sidecar XML                      |
+
+> **The no-data value is only in the XML, not in the TIFF.** Tag 42113 (GDAL_NODATA) is
+> **absent** from the GeoTIFF. A decoder that trusts the TIFF alone will read -32767 as a
+> real elevation of **-32.7 km**. This is the single most dangerous detail in this file and
+> it is why `src/engine/terrain/` must treat -32767 as no-data by contract.
+
+**Ground resolution is not 30 m, and pixels are not square.** GLO-30 is an _angular_
+1-arcsecond grid. Because a degree of longitude shrinks with latitude, the ground footprint
+of a pixel is:
+
+| Latitude | N–S         | E–W         | Area       |
+| -------- | ----------- | ----------- | ---------- |
+| 24°N     | 30.92 m     | 28.25 m     | 874 m²     |
+| **27°N** | **30.92 m** | **27.55 m** | **852 m²** |
+| 28.5°N   | 30.92 m     | 27.17 m     | 840 m²     |
+
+At Assam's latitude a GLO-30 pixel is about **31 × 28 m**, not 30 × 30. Any sidecar must
+record the pixel size as a _pair_, and any slope computation must not assume square cells.
+Overview levels are exact halves and quarters, so `1800`, `900`, `450` px per degree.
+
+**Range requests work, and overviews are cheap to fetch.** The COG layout means an overview
+can be read without touching full-resolution bytes:
+
+| Level | Grid      | Ground at 27°N | Bytes in one tile |
+| ----- | --------- | -------------- | ----------------- |
+| full  | 3600×3600 | ~31 × 28 m     | ~30–39 MB         |
+| ov1   | 1800×1800 | ~62 × 55 m     | ~8–10 MB          |
+| ov2   | 900×900   | ~124 × 110 m   | —                 |
+| ov3   | 450×450   | ~247 × 220 m   | —                 |
+
+This is what makes a 40-tile area affordable; see §11.
 
 ---
 
@@ -350,10 +432,11 @@ snippet as a licence.**
 > interpolation error**, not a border shift — the USGS page itself notes "Some tiles may
 > still contain voids".
 
-**To resolve:** fetch the USGS EROS page in a browser, or use Copernicus GLO-30 instead,
-which is already verified. **GLO-30 is the current plan; SRTM is a fallback.** The USGS
-crediting page read for ComCat (§3) does **not** clear this entry by analogy — SRTM's own
-terms have still never been read.
+**Re-checked 2026-10-01 for the DEM decision — still `UNVERIFIED`, and now positively
+worse.** The USGS EROS SRTM page returned **HTTP 403** (it previously returned a 202
+robot-check interstitial; 403 is a harder refusal). NASA's own distribution route
+(`eodc.usgs.gov`) requires Earthdata Login, so there is **no keyless route** to the NASA/NGA
+original. SRTM is therefore rejected on availability as well as licence — see §11.
 
 ---
 
@@ -576,7 +659,196 @@ Adding a dataset means adding a row here in the same change, not a later one.
 
 ---
 
-## Rules for editing this file
+## 11. DEM choice — Copernicus GLO-30, and why not the alternatives
+
+**Decision: Copernicus DEM GLO-30 Public, over the AWS Open Data mirror.** Recorded as
+[`docs/DECISIONS.md` §8](DECISIONS.md).
+
+This section exists because "which DEM" looks like a technical question and is not. The
+three candidates fail or pass on licence, on whether an anonymous client can fetch them at
+all, and on what the numbers physically mean — in that order.
+
+|                   | **Copernicus GLO-30**                    | **SRTM (NASA/NGA)**                | **Mapzen Terrain Tiles**                                        |
+| ----------------- | ---------------------------------------- | ---------------------------------- | --------------------------------------------------------------- |
+| Licence           | **Free, verified verbatim** (§1)         | **`UNVERIFIED`** (§5)              | Composite; **per-source attribution, no single licence**        |
+| Keyless download  | **Yes — anonymous S3**                   | **No — Earthdata Login required**  | Yes — anonymous S3                                              |
+| Surface model     | **DSM**                                  | DSM (C-band, edited)               | **Bare-earth DTM** (per registry: "bare-earth terrain heights") |
+| Sensor / era      | TanDEM-X radar, 2011–2015                | C-band radar, 2000                 | Mixed: 3DEP, SRTM, ETOPO1, CDEM, EUDEM…                         |
+| Vertical accuracy | **LE90 1.472 m** (per-tile, measured)    | ~5–10 m typical, not verified here | Not stated per tile                                             |
+| Vertical datum    | **EGM2008 geoid**, stated                | not verified here                  | mixed per source                                                |
+| Water bodies      | **Flattened and edited** — no bathymetry | interpolation voids                | varies                                                          |
+| Grid              | 1 arcsec (≈31 × 28 m at 27°N)            | 1 arcsec                           | 30 m / 90 m / higher by region                                  |
+| Repo size risk    | low, via overviews (§1, §12)             | medium                             | low                                                             |
+
+**Why GLO-30 wins.**
+
+1. **It is the only candidate whose licence is verified from the source.** SRTM's terms
+   have never been read (§5). The Mapzen tiles are a _mosaic_ of a dozen providers with a
+   dozen different terms — §4's PB2002 lesson applies directly, and the project's own rule
+   "check the converter" would apply: we would be redistributing a derivative whose
+   provenance depends on which upstream tile a given pixel came from.
+2. **It is the only one we can fetch reproducibly without an account.** Reproducibility is
+   a `npm run verify` property here. A dataset behind Earthdata Login cannot be rebuilt by
+   a clean clone, which would fail the phase-2 done-when outright.
+3. **The vertical accuracy is an order of magnitude better than what we need, which is the
+   point.** LE90 of 1.472 m against a floodplain whose relief is a few metres means the
+   _signal_ is in the data. On SRTM at ~5–10 m the floodplain's own topography would be
+   inside the error bar, and the FLOW sandbox would be drawing noise.
+4. **The radar acquisition is better suited to water.** TanDEM-X is radar, so it sees
+   through cloud — relevant for a monsoon-fed river whose flood peaks happen when optical
+   satellites are frequently obscured.
+
+**Its weaknesses, which we accept.**
+
+- **It is a DSM, not a DTM.** Over Assam's forested floodplain and hillock terrain, canopy
+  and buildings sit _on top of_ the ground we would be eroding. Slopes derived from it are
+  surface slopes, not ground slopes.
+- **Water is flattened and edited, so there is no riverbed.** Verbatim from the collection
+  page: the product "is derived from an edited DSM named WorldDEM™ , i.e. flattening of
+  water bodies and consistent flow of rivers has been included." The Brahmaputra's channel
+  is therefore a **smoothed, near-uniform surface**, not a bathymetric trough. This is the
+  single most important limitation for FLOW and is restated in §12.
+- **It is infilled from other DEMs where radar failed**, including SRTM. Verbatim from the
+  collection page, sources are "WorldDEM™ infilled on a local basis with the following DEMs:
+  ASTER, SRTM90, SRTM30, SRTM30plus, GMTED2010, TerraSAR-X Radargrammetric DEM, ALOS World
+  3D-30m, Norway National DEM and Spanish National DEM." So the fill provenance is mixed even
+  within one product. The per-tile **FLM (Filling Mask)** identifies filled pixels and is
+  available alongside the DEM.
+
+### Why we did not choose the bare-earth option despite it being physically nicer
+
+Mapzen's tiles are a genuine DTM, which would be _better_ physics for bank erosion. We are
+declining them on provenance and licence, not on quality: a composite whose per-pixel
+upstream is untraceable is exactly the failure mode `AGENTS.md` §6 exists to prevent, and
+the attribution burden is a dozen notices we would have to reproduce correctly. If a
+verified bare-earth source for NE India appears later, the DSM limitation is the thing to
+revisit first.
+
+---
+
+## 12. What GLO-30 cannot tell us — limitations that constrain FLOW
+
+These are properties of the data, not of the code. They are recorded here because
+`PRODUCT.md` §4.3 and `DECISIONS.md` §7 require the terrain to be presented as what it is,
+and because each one changes what the sandbox is entitled to claim.
+
+1. **Surface, not ground.** Buildings, tree canopy and bamboo are in the elevation. In
+   settled areas the DSM surface can sit several metres above the ground a flood would
+   actually reach. Any slope or flow-path computation inherits this.
+2. **No riverbed bathymetry.** Water surfaces are flattened and rivers made "consistent"
+   during editing. A channel reads as a flat ribbon at roughly water level. **The engine
+   cannot infer channel depth from this DEM**, and no "bathymetry" claim may be made.
+3. **Vertical error is comparable to the floodplain's relief.** Measured LE90 is 1.472 m and
+   LE68 1.810 m per tile. The Brahmaputra floodplain's relief between bank and bar is on the
+   order of a few metres. The signal is present but it is not clean: individual bar heights
+   carry roughly a metre of uncertainty, which is a large fraction of the thing being
+   modelled.
+4. **The pixel is not square and not 30 m.** 1 arcsec is ~31 m north–south and ~28 m
+   east–west at 27°N. Longitudes are visibly compressed relative to latitudes, so shapes are
+   not true to scale and area computations need the cos(latitude) factor.
+5. **Mixed fill provenance.** Infilled from SRTM, ASTER and others where radar had no
+   coverage. The FLM mask marks those pixels.
+6. **Ocean and large water bodies are absent**, and where absent "one can assume height
+   values equal to zero" (verbatim, bucket README). That is a metadata convention, not a
+   measurement, and must not be presented as sea level.
+
+### The consequence, stated plainly
+
+Every one of these limits means **FLOW's terrain is illustrative**. The mechanism being
+taught — where flow concentrates, how a bank is attacked, how a channel migrates — is real
+and is worth showing. The specific elevations are not survey-grade, and the UI must say so
+where elevations are displayed. This is the same product rule as `DECISIONS.md` §7: the
+numbers are the user's scenario, and the terrain underneath is a demonstration surface. A
+screenshot must never be mistakable for a survey or a forecast.
+
+---
+
+## 13. Committed terrain artefacts
+
+Built by `npm run data:dem`. Three areas, Terrain-RGB PNG plus a JSON sidecar each, and
+`manifest.json` recording source URLs, tile IDs, SHA-256 of outputs, tool versions,
+licence and attribution.
+
+> **What the hashes cover, and what they do not.** The SHA-256 values in
+> `manifest.json` are of the **outputs** — the PNGs and sidecars this repository
+> commits. The source tiles are identified by **ID and URL**, and their bytes are
+> **not** hashed. So the manifest proves the committed artefacts have not changed
+> since they were written; it does not prove the Copernicus tiles behind them are
+> unchanged. Hashing the inputs is tracked as an open item in `docs/ROADMAP.md`
+> phase 2, and it needs a decision first: the pipeline reads HTTP range requests,
+> so an input hash is only meaningful recorded together with the byte range it
+> covered.
+
+| Area                 | bbox (W, S, E, N)       | Grid      | Pixel | Step   | PNG     | Source               |
+| -------------------- | ----------------------- | --------- | ----- | ------ | ------- | -------------------- |
+| **assam-overview**   | 89.5, 24.0, 96.5, 28.5  | 1318×945  | 530 m | 0.15 m | 1.94 MB | 40 tiles, overview 3 |
+| **majuli**           | 93.55, 26.7, 94.7, 27.3 | 1901×1113 | 60 m  | 0.1 m  | 2.21 MB | 4 tiles, full res    |
+| **sadiya-dibrugarh** | 94.6, 27.1, 96.0, 28.0  | 2125×1541 | 65 m  | 0.1 m  | 3.70 MB | 2 tiles, full res    |
+
+Total **7.86 MB**, against the 9 MB budget for this task and the 5 MB per-file ceiling of
+`AGENTS.md` §5. Both are asserted in `tests/dem-artifacts.test.ts`, so the budget cannot be
+quietly exceeded by a later edit.
+
+The PNG column is measured from the committed files — 2,038,300, 2,315,189 and 3,883,564
+bytes respectively — and rounded to two decimal places in MiB, which is the unit the total
+uses. The `bytes` field of each entry in `manifest.json` is the exact value.
+
+### Why the overview uses a 0.15 m step and the reaches use 0.1 m
+
+16-bit Terrain-RGB holds 65,535 codes, so the maximum representable span is
+`65535 × step`: **6,554 m at 0.1 m**. The overview's bbox reaches into the Mishmi Hills,
+whose highest point inside it measures **7,446.5 m**, giving a span of 7,447 m. That does
+not fit at 0.1 m — it would need 74,470 codes — so the area is encoded at 0.15 m, where the
+budget is 9,830 m.
+
+This costs nothing real. The overview's pixel is 530 m across, so one step is 0.0003 of a
+pixel, and 0.15 m sits an order of magnitude below the source's own 1.472 m LE90 vertical
+error. The two river reaches span 2,031 m and 1,745 m, so 0.1 m is fine and is what they
+use. The step is recorded **per area** in each sidecar rather than assumed globally, because
+it follows from the data's range, not from the format.
+
+### Reading the committed files
+
+`src/engine/terrain/` decodes them headlessly, with no DOM and no React: `decodePng` for the
+container, `decodeTerrainRgba` for the pixels. No-data is explicit — code 0 becomes `NaN`
+in the height array with a companion `Uint8Array` mask, so a caller cannot read a no-data
+cell as an elevation because there is no number there. `encodeElevation` throws rather than
+wrapping on an out-of-range value.
+
+> **In the browser, decode via `createImageBitmap` with `premultiplyAlpha: 'none'` and
+> `colorSpaceConversion: 'none'`.** Terrain-RGB is a measurement encoding, not a picture.
+> Default alpha handling premultiplies RGB by alpha and silently scales elevations; default
+> colour management can transform the values. Files are written colour-type 2 with no alpha
+> precisely so the first cannot bite. The failure is invisible — a mis-decoded heightfield
+> still looks like terrain. See `docs/ARCHITECTURE.md`.
+
+### Open gap: no independent elevation validation
+
+> **Gap, recorded 2026-10-01.** The pipeline's elevation checks are **self-consistency**,
+> not accuracy validation. `tests/dem-artifacts.test.ts` asserts that the committed overview
+> falls monotonically from Sadiya to Dhubri (129.9 → 26.6 m, ~103 m of fall), which catches
+> a pipeline fault — a flipped axis, a wrong tile, a broken resample — but every number in it
+> comes out of the same source as the data, so it cannot detect an error in Copernicus.
+>
+> Two **plausibility** checks are in place against published figures, deliberately loose
+> because a gazetteer "town elevation" is not a survey point — it is often the height at the
+> district headquarters, or averaged over a municipal area, while we sample one pixel:
+>
+> | Place                | Published | Source                                           | Our value | Tolerance |
+> | -------------------- | --------- | ------------------------------------------------ | --------- | --------- |
+> | Majuli island centre | 85–90 m   | Majuli District Administration, "About District" | 87.4 m    | ±30 m     |
+> | Sadiya               | 123 m     | Wikipedia infobox (tertiary)                     | 127.3 m   | ±30 m     |
+>
+> The Sadiya figure rests on a tertiary source and is treated as such. A ±30 m tolerance
+> catches a gross fault (wrong sign, wrong datum, off-by-a-tile) and would not catch a
+> systematic bias.
+>
+> **A real check needs benchmark levelling data from the Survey of India or GSI, which we do
+> not hold and have not verified a licence for.** Until then, treat the terrain as
+> unvalidated in absolute terms — which is already what §12 says, and what the
+> `limitations` list in every sidecar says.
+
+---
 
 1. **Quote, never paraphrase.** Licence terms go in verbatim, in quotation marks, with the
    URL you retrieved them from and the date.
