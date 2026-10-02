@@ -182,7 +182,7 @@ export default function TerrainScene() {
         <div
           className="flex flex-col gap-[var(--space-s)]
                      md:absolute md:bottom-[var(--space-s)] md:left-[var(--space-s)]
-                     md:w-[320px] md:p-0"
+                     md:w-[320px] md:p-0 md:pointer-events-auto"
         >
           <TerrainPanel
             areaId={view.areaId}
@@ -217,7 +217,7 @@ export default function TerrainScene() {
         <div
           className="flex flex-col gap-[var(--space-s)]
                      md:absolute md:bottom-[var(--space-s)] md:right-[var(--space-s)]
-                     md:w-[320px] md:p-0"
+                     md:w-[320px] md:p-0 md:pointer-events-auto"
         >
           <TerrainReadout
             pointer={view.state.probe}
