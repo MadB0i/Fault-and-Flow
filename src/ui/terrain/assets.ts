@@ -17,7 +17,6 @@
  * path bug - see docs/ARCHITECTURE.md.
  */
 
-import type { AreaId } from '@engine/terrain';
 import type { AreaSources, TerrainPalette } from '@engine/terrain';
 
 import assamOverviewPng from '../../../data/processed/assam-overview.png?url';
@@ -79,9 +78,4 @@ export function prefersReducedMotion(): boolean {
 /** Convenience for the hook: the palette for the document root. */
 export function readDocumentPalette(): TerrainPalette {
   return readPalette(document.documentElement);
-}
-
-/** Which areas have assets wired up, for the picker. */
-export function availableAreas(): AreaId[] {
-  return Object.keys(AREA_SOURCES) as AreaId[];
 }
