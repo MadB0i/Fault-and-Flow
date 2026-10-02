@@ -361,6 +361,37 @@ test.describe('terrain view', () => {
     expect(body).not.toMatch(/\b42\b/);
   });
 
+  test('flow water controls are present and can start', async ({ page }) => {
+    // The terrain must be ready before the water toggle enables.
+    const toggle = page.getByTestId('water-toggle');
+    await expect(toggle).toBeEnabled();
+    await toggle.check();
+
+    // Two honest outcomes: the layer runs, or the device says why it cannot
+    // and the terrain carries on. Exactly one of them must show.
+    const unsupported = page.getByTestId('water-unsupported');
+    const play = page.getByTestId('water-play');
+    await expect(unsupported.or(play)).toBeVisible();
+
+    if (await unsupported.isVisible()) {
+      await expect(unsupported).toContainText(/terrain still works/i);
+    } else {
+      await expect(page.getByTestId('water-honesty')).toContainText(/not a forecast/i);
+      await expect(play).toBeEnabled();
+      await play.click();
+      await expect(play).toHaveText(/Pause water/);
+
+      const slider = page.getByTestId('water-discharge');
+      await slider.fill('8000');
+      await expect(page.getByTestId('water-discharge-value')).toContainText('8000');
+
+      await expect(page.getByTestId('legend-water-ramp')).toBeVisible();
+
+      await play.click();
+      await expect(play).toHaveText(/Run water/);
+    }
+  });
+
   test('no raw hex colour leaks into the rendered styles', async ({ page }) => {
     // tokens.css is the one place hex is allowed; check nothing else in the
     // component tree resolves to a hardcoded literal.
