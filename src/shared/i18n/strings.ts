@@ -129,7 +129,7 @@ export const EN: Strings = {
   modePlates: 'Plates',
 
   modeRailLabel: 'Sandbox modes',
-  modeUnavailable: 'Not built yet',
+  modeUnavailable: 'Coming soon — not built yet',
 
   languageToggleLabel: 'Language',
   languageEnglish: 'English',
@@ -206,7 +206,7 @@ export const AS: Strings = {
   modePlates: 'টেবল', // DRAFT
 
   modeRailLabel: 'বালিৰ বোক্সৰ ধৰন', // DRAFT
-  modeUnavailable: 'এতিয়ালৈ তৈয়া হোৱা নহয়', // DRAFT
+  modeUnavailable: 'শীঘ্ৰে আহি আছে — এতিয়ালৈ তৈয়া হোৱা নহয়', // DRAFT
 
   languageToggleLabel: 'ভাষা', // DRAFT
   languageEnglish: 'ইংৰাজী', // DRAFT
