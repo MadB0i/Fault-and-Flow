@@ -91,6 +91,8 @@ export interface WaterLayer {
   getStats(): WaterStats;
   /** Bumps whenever stats are reread; the view emits on change only. */
   statsVersion(): number;
+  /** True when the depth field stopped being physically plausible. */
+  hasDiverged(): boolean;
   readonly simWidth: number;
   readonly simHeight: number;
   readonly inflowCell: number;
@@ -296,6 +298,8 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
   let framesSinceStats = STATS_EVERY_FRAMES; // read on the first stepped frame
   let version = 0;
   let disposed = false;
+  /** True when the depth field is not physically plausible; see refreshStats. */
+  let diverged = false;
   const stats: { wetAreaKm2: number; maxDepthM: number; simTimeS: number } = {
     wetAreaKm2: 0,
     maxDepthM: 0,
@@ -326,12 +330,16 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
       if (d > max) max = d;
     }
     if (suspect > 0) {
+      // Diverged or unreadable: say so rather than print a number. A readout
+      // of 5e19 m is worse than no readout, because it looks like a measurement.
       stats.wetAreaKm2 = 0;
       stats.maxDepthM = 0;
       stats.simTimeS = simTime;
+      diverged = true;
       version += 1;
       return;
     }
+    diverged = false;
     stats.wetAreaKm2 = (wet * cellArea) / 1e6;
     stats.maxDepthM = max;
     stats.simTimeS = simTime;
@@ -427,6 +435,9 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     },
     statsVersion(): number {
       return version;
+    },
+    hasDiverged(): boolean {
+      return diverged;
     },
     dispose(): void {
       if (disposed) return;
