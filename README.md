@@ -9,8 +9,9 @@ An interactive 3D sandbox of Assam's earth and water, running entirely in the br
 ## ⚠️ Work in progress — this is not a forecast
 
 **This is an educational sandbox. It is not a forecast, not a hazard map, and not a
-prediction tool.** Right now the repository contains documentation, a design system, and
-a placeholder page. There is no simulation and no 3D scene yet.
+prediction tool.** What runs today is a 3D terrain viewer on processed Copernicus DEM
+terrain, with an honesty banner, legend, readout, and attribution. There is no
+flood/erosion simulation yet.
 
 Three rules shape everything in this project, and they are not negotiable:
 
@@ -30,9 +31,10 @@ For actual warnings and official flood information, go to the authorities:
 
 ---
 
-## What it will be
+## What it is and will be
 
-Three modes, all client-side. No backend, no accounts, no tracking.
+Live today: a 3D terrain viewer of the Brahmaputra valley (real Copernicus DEM
+terrain, orbit camera, legend and readout). Planned next, all client-side:
 
 - **PLATES** — a cinematic intro: the India–Eurasia collision, then a camera flight down
   from the Himalaya along the Brahmaputra into Assam.
@@ -46,13 +48,15 @@ Interface languages: **English and Assamese**.
 
 ## Status
 
-**Phase 1 of 8 — foundation.** Done: repo scaffold, design system with a computed WCAG
-contrast table, verified Assamese glyph coverage, tooling, and the placeholder page.
-Not done: terrain, water, earthquakes, plates.
+**Phase 3 of 8 — terrain renderer.** Done: DEM pipeline with committed Terrain-RGB
+artefacts, headless decoder, R32F terrain renderer with orbit camera, and the terrain
+HUD (area picker, exaggeration, contours, legend, readout, attribution).
+Not done: FLOW water/erosion simulation, FAULT earthquake timelapse, PLATES cinematic.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for what comes next.
 
-![The placeholder page in English at 1440px](docs/screenshots/placeholder-desktop-en.png)
+> Screenshots in `docs/screenshots/` still show the Phase-1 placeholder page and will be
+> regenerated for the terrain view. Nothing is linked here until then.
 
 ## Getting started
 
