@@ -8,6 +8,11 @@ export default defineConfig({
       '@engine': fileURLToPath(new URL('./src/engine', import.meta.url)),
       '@ui': fileURLToPath(new URL('./src/ui', import.meta.url)),
       '@data': fileURLToPath(new URL('./src/data', import.meta.url)),
+      // The data pipeline lives in scripts/ and owns the area definitions and the
+      // source-spacing guard, both of which the DEM tests assert against. Aliased
+      // rather than imported by relative path so the tests do not depend on how
+      // deep in the tree they sit.
+      '@pipeline': fileURLToPath(new URL('./scripts', import.meta.url)),
     },
   },
   test: {

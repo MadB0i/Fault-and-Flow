@@ -1,0 +1,359 @@
+{
+  "schema": 1,
+  "generated": "2026-10-02",
+  "generator": "scripts/build-dem.ts",
+  "source": {
+    "dataset": "Copernicus DEM GLO-30 Public",
+    "productId": "COP-DEM_GLO-30-DGED",
+    "bucket": "s3://copernicus-dem-30m",
+    "baseUrl": "https://copernicus-dem-30m.s3.amazonaws.com",
+    "tilePrefix": "Copernicus_DSM_COG_10_",
+    "pixelSpacingDeg": 0.0002777777777777778,
+    "verticalDatum": "EGM2008 geoid (orthometric)",
+    "sourceNoDataSentinel": -32767
+  },
+  "licence": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open — Licence for the use of the Copernicus WorldDEM-30",
+  "licenceUrl": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf",
+  "attribution": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "attributionRedistribution": "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "citation": "https://doi.org/10.5270/ESA-c5d3d65",
+  "toolVersions": {
+    "node": "v24.15.0",
+    "geotiff": "3.0.5",
+    "pngjs": "7.0.0"
+  },
+  "encoding": {
+    "format": "terrain-rgb",
+    "stepByArea": {
+      "assam-overview": 0.15,
+      "majuli": 0.1,
+      "sadiya-dibrugarh": 0.1
+    },
+    "noDataCode": 0,
+    "colourType": 2
+  },
+  "areas": [
+    {
+      "id": "assam-overview",
+      "bbox": {
+        "west": 89.5,
+        "south": 24,
+        "east": 96.5,
+        "north": 28.5
+      },
+      "width": 1318,
+      "height": 945,
+      "pixelSizeMx": 530.257,
+      "pixelSizeMy": 530.095,
+      "sourceTiles": [
+        {
+          "id": "N24_00_E089_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E089_00_DEM/Copernicus_DSM_COG_10_N24_00_E089_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E090_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E090_00_DEM/Copernicus_DSM_COG_10_N24_00_E090_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E091_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E091_00_DEM/Copernicus_DSM_COG_10_N24_00_E091_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E092_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E092_00_DEM/Copernicus_DSM_COG_10_N24_00_E092_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E093_00_DEM/Copernicus_DSM_COG_10_N24_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E094_00_DEM/Copernicus_DSM_COG_10_N24_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E095_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E095_00_DEM/Copernicus_DSM_COG_10_N24_00_E095_00_DEM.tif"
+        },
+        {
+          "id": "N24_00_E096_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N24_00_E096_00_DEM/Copernicus_DSM_COG_10_N24_00_E096_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E089_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E089_00_DEM/Copernicus_DSM_COG_10_N25_00_E089_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E090_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E090_00_DEM/Copernicus_DSM_COG_10_N25_00_E090_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E091_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E091_00_DEM/Copernicus_DSM_COG_10_N25_00_E091_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E092_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E092_00_DEM/Copernicus_DSM_COG_10_N25_00_E092_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E093_00_DEM/Copernicus_DSM_COG_10_N25_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E094_00_DEM/Copernicus_DSM_COG_10_N25_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E095_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E095_00_DEM/Copernicus_DSM_COG_10_N25_00_E095_00_DEM.tif"
+        },
+        {
+          "id": "N25_00_E096_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N25_00_E096_00_DEM/Copernicus_DSM_COG_10_N25_00_E096_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E089_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E089_00_DEM/Copernicus_DSM_COG_10_N26_00_E089_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E090_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E090_00_DEM/Copernicus_DSM_COG_10_N26_00_E090_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E091_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E091_00_DEM/Copernicus_DSM_COG_10_N26_00_E091_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E092_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E092_00_DEM/Copernicus_DSM_COG_10_N26_00_E092_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E093_00_DEM/Copernicus_DSM_COG_10_N26_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E094_00_DEM/Copernicus_DSM_COG_10_N26_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E095_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E095_00_DEM/Copernicus_DSM_COG_10_N26_00_E095_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E096_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E096_00_DEM/Copernicus_DSM_COG_10_N26_00_E096_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E089_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E089_00_DEM/Copernicus_DSM_COG_10_N27_00_E089_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E090_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E090_00_DEM/Copernicus_DSM_COG_10_N27_00_E090_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E091_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E091_00_DEM/Copernicus_DSM_COG_10_N27_00_E091_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E092_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E092_00_DEM/Copernicus_DSM_COG_10_N27_00_E092_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E093_00_DEM/Copernicus_DSM_COG_10_N27_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E094_00_DEM/Copernicus_DSM_COG_10_N27_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E095_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E095_00_DEM/Copernicus_DSM_COG_10_N27_00_E095_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E096_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E096_00_DEM/Copernicus_DSM_COG_10_N27_00_E096_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E089_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E089_00_DEM/Copernicus_DSM_COG_10_N28_00_E089_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E090_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E090_00_DEM/Copernicus_DSM_COG_10_N28_00_E090_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E091_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E091_00_DEM/Copernicus_DSM_COG_10_N28_00_E091_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E092_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E092_00_DEM/Copernicus_DSM_COG_10_N28_00_E092_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E093_00_DEM/Copernicus_DSM_COG_10_N28_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E094_00_DEM/Copernicus_DSM_COG_10_N28_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E095_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E095_00_DEM/Copernicus_DSM_COG_10_N28_00_E095_00_DEM.tif"
+        },
+        {
+          "id": "N28_00_E096_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N28_00_E096_00_DEM/Copernicus_DSM_COG_10_N28_00_E096_00_DEM.tif"
+        }
+      ],
+      "overviewLevel": 3,
+      "landmarks": [
+        {
+          "name": "Sadiya",
+          "lon": 95.67,
+          "lat": 27.83,
+          "source": "https://en.wikipedia.org/wiki/Sadiya — \"Coordinates: 27°50′N 95°40′E / 27.83°N 95.67°E\""
+        },
+        {
+          "name": "Dibrugarh",
+          "lon": 94.90837,
+          "lat": 27.47989,
+          "source": "https://www.geonames.org/1272648/dibrugarh.html — GeoNames entry 1272648, 27.47989 N 94.90837 E"
+        }
+      ],
+      "outputs": [
+        {
+          "file": "assam-overview.png",
+          "bytes": 2038300,
+          "sha256": "09c8d1e4e735e58f33f91f5d1b059f8ae8c024c158a8e1ffbc5b91fdd86cc46d"
+        },
+        {
+          "file": "assam-overview.json",
+          "bytes": 3359,
+          "sha256": "41f675e2eff297d5aad56d40eea581c0b566e34fb7c69e3fd72e97bb3ff2ea02"
+        }
+      ]
+    },
+    {
+      "id": "majuli",
+      "bbox": {
+        "west": 93.55,
+        "south": 26.7,
+        "east": 94.7,
+        "north": 27.3
+      },
+      "width": 1901,
+      "height": 1113,
+      "pixelSizeMx": 60.003,
+      "pixelSizeMy": 60.011,
+      "sourceTiles": [
+        {
+          "id": "N26_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E093_00_DEM/Copernicus_DSM_COG_10_N26_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N26_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N26_00_E094_00_DEM/Copernicus_DSM_COG_10_N26_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E093_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E093_00_DEM/Copernicus_DSM_COG_10_N27_00_E093_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E094_00_DEM/Copernicus_DSM_COG_10_N27_00_E094_00_DEM.tif"
+        }
+      ],
+      "overviewLevel": 0,
+      "landmarks": [
+        {
+          "name": "Majuli core north",
+          "lon": 94.173611,
+          "lat": 27.103056,
+          "source": "https://majuli.assam.gov.in/about-us/about-district — core area end point N, 94°10'25\"E 27°06'11\"N"
+        },
+        {
+          "name": "Majuli core south",
+          "lon": 94.159167,
+          "lat": 26.824722,
+          "source": "https://majuli.assam.gov.in/about-us/about-district — core area end point S, 94°09'33\"E 26°49'29\"N"
+        },
+        {
+          "name": "Majuli core east",
+          "lon": 94.519444,
+          "lat": 27.085833,
+          "source": "https://majuli.assam.gov.in/about-us/about-district — core area end point E, 94°31'10\"E 27°05'09\"N"
+        },
+        {
+          "name": "Majuli core west",
+          "lon": 93.746389,
+          "lat": 26.783611,
+          "source": "https://majuli.assam.gov.in/about-us/about-district — core area end point W, 93°44'47\"E 26°47'01\"N"
+        }
+      ],
+      "outputs": [
+        {
+          "file": "majuli.png",
+          "bytes": 2315189,
+          "sha256": "94d40c5d7657468531392905c0270d9006c06df642b5aa430e080727cff853d4"
+        },
+        {
+          "file": "majuli.json",
+          "bytes": 2585,
+          "sha256": "3c3eba87a55746be819741aecf13742b1d55d3ccf66af10a4f108f60d3ec9626"
+        }
+      ]
+    },
+    {
+      "id": "sadiya-dibrugarh",
+      "bbox": {
+        "west": 94.6,
+        "south": 27.1,
+        "east": 96,
+        "north": 28
+      },
+      "width": 2125,
+      "height": 1541,
+      "pixelSizeMx": 65.024,
+      "pixelSizeMy": 65.015,
+      "sourceTiles": [
+        {
+          "id": "N27_00_E094_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E094_00_DEM/Copernicus_DSM_COG_10_N27_00_E094_00_DEM.tif"
+        },
+        {
+          "id": "N27_00_E095_00",
+          "url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N27_00_E095_00_DEM/Copernicus_DSM_COG_10_N27_00_E095_00_DEM.tif"
+        }
+      ],
+      "overviewLevel": 0,
+      "landmarks": [
+        {
+          "name": "Sadiya",
+          "lon": 95.67,
+          "lat": 27.83,
+          "source": "https://en.wikipedia.org/wiki/Sadiya — \"Coordinates: 27°50′N 95°40′E / 27.83°N 95.67°E\""
+        },
+        {
+          "name": "Dibrugarh",
+          "lon": 94.90837,
+          "lat": 27.47989,
+          "source": "https://www.geonames.org/1272648/dibrugarh.html — GeoNames entry 1272648, 27.47989 N 94.90837 E"
+        }
+      ],
+      "outputs": [
+        {
+          "file": "sadiya-dibrugarh.png",
+          "bytes": 3883564,
+          "sha256": "8112c68954f41ac9c34abc2b5f2005f127b7805e1c9e06fa9f05738ee1c8e071"
+        },
+        {
+          "file": "sadiya-dibrugarh.json",
+          "bytes": 2540,
+          "sha256": "16db1480caf54b62ceb28b8319769160c8d4b4ebeddc686c25023adf592d02ad"
+        }
+      ]
+    }
+  ]
+}

@@ -16,7 +16,39 @@ Every file here must be:
 <dataset>_<resolution-or-step>.<format>
 ```
 
-Examples reserved for later phases: `dem_assam_30m.bin`, `plates_pb2002.json`,
+Examples reserved for later phases: `plates_pb2002.json`,
 `quakes_ne_india_1900_2026.json`.
 
-Phase 1 commits no data files — only this README.
+## Terrain
+
+Built by `npm run data:dem`. Three areas, each a Terrain-RGB PNG plus a JSON sidecar:
+
+```
+assam-overview.png / .json        the Brahmaputra valley, coarse (530 m)
+majuli.png / .json                Majuli island and the channels around it (60 m)
+sadiya-dibrugarh.png / .json      the upper braided reach (65 m)
+manifest.json                     source URLs, tile IDs, SHA-256s, tool versions, licence
+```
+
+The sidecar carries everything needed to place the grid: bbox, CRS, pixel size as a
+**pair** (GLO-30 pixels are not square), grid dimensions, elevation extent, the
+Terrain-RGB step and offset, and the source dataset with its licence and attribution.
+It also carries a `LIMITATIONS` list stating what this terrain is not — most importantly
+that it is a **surface** model with **no riverbed bathymetry**.
+
+Decode with `src/engine/terrain/`. In the browser, use `createImageBitmap` with
+`premultiplyAlpha: 'none'` and `colorSpaceConversion: 'none'`; see
+[`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md).
+
+### Why these files are committed
+
+A rebuild needs network access to a third party. Committing the artefacts means the
+tests can decode what actually ships, and the terrain the sandbox runs on is fixed and
+reviewable rather than dependent on what Copernicus serves on the day. `manifest.json`
+records the SHA-256 of every output so a silent change is detectable.
+
+The 5 MB per-file and 9 MB total budgets are asserted in `tests/dem-artifacts.test.ts`,
+so the `.gitignore` exceptions here cannot become a way around `AGENTS.md` §5.
+
+`data/raw/previews/` (hillshades) and `data/raw/cache/` (resumable fetch cache) are
+build by-products and are never committed.

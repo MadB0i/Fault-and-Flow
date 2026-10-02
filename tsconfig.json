@@ -29,7 +29,8 @@
       "@shared/*": ["src/shared/*"],
       "@engine/*": ["src/engine/*"],
       "@ui/*": ["src/ui/*"],
-      "@data/*": ["src/data/*"]
+      "@data/*": ["src/data/*"],
+      "@pipeline/*": ["scripts/*"]
     }
   },
   "include": [

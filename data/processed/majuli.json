@@ -1,0 +1,58 @@
+{
+  "area": "majuli",
+  "title": "Majuli island and the surrounding Brahmaputra",
+  "description": "Majuli, the largest river island, with the main Brahmaputra channel on the south and the Subansiri-fed channel on the north. Tighter than first proposed: the island runs 93.75-94.52E, so the eastern half of the old box was Sivasagar mainland.",
+  "bbox": {
+    "west": 93.55,
+    "south": 26.7,
+    "east": 94.7,
+    "north": 27.3
+  },
+  "crs": "EPSG:4326",
+  "width": 1901,
+  "height": 1113,
+  "pixelSizeMx": 60.003,
+  "pixelSizeMy": 60.011,
+  "minElevation": 68,
+  "maxElevation": 2089.16,
+  "meanElevation": 154.87,
+  "noDataPixels": 0,
+  "sourceNoDataPixels": 0,
+  "encoding": {
+    "format": "terrain-rgb",
+    "step": 0.1,
+    "offset": 68,
+    "noDataCode": 0,
+    "sourceNoDataSentinel": -32767,
+    "colourType": 2,
+    "note": "code = round((elevation - offset) / step); no-data is code 0"
+  },
+  "source": {
+    "dataset": "Copernicus DEM GLO-30 Public",
+    "productId": "COP-DEM_GLO-30-DGED",
+    "distribution": "AWS Open Data, anonymous S3",
+    "bucket": "s3://copernicus-dem-30m",
+    "tileIds": [
+      "N26_00_E093_00",
+      "N26_00_E094_00",
+      "N27_00_E093_00",
+      "N27_00_E094_00"
+    ],
+    "overviewLevel": 0,
+    "sourcePixelSpacingDeg": 0.0002777777777777778,
+    "verticalDatum": "EGM2008 geoid (orthometric)",
+    "acquisition": "TanDEM-X, 2011-2015"
+  },
+  "attribution": "produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved",
+  "attributionRedistribution": "The organisations in charge of the Copernicus programme by law or by delegation do not incur any liability for any use of the Copernicus WorldDEM-30",
+  "licence": "Licence for Copernicus DEM instance COP-DEM-GLO-30-F Global 30m Full, Free & Open — Licence for the use of the Copernicus WorldDEM-30",
+  "licenceUrl": "https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf",
+  "citation": "https://doi.org/10.5270/ESA-c5d3d65",
+  "generated": "2026-10-02",
+  "limitations": [
+    "DSM, not a bare-earth DTM: buildings and vegetation are included, so slopes are surface slopes.",
+    "Water surfaces are flattened and rivers edited for consistency; there is NO riverbed bathymetry.",
+    "Vertical error LE90 is 1.472 m per source tile, a large fraction of the floodplain's few metres of relief.",
+    "Pixels are not square: GLO-30 is a 1 arcsecond grid, so ground size varies with latitude."
+  ]
+}
