@@ -60,6 +60,7 @@ export type TerrainViewController = {
 export function useTerrainView(): TerrainViewController {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewRef = useRef<TerrainView | null>(null);
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const [state, setState] = useState<TerrainViewState>(IDLE);
   const [areaId, setAreaId] = useState<AreaId>('majuli');
@@ -74,9 +75,13 @@ export function useTerrainView(): TerrainViewController {
   // Runs once. The view's lifetime is the canvas's lifetime, and re-creating it
   // would drop the WebGL context and re-download the terrain, so depending on
   // anything else here would be a bug rather than a fix.
-  useEffect(() => {
+  //
+  // Shared with `retry`: when construction throws (no WebGL2, no float
+  // textures), viewRef stays null and the next attempt must build the view
+  // instead of calling into one that was never created.
+  const createView = useCallback((): TerrainView | null => {
     const canvas = canvasRef.current;
-    if (!canvas || viewRef.current) return;
+    if (!canvas || viewRef.current) return viewRef.current;
 
     let view: TerrainView;
     try {
@@ -91,19 +96,25 @@ export function useTerrainView(): TerrainViewController {
       // HUD can render an explanation rather than leaving a blank canvas.
       if (error instanceof TerrainViewError) setFatal(error);
       else setFatal(new TerrainViewError('webgl2-unavailable', String(error)));
-      return;
+      return null;
     }
 
     viewRef.current = view;
     setState(view.getState());
-    const unsubscribe = view.subscribe(setState);
+    unsubscribeRef.current = view.subscribe(setState);
+    return view;
+  }, []);
+
+  useEffect(() => {
+    const view = createView();
 
     return () => {
-      unsubscribe();
-      view.dispose();
+      unsubscribeRef.current?.();
+      unsubscribeRef.current = null;
+      view?.dispose();
       viewRef.current = null;
     };
-  }, []);
+  }, [createView]);
 
   // --- Reduced motion ------------------------------------------------------
   //
@@ -146,8 +157,13 @@ export function useTerrainView(): TerrainViewController {
 
   const retry = useCallback(() => {
     setFatal(null);
+    // A fatal construction left no view behind, so build one before loading.
+    // Without this the retry button clears the error and then calls into
+    // nothing, which is a button that cannot work.
+    const view = createView();
+    if (!view) return;
     loadArea(areaId);
-  }, [areaId, loadArea]);
+  }, [areaId, loadArea, createView]);
 
   /**
    * The keyboard equivalent of the pointer readout.
