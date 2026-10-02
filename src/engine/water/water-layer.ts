@@ -38,10 +38,18 @@ export const DISCHARGE_STEP_M3S = 250;
 export const DEFAULT_DISCHARGE_M3S = 4000;
 
 /** Depth above which a cell counts as wet for the area readout. */
-export const WET_THRESHOLD_M = 0.05;
+export const WET_THRESHOLD_M = 0.02;
 
 /** Depth that renders as the deep end of the ramp. A display scale, not data. */
-export const DEEP_DEPTH_M = 10;
+export const DEEP_DEPTH_M = 8;
+
+/**
+ * Alpha floor for a wet cell.
+ *
+ * Without it a 5 cm sheet over a 60 m cell is transparent enough to vanish
+ * against the terrain, which is what made the river invisible on the reaches.
+ */
+export const MIN_WATER_ALPHA = 0.42;
 
 const MAX_SUBSTEPS_PER_FRAME = 8;
 const STATS_EVERY_FRAMES = 20;
@@ -67,6 +75,8 @@ export interface WaterLayerOptions {
   /** Hex colour strings from the UI tokens; the engine holds no palette. */
   readonly shallowColor: string;
   readonly deepColor: string;
+  /** Bright band along the waterline, --water-shoreline. */
+  readonly shorelineColor: string;
 }
 
 export interface WaterLayer {
@@ -255,10 +265,12 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
       uExaggeration: { value: options.exaggeration },
       uShallow: { value: new THREE.Color(options.shallowColor) },
       uDeep: { value: new THREE.Color(options.deepColor) },
+      uShoreline: { value: new THREE.Color(options.shorelineColor) },
       uDeepDepth: { value: DEEP_DEPTH_M },
       uLightDirection: { value: LIGHT_DIRECTION.clone() },
       uSimTime: { value: 0 },
       uOpacity: { value: 0.92 },
+      uMinOpacity: { value: MIN_WATER_ALPHA },
     },
     transparent: true,
     depthWrite: false,

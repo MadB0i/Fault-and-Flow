@@ -93,6 +93,12 @@ export default function WaterPanel({
           >
             {strings.waterIllustrativeNote}
           </p>
+          <p
+            className="mt-[var(--space-2xs)] text-[length:var(--step--2)] text-[color:var(--text-muted)]"
+            data-testid="water-assumption"
+          >
+            {strings.waterChannelAssumption}
+          </p>
 
           <div className="mt-[var(--space-s)] flex items-center gap-[var(--space-xs)]">
             <button

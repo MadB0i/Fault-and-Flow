@@ -204,19 +204,24 @@ uniform sampler2D uFlux;
 uniform vec2 uTexSize;
 uniform vec3 uShallow;
 uniform vec3 uDeep;
+uniform vec3 uShoreline;
 uniform float uDeepDepth;
 uniform vec3 uLightDirection;
 uniform float uSimTime;
 uniform float uOpacity;
+uniform float uMinOpacity;
 void main() {
   if (vNoData > 0.5 || vDepth <= 0.0) {
     discard;
   }
-  // Shoreline: fade the sheet out over the first 25 cm so the waterline
-  // reads as a soft edge rather than a hard cut against the terrain.
-  float shore = smoothstep(0.0, 0.25, vDepth);
+  // Shore: a wide, bright band over the first half metre, because a metre of
+  // water on a 60 m cell is invisible at valley scale and the waterline is the
+  // thing the eye is actually looking for.
+  float shore = smoothstep(0.0, 0.5, vDepth);
+  float edge = 1.0 - smoothstep(0.5, 1.6, vDepth);
   float depthMix = clamp(vDepth / uDeepDepth, 0.0, 1.0);
   vec3 colour = mix(uShallow, uDeep, depthMix);
+  colour = mix(colour, uShoreline, edge * 0.55);
   // Advected streaks: brightness bands drift along the local flow direction
   // read from the flux field. Procedural and visibly synthetic — it suggests
   // motion, it does not track particles.
@@ -232,8 +237,11 @@ void main() {
   if (n.y < 0.0) n = -n;
   vec3 v = vec3(0.0, 0.0, 1.0);
   float spec = pow(max(dot(reflect(-uLightDirection, n), v), 0.0), 24.0);
-  colour += spec * 0.25;
-  float alpha = mix(0.55, uOpacity, depthMix) * shore;
+  colour += spec * 0.35;
+  // Any wet cell must read as water. A 0.05 m sheet on a 60 m cell is
+  // sub-pixel depth but many pixels wide, so a low alpha floor is what makes
+  // the channel visible at all; deeper water gets more opaque on top of it.
+  float alpha = max(uMinOpacity, mix(0.6, uOpacity, depthMix)) * shore;
   gl_FragColor = vec4(colour, alpha);
 }
 `;

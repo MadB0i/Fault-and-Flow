@@ -115,6 +115,8 @@ export interface Strings {
   waterTitle: string;
   waterToggleLabel: string;
   waterIllustrativeNote: string;
+  /** The burned-in trough, stated as an assumption rather than as data. */
+  waterChannelAssumption: string;
   waterPlay: string;
   waterPause: string;
   waterSpeedLabel: string;
@@ -217,6 +219,10 @@ export const EN: Strings = {
   waterIllustrativeNote:
     'Illustrative flood model, not a forecast. The DEM has no riverbed, ' +
     'so the river runs on a flat surface.',
+  /** The burned-in trough, stated as an assumption rather than as data. */
+  waterChannelAssumption:
+    'The channel is a model assumption: the terrain has no riverbed, so the ' +
+    'model cuts one along the river’s own lowest line.',
   waterPlay: 'Run water',
   waterPause: 'Pause water',
   waterSpeedLabel: 'Speed',
@@ -335,6 +341,10 @@ export const AS: Strings = {
     // DRAFT
     'এইখন কেৱল ব্যাখ্যাৰ বানৰ ছবি, পূৰ্বাভাস নহয়। নদীৰ তলি জনা নাযায়, ' +
     'সেয়ে নদী সমান পৃষ্ঠতহে বৈছে।', // DRAFT
+  waterChannelAssumption:
+    // DRAFT
+    'বাটটো মানে ধৰা: ভূমিত নদীৰ তলি নাই, সেয়ে মানে সেই দৈনিক নিম্নতম ৰেখাৰ পুথেই ' +
+    'এখন বাট কাটি দিয়ে।', // DRAFT
   waterPlay: 'পানী চলোৱা', // DRAFT
   waterPause: 'পানী ৰখোৱা', // DRAFT
   waterSpeedLabel: 'গতি', // DRAFT

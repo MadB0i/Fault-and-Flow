@@ -95,6 +95,53 @@ export function gridIndex(x: number, y: number, width: number): number {
 }
 
 /**
+ * Deepen the derived route into a shallow trough, in the sim grid.
+ *
+ * GLO-30 flattens water surfaces during editing, so the Brahmaputra reads as a
+ * smooth ribbon with no trench (`docs/DATA.md` section 12). Water poured onto
+ * it therefore ponds instead of running: the channel sits AT local water
+ * level, not below it. Cutting a few metres along the route gives the model
+ * something to flow in.
+ *
+ * This is a MODEL ASSUMPTION and the UI says so. It writes `sim.heights`,
+ * which is the simulation's copy — the displayed terrain is untouched, so a
+ * screenshot never implies the DEM holds a trench it does not.
+ *
+ * Depth scales with the cell size: a fixed metre depth is sub-pixel on the
+ * 1.8 km overview cells and a canyon on the 60 m Majuli cells.
+ */
+export function burnChannel(
+  sim: SimGrid,
+  channel: ChannelCells,
+  halfWidthCells: number,
+): void {
+  if (!(halfWidthCells > 0)) return;
+  const metresPerCell = (sim.dxM + sim.dyM) / 2;
+  const depthM = Math.max(2, metresPerCell * 1.5);
+  const radius = Math.max(1, Math.round(halfWidthCells));
+  for (const cell of channel.path) {
+    const cx = cell % sim.width;
+    const cy = Math.floor(cell / sim.width);
+    for (let dy = -radius; dy <= radius; dy += 1) {
+      for (let dx = -radius; dx <= radius; dx += 1) {
+        const x = cx + dx;
+        const y = cy + dy;
+        if (x < 0 || y < 0 || x >= sim.width || y >= sim.height) continue;
+        const i = y * sim.width + x;
+        if (sim.noData[i] === 1) continue;
+        const h = sim.heights[i] ?? Number.NaN;
+        if (!Number.isFinite(h)) continue;
+        // Cosine falloff, so the trough has no step at its rim.
+        const r = Math.hypot(dx, dy) / (radius + 0.5);
+        const cut = depthM * Math.max(0, 1 - r);
+        if (cut <= 0) continue;
+        sim.heights[i] = h - cut;
+      }
+    }
+  }
+}
+
+/**
  * Main channel, found in the DEM itself — never hardcoded.
  *
  * Water enters where the river enters: the lowest cell of the east (upstream)

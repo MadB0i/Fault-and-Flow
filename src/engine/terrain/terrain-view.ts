@@ -66,6 +66,7 @@ import { decodeTerrainRgba, NO_DATA_HEIGHT } from './decode-terrain.js';
 import { TERRAIN_FRAGMENT_SHADER, TERRAIN_VERTEX_SHADER } from './shaders.js';
 import {
   buildSimGrid,
+  burnChannel,
   deriveChannel,
   createWaterLayer,
   DEFAULT_WATER_SPEED,
@@ -267,6 +268,13 @@ export function createTerrainView(
   let waterState: WaterLayerState | null = null;
   let waterSpeed = DEFAULT_WATER_SPEED;
   let waterDischarge = DEFAULT_DISCHARGE_M3S;
+  let channelMarkers: {
+    group: THREE.Group;
+    inflowMesh: THREE.Mesh;
+    outletMesh: THREE.Mesh;
+    geo: THREE.SphereGeometry;
+    mats: THREE.MeshBasicMaterial[];
+  } | null = null;
   let currentSimWidth = DEFAULT_SIM_WIDTH;
 
   const listeners = new Set<(s: TerrainViewState) => void>();
@@ -944,6 +952,62 @@ export function createTerrainView(
     return false;
   }
 
+  /**
+   * Where the model puts the river: two small markers on the terrain, so the
+   * entry and the outflow are visible rather than only printed as coordinates
+   * in a panel. Drawn from the same cells the sim uses.
+   */
+  function placeChannelMarkers(
+    sim: { width: number; height: number; heights: Float32Array },
+    channel: { inflow: number; outlet: number },
+    extent: { widthM: number; heightM: number; diagonalM: number },
+  ): void {
+    const scale = Math.max(1, extent.diagonalM * 0.004);
+    if (!channelMarkers) {
+      const geo = new THREE.SphereGeometry(1, 16, 12);
+      const inMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(options.palette.waterShallow),
+        depthTest: false,
+        transparent: true,
+        opacity: 0.95,
+      });
+      const outMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(options.palette.waterShallow),
+        depthTest: false,
+        transparent: true,
+        opacity: 0.95,
+      });
+      const inflowMesh = new THREE.Mesh(geo, inMat);
+      const outletMesh = new THREE.Mesh(geo, outMat);
+      inflowMesh.renderOrder = 10;
+      outletMesh.renderOrder = 10;
+      const group = new THREE.Group();
+      group.add(inflowMesh, outletMesh);
+      scene.add(group);
+      channelMarkers = { group, inflowMesh, outletMesh, geo, mats: [inMat, outMat] };
+    }
+    const at = (cell: number): THREE.Vector3 => {
+      const x = cell % sim.width;
+      const y = Math.floor(cell / sim.width);
+      return new THREE.Vector3(
+        ((x + 0.5) / sim.width - 0.5) * extent.widthM,
+        (sim.heights[cell] ?? 0) * exaggeration + scale * 3,
+        ((y + 0.5) / sim.height - 0.5) * extent.heightM,
+      );
+    };
+    channelMarkers.inflowMesh.position.copy(at(channel.inflow));
+    channelMarkers.outletMesh.position.copy(at(channel.outlet));
+    channelMarkers.geo.scale(scale, scale, scale);
+  }
+
+  function removeChannelMarkers(): void {
+    if (!channelMarkers) return;
+    scene.remove(channelMarkers.group);
+    channelMarkers.geo.dispose();
+    for (const m of channelMarkers.mats) m.dispose();
+    channelMarkers = null;
+  }
+
   function refreshWaterSnapshot(): void {
     if (!waterLayer || !waterState?.supported) return;
     const stats = waterLayer.getStats();
@@ -981,6 +1045,10 @@ export function createTerrainView(
         currentSimWidth,
       );
       channel = deriveChannel(sim.heights, sim.noData, sim.width, sim.height);
+      // GLO-30 has no riverbed, so the route is at local water level and water
+      // ponds instead of running. Cut a trough into the SIM copy only; the
+      // displayed terrain is untouched and the UI states this is an assumption.
+      burnChannel(sim, channel, 2);
     } catch {
       return unsupportedWater('channel-failed');
     }
@@ -995,6 +1063,7 @@ export function createTerrainView(
       exaggeration,
       shallowColor: options.palette.waterShallow,
       deepColor: options.palette.waterDeep,
+      shorelineColor: options.palette.waterShoreline,
     });
     if (!layer) return unsupportedWater('float-render-unsupported');
     layer.setSpeed(waterSpeed);
@@ -1025,6 +1094,7 @@ export function createTerrainView(
       simWidth: sim.width,
       simHeight: sim.height,
     };
+    placeChannelMarkers(sim, channel, extent);
     emit();
     scheduleFrame();
     return true;
@@ -1039,6 +1109,7 @@ export function createTerrainView(
     waterWanted = false;
     waterLayer?.dispose();
     waterLayer = null;
+    removeChannelMarkers();
     waterState = null;
     emit();
   }
@@ -1141,6 +1212,7 @@ export function createTerrainView(
     heightTexture?.dispose();
     waterLayer?.dispose();
     waterLayer = null;
+    removeChannelMarkers();
     geometry.dispose();
     material.dispose();
     renderer.dispose();
