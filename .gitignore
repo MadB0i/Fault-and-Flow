@@ -29,6 +29,21 @@ data/processed/*
 data/processed/**/*
 !data/processed/.gitkeep
 !data/processed/README.md
+# Terrain artefacts ARE committed: the pipeline's output is the product's data,
+# and a rebuild needs network access to a third party. Tests assert the per-file
+# 5 MB ceiling and the 9 MB total budget, so these exceptions cannot quietly
+# become a way past AGENTS.md §5.
+!data/processed/manifest.json
+!data/processed/*-overview.png
+!data/processed/*-overview.json
+!data/processed/majuli.png
+!data/processed/majuli.json
+!data/processed/sadiya-dibrugarh.png
+!data/processed/sadiya-dibrugarh.json
+
+# Preview hillshades and the window cache are build by-products. Never committed.
+data/raw/previews/
+data/raw/cache/
 
 # Environment
 .env

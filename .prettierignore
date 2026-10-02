@@ -8,3 +8,11 @@ docs/screenshots
 # Font binaries are shipped as build artefacts from node_modules; never hand-edit.
 *.woff
 *.woff2
+
+# Terrain artefacts are pipeline output. Prettier must not reformat them: their
+# exact bytes are the SHA-256s recorded in manifest.json, and collapsing a short
+# array onto one line changes those bytes without changing the data. A rebuild
+# has to reproduce these files byte for byte, so the generator's formatting is
+# the authority here, not the formatter's. data/processed/README.md is hand
+# written and is still formatted.
+data/processed/*.json
