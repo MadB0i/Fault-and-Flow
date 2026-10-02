@@ -155,6 +155,12 @@ export function stepWater(
     throw new Error('stepWater needs finite dt > 0');
   const { width, height, dxM, dyM, terrain, noData, depth, flux } = grid;
   const cellArea = dxM * dyM;
+  // Double-buffered passes, exactly like the GPU ping-pong: the flux pass
+  // reads frozen depths and writes a scratch field, and the depth pass reads
+  // the scratch. Updating fluxes in place would let a cell export its new
+  // flux while a neighbour already imported the old one, which silently
+  // creates or destroys water every step.
+  const nextFlux = new Float32Array(flux.length);
   const nextDepth = new Float32Array(depth.length);
 
   // Neighbour offsets in FLUX_* order: W(-x), E(+x), N(-row), S(+row).
@@ -176,15 +182,15 @@ export function stepWater(
         // Defensive: a NaN must never propagate into the flux field, where it
         // would poison neighbours. Clamp and move on; the depth test pins this.
         nextDepth[i] = 0;
-        flux[i * 4] = 0;
-        flux[i * 4 + 1] = 0;
-        flux[i * 4 + 2] = 0;
-        flux[i * 4 + 3] = 0;
+        nextFlux[i * 4] = 0;
+        nextFlux[i * 4 + 1] = 0;
+        nextFlux[i * 4 + 2] = 0;
+        nextFlux[i * 4 + 3] = 0;
         continue;
       }
       const w = h + d;
 
-      let outSum = 0;
+      // Pass 1: update this cell's outflow pipes into the scratch field.
       for (let p = 0; p < 4; p += 1) {
         const nx = x + (offX[p] ?? 0);
         const ny = y + (offY[p] ?? 0);
@@ -209,7 +215,7 @@ export function stepWater(
         }
         const fi = i * 4 + p;
         if (wall) {
-          flux[fi] = 0;
+          nextFlux[fi] = 0;
           continue;
         }
         const l = pipeLen[p] ?? dxM;
@@ -217,35 +223,59 @@ export function stepWater(
           0,
           (flux[fi] ?? 0) + (dtS * cellArea * GRAVITY_M_S2 * (w - wN)) / l,
         );
-        flux[fi] = Number.isFinite(f) ? f : 0;
-        outSum += flux[fi] ?? 0;
+        nextFlux[fi] = Number.isFinite(f) ? f : 0;
       }
+    }
+  }
+
+  // Pass 2: move volume through the scratch fluxes. Every pipe is read from
+  // the same field it was written to, so each export has exactly one import.
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const i = y * width + x;
+      if (noData[i] === 1) {
+        nextDepth[i] = 0;
+        continue;
+      }
+      const d = depth[i] ?? 0;
+      if (!(d >= 0)) {
+        nextDepth[i] = 0;
+        continue;
+      }
+      let outSum =
+        (nextFlux[i * 4] ?? 0) +
+        (nextFlux[i * 4 + 1] ?? 0) +
+        (nextFlux[i * 4 + 2] ?? 0) +
+        (nextFlux[i * 4 + 3] ?? 0);
 
       // Overshoot guard: never export more volume than the cell holds.
       if (outSum > 0 && d > 0) {
         const available = (d * cellArea) / dtS;
         if (outSum > available) {
           const k = available / outSum;
-          for (let p = 0; p < 4; p += 1) flux[i * 4 + p] = (flux[i * 4 + p] ?? 0) * k;
+          for (let p = 0; p < 4; p += 1)
+            nextFlux[i * 4 + p] = (nextFlux[i * 4 + p] ?? 0) * k;
           outSum = available;
         }
       } else if (d <= 0) {
-        for (let p = 0; p < 4; p += 1) flux[i * 4 + p] = 0;
+        for (let p = 0; p < 4; p += 1) nextFlux[i * 4 + p] = 0;
         outSum = 0;
       }
 
       // Net inflow: neighbours' outflow pipes pointing at this cell.
       // The W pipe of the eastern neighbour flows west into us, and so on.
       let inSum = 0;
-      inSum += inflowFrom(grid, flux, x, y, 1, 0, FLUX_W);
-      inSum += inflowFrom(grid, flux, x, y, -1, 0, FLUX_E);
-      inSum += inflowFrom(grid, flux, x, y, 0, 1, FLUX_N);
-      inSum += inflowFrom(grid, flux, x, y, 0, -1, FLUX_S);
+      inSum += inflowFrom(grid, nextFlux, x, y, 1, 0, FLUX_W);
+      inSum += inflowFrom(grid, nextFlux, x, y, -1, 0, FLUX_E);
+      inSum += inflowFrom(grid, nextFlux, x, y, 0, 1, FLUX_N);
+      inSum += inflowFrom(grid, nextFlux, x, y, 0, -1, FLUX_S);
 
       const nd = d + (dtS * (inSum - outSum)) / cellArea;
       nextDepth[i] = nd;
     }
   }
+
+  flux.set(nextFlux);
 
   for (const s of sources) {
     if (s.cell < 0 || s.cell >= nextDepth.length) continue;

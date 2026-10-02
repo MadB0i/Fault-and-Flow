@@ -95,10 +95,20 @@ export function gridIndex(x: number, y: number, width: number): number {
 }
 
 /**
- * Lowest continuous east→west route through the grid (minimax elevation).
- * No-data cells are walls. Deterministic for a given input. Throws when no
- * route exists rather than inventing one — a missing channel is a data fact
- * the UI must report, not paper over.
+ * Main channel, found in the DEM itself — never hardcoded.
+ *
+ * Water enters where the river enters: the lowest cell of the east (upstream)
+ * edge, and leaves at the lowest cell of the west (downstream) edge. Between
+ * them runs the lowest continuous route: a minimax path that minimises the
+ * maximum elevation along the way, with the summed elevation as the tiebreak
+ * so the route keeps descending instead of wandering once the maximum
+ * plateaus. Depressions and flats need no special-casing, unlike D8
+ * accumulation — and unlike a free-endpoint search, the anchored ends cannot
+ * drift into the hills when a mid-route saddle sets the maximum.
+ *
+ * Pure module: no DOM, no Three.js. Deterministic for a given input. Throws
+ * when no route exists rather than inventing one — a missing channel is a
+ * data fact the UI must report, not paper over.
  */
 export function deriveChannel(
   heights: ArrayLike<number>,
@@ -106,16 +116,27 @@ export function deriveChannel(
   width: number,
   height: number,
 ): ChannelCells {
+  const east = width - 1;
+  const inflow = lowestInColumn(heights, noData, width, height, east);
+  const outletTarget = lowestInColumn(heights, noData, width, height, 0);
+  if (inflow < 0 || outletTarget < 0) {
+    throw new Error('deriveChannel: no usable edge cell in this grid');
+  }
+
   const n = width * height;
-  const cost = new Float64Array(n).fill(Number.POSITIVE_INFINITY);
+  const maxCost = new Float64Array(n).fill(Number.POSITIVE_INFINITY);
+  const sumCost = new Float64Array(n).fill(Number.POSITIVE_INFINITY);
   const parent = new Int32Array(n).fill(-1);
   const settled = new Uint8Array(n);
   const heap: number[] = [];
 
   const less = (a: number, b: number): boolean => {
-    const ca = cost[a] ?? Number.POSITIVE_INFINITY;
-    const cb = cost[b] ?? Number.POSITIVE_INFINITY;
-    if (ca !== cb) return ca < cb;
+    const ma = maxCost[a] ?? Number.POSITIVE_INFINITY;
+    const mb = maxCost[b] ?? Number.POSITIVE_INFINITY;
+    if (ma !== mb) return ma < mb;
+    const sa = sumCost[a] ?? Number.POSITIVE_INFINITY;
+    const sb = sumCost[b] ?? Number.POSITIVE_INFINITY;
+    if (sa !== sb) return sa < sb;
     return a < b;
   };
   const push = (i: number): void => {
@@ -159,22 +180,20 @@ export function deriveChannel(
     return top;
   };
 
-  const east = width - 1;
-  for (let y = 0; y < height; y += 1) {
-    const i = gridIndex(east, y, width);
-    if (noData[i] === 1) continue;
-    const h = heights[i];
-    if (h === undefined || Number.isNaN(h)) continue;
-    cost[i] = h;
-    push(i);
+  const startH = heights[inflow];
+  if (startH === undefined || Number.isNaN(startH)) {
+    throw new Error('deriveChannel: inflow cell has no elevation');
   }
+  maxCost[inflow] = startH;
+  sumCost[inflow] = startH;
+  push(inflow);
 
   let outlet = -1;
   while (heap.length > 0) {
     const i = pop();
     if (i === undefined || settled[i] === 1) continue;
     settled[i] = 1;
-    if (i % width === 0) {
+    if (i === outletTarget) {
       outlet = i;
       break;
     }
@@ -190,9 +209,12 @@ export function deriveChannel(
         if (settled[ni] === 1 || noData[ni] === 1) continue;
         const h = heights[ni];
         if (h === undefined || Number.isNaN(h)) continue;
-        const c = Math.max(cost[i] ?? Number.POSITIVE_INFINITY, h);
-        if (c < (cost[ni] ?? Number.POSITIVE_INFINITY)) {
-          cost[ni] = c;
+        const nm = Math.max(maxCost[i] ?? Number.POSITIVE_INFINITY, h);
+        const ns = (sumCost[i] ?? Number.POSITIVE_INFINITY) + h;
+        const om = costOf(maxCost, ni);
+        if (nm < om || (nm === om && ns < costOf(sumCost, ni))) {
+          maxCost[ni] = nm;
+          sumCost[ni] = ns;
           parent[ni] = i;
           push(ni);
         }
@@ -211,4 +233,29 @@ export function deriveChannel(
   }
   reversed.reverse();
   return { inflow: reversed[0] ?? outlet, outlet, path: reversed };
+}
+
+/** Lowest finite cell in a grid column, or -1 when the column is all walls. */
+function lowestInColumn(
+  heights: ArrayLike<number>,
+  noData: ArrayLike<number>,
+  width: number,
+  height: number,
+  x: number,
+): number {
+  let best = -1;
+  let bestH = Number.POSITIVE_INFINITY;
+  for (let y = 0; y < height; y += 1) {
+    const i = gridIndex(x, y, width);
+    if (noData[i] === 1) continue;
+    const h = heights[i];
+    if (h === undefined || Number.isNaN(h) || !(h < bestH)) continue;
+    bestH = h;
+    best = i;
+  }
+  return best;
+}
+
+function costOf(costs: ArrayLike<number>, i: number): number {
+  return costs[i] ?? Number.POSITIVE_INFINITY;
 }
