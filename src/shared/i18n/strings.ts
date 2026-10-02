@@ -56,10 +56,67 @@ export interface Strings {
   /** Honesty banner. Never soften these. See PRODUCT.md section 4. */
   disclaimerShort: string;
   earthquakesCannotBePredicted: string;
+  /**
+   * The terrain-specific honesty line, shown over the scene.
+   *
+   * Separate from `disclaimerShort` because it is a statement about the
+   * RENDER, and a reader looking at a 3D landscape needs that specific
+   * reassurance rather than the general one. "Illustrative" is the operative
+   * word: PRODUCT.md section 4.1 forbids any framing that implies prediction.
+   */
+  terrainIllustrativeNote: string;
 
   /** Construction status for phase 1. */
   phaseLabel: string;
   phaseBody: string;
+
+  // --- Phase 3: the terrain viewer ---------------------------------------
+  /** Accessible name for the canvas that shows the terrain. */
+  terrainCanvasLabel: string;
+  /** Hint for keyboard orbit and zoom, shown under the canvas. */
+  terrainCanvasHint: string;
+  /** The three committed areas. */
+  areaOverviewTitle: string;
+  areaMajuliTitle: string;
+  areaSadiyaTitle: string;
+  areaPickerLabel: string;
+
+  /** Vertical exaggeration control. */
+  exaggerationLabel: string;
+  /** Unit-suffix for the exaggeration readout: "x" for multiples. */
+  exaggerationValueSuffix: string;
+  exaggerationHint: string;
+
+  /** Contour toggle. */
+  contoursLabel: string;
+  contoursHint: string;
+
+  /** Legend. */
+  legendTitle: string;
+  legendElevationLabel: string;
+  legendContourLabel: string;
+  legendExaggerationLabel: string;
+
+  /** Pointer / camera-target readout. */
+  readoutLabel: string;
+  readoutUnderCursor: string;
+  readoutCameraTarget: string;
+  readoutElevationPrefix: string;
+  readoutNoData: string;
+
+  /** Attribution block, rendered from the sidecar. */
+  attributionLabel: string;
+  attributionLimitationsLabel: string;
+
+  /** Reset the camera. */
+  resetViewLabel: string;
+
+  /** Loading and error states. */
+  terrainLoading: string;
+  terrainErrorWebgl: string;
+  terrainErrorFloat: string;
+  terrainErrorLoad: string;
+  terrainRetry: string;
 }
 
 /**
@@ -95,10 +152,56 @@ export const EN: Strings = {
   earthquakesCannotBePredicted:
     'Earthquakes cannot be predicted. No one can tell you when or where the ' +
     'next one will happen.',
+  terrainIllustrativeNote:
+    'Illustrative terrain model, not a hazard map or forecast. Heights on ' +
+    'screen are exaggerated; the ground area is not.',
 
   phaseLabel: 'Phase 1 of 8 — foundation',
   phaseBody:
     'Design system and repository scaffolding only. No simulation, no 3D, no data.',
+
+  // --- Phase 3 -----------------------------------------------------------
+  terrainCanvasLabel:
+    'Three-dimensional terrain view. Use the arrow keys to orbit, plus and ' +
+    'minus to zoom, Home to reset.',
+  terrainCanvasHint: 'Arrow keys orbit · + and − zoom · Home resets',
+
+  areaOverviewTitle: 'Assam valley, whole',
+  areaMajuliTitle: 'Majuli island',
+  areaSadiyaTitle: 'Sadiya to Dibrugarh',
+  areaPickerLabel: 'Area to view',
+
+  exaggerationLabel: 'Vertical exaggeration',
+  exaggerationValueSuffix: '×',
+  exaggerationHint:
+    'True scale is flat. This multiplies height only; the ground area is unchanged.',
+
+  contoursLabel: 'Contour lines',
+  contoursHint: 'Equal-height lines. The interval is shown in the legend.',
+
+  legendTitle: 'Elevation',
+  legendElevationLabel: 'Elevation above sea level',
+  legendContourLabel: 'Contour interval',
+  legendExaggerationLabel: 'Height shown at',
+
+  readoutLabel: 'Elevation under the pointer',
+  readoutUnderCursor: 'Pointer',
+  readoutCameraTarget: 'Camera target (keyboard equivalent)',
+  readoutElevationPrefix: 'Elevation',
+  readoutNoData: 'No data here',
+
+  attributionLabel: 'Terrain data',
+  attributionLimitationsLabel: 'What this terrain is not',
+
+  resetViewLabel: 'Reset the view',
+
+  terrainLoading: 'Loading terrain…',
+  terrainErrorWebgl: 'This browser cannot run the 3D terrain view. WebGL2 is required.',
+  terrainErrorFloat:
+    'This device cannot read 32-bit float textures, which the terrain needs to ' +
+    'avoid quantising elevation into visible steps.',
+  terrainErrorLoad: 'The terrain could not be loaded.',
+  terrainRetry: 'Try again',
 };
 
 /**
@@ -140,10 +243,64 @@ export const AS: Strings = {
     'ভূমিকম্প আগমন কৰিব নোৱাৰা যায়। কোনেও কাৰিও পুৱা নাই কোন সময়ত বা কোথাত ' +
     'পৰৱৰ্তী ভূমিকম্প হ’ব।',
 
+  terrainIllustrativeNote:
+    // DRAFT
+    'এই ভূমিটো কেৱল ব্যাখ্যাৰ ছবি, কোনো বিপদ মানচিত্ৰ বা পূৰ্বাভাস নহয়। দেখুওৱা উচ্চতা বেছাই কৰা হৈছে, কিন্তু ভূমিৰ আকাৰ সেইকৈয়েই আছে।', // DRAFT
+
   phaseLabel: 'প্ৰথম পৰ্যায়, আটাৰ পৰা প্ৰথম', // DRAFT
   phaseBody:
     // DRAFT
     'কেৱল নকশাপত্ৰ আৰু পুৱা-সংৰক্ষণ। কোনো নকশা, তিনিটা-মাপৰ দৃশ্য বা তথ্য নহয়।',
+
+  // --- Phase 3 -----------------------------------------------------------
+  // Punctuation is kept to the ASCII range plus the Assamese block. The
+  // shipping Noto Sans Bengali subsets are a bengali cut and a latin cut, and a
+  // typographic minus or middot is not guaranteed to be in either; a tofu box in
+  // the middle of a control hint is worse than an ASCII hyphen.
+  terrainCanvasLabel:
+    // DRAFT
+    'তিনিটা মাপৰ ভূমিৰ দৃশ্য। বাঁৰী আৰু তীৰৰ বোতামেৰে ধাৰণ কৰক, আৰু প্ৰয়োজনীয় আৰু অপ্ৰয়োজনীয় বোতামেৰে ইমান-ঘমানি কৰক।', // DRAFT
+  terrainCanvasHint: 'তীৰ বোতাম ধাৰণ, + আৰু - ইমান-ঘমানি, Home পুনৰ সেট', // DRAFT
+
+  areaOverviewTitle: 'সমগ্ৰ অসম ঘাটি', // DRAFT
+  areaMajuliTitle: 'মাজুলী দ্বীপ', // DRAFT
+  areaSadiyaTitle: 'সদিয়াৰ পৰা ডিব্ৰুগড়', // DRAFT
+  areaPickerLabel: 'কোন ঠাই দেখিব', // DRAFT
+
+  exaggerationLabel: 'লম্বালম্ব দৃশ্য বেছলাশ', // DRAFT
+  exaggerationValueSuffix: '×', // DRAFT
+  exaggerationHint:
+    // DRAFT
+    'আসল ঠিক মাপে ভূমি সেহত। ইয়া কেৱল উচ্চতা বেছাই দিয়ে, ভূমিৰ আকাৰ একে থাকে।', // DRAFT
+
+  contoursLabel: 'সমান উচ্চতাৰ ৰেখা', // DRAFT
+  contoursHint: 'সমান উচ্চতাৰ ৰেখা, আৰু প্ৰতিটো ৰেখাৰ পৰ্যবেক্তা লিখা আছে।', // DRAFT
+
+  legendTitle: 'উচ্চতা', // DRAFT
+  legendElevationLabel: 'সমুদ্ৰৰ পৰা উচ্চতা', // DRAFT
+  legendContourLabel: 'ৰেখাৰ মাপৰ পৰ্যবেক্তা', // DRAFT
+  legendExaggerationLabel: 'যি মাপে দেখুওৱা হয়', // DRAFT
+
+  readoutLabel: 'বোতামৰ তলত থকা উচ্চতা', // DRAFT
+  readoutUnderCursor: 'বোতাম', // DRAFT
+  readoutCameraTarget: 'কেমেৰাৰ লক্ষ্য, বোতামৰ সমান', // DRAFT
+  readoutElevationPrefix: 'উচ্চতা', // DRAFT
+  readoutNoData: 'এখানে তথ্য নাই', // DRAFT
+
+  attributionLabel: 'ভূমিৰ তথ্য', // DRAFT
+  attributionLimitationsLabel: 'এই ভূমি কি নহয়', // DRAFT
+
+  resetViewLabel: 'দৃশ্যটো পুনৰ সজাই দিয়া', // DRAFT
+
+  terrainLoading: 'ভূমি আনা হৈছে', // DRAFT
+  terrainErrorWebgl:
+    // DRAFT
+    'এই ব্ৰাৱাৰে তিনিটা-মাপৰ ভূমি দেখাব নাযায়, কাৰণ WebGL2 প্ৰয়োজন।', // DRAFT
+  terrainErrorFloat:
+    // DRAFT
+    'এই যন্ত্ৰই ৩২-বিট ফ্লোট ছবিপড় পঢ়া পুৰা নাযায়, আৰু উচ্চতাক স্পষ্ট স্তৰত টুকুৱাবলৈ ভূমিটোক এইটো লাগে।', // DRAFT
+  terrainErrorLoad: "ভূমিটো আনা নহ'ল।", // DRAFT
+  terrainRetry: 'পুনৰ চেষ্টা কৰা', // DRAFT
 };
 
 /**

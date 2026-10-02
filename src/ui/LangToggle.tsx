@@ -18,7 +18,7 @@ export default function LangToggle() {
 
   return (
     <fieldset
-      className="rounded-[var(--radius)] border-[length:1px] border-[color:var(--hairline)] bg-[color:var(--surface)] p-[var(--space-2xs)] backdrop-blur-[14px]"
+      className="rounded-[var(--radius)] border-[length:1px] border-[color:var(--hairline)] bg-[color:var(--surface)] p-[var(--space-2xs)] backdrop-blur-[var(--blur-panel)]"
       data-testid="lang-toggle"
     >
       <legend className="sr-only">{strings.languageToggleLabel}</legend>

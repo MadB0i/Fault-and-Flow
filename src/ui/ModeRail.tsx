@@ -40,7 +40,7 @@ export default function ModeRail() {
       // than squeezing a 200px column into 390px is what keeps the three
       // channels legible on a phone.
       className="w-full rounded-[var(--radius)] border-[length:1px] border-[color:var(--hairline)]
-                 bg-[color:var(--surface)] p-[var(--space-xs)] backdrop-blur-[14px]
+                 bg-[color:var(--surface)] p-[var(--space-xs)] backdrop-blur-[var(--blur-panel)]
                  md:w-[200px]"
       data-testid="mode-rail"
     >

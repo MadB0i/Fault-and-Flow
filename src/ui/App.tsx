@@ -1,6 +1,10 @@
 /**
- * Phase 1 placeholder. It proves the design system and nothing else - no 3D,
- * no simulation, no data. See docs/ROADMAP.md phase 1.
+ * Phase 3: the terrain viewer, inside the phase-1 shell.
+ *
+ * The HUD shell - mode rail, wordmark, language toggle - is unchanged from
+ * phase 1, because the mode rail is still three disabled channels and pretending
+ * otherwise would be a claim the product cannot make. What changed is the
+ * canvas region: it now holds the real terrain viewer instead of a placeholder.
  *
  * Every value it renders comes from a token in styles/tokens.css. If a number
  * appears here that is not a var(--...) reference, that is a defect.
@@ -13,6 +17,7 @@ import { useUiStore } from './state/useUiStore.js';
 import type { Mode } from '../shared/types.js';
 import ModeRail from './ModeRail.js';
 import LangToggle from './LangToggle.js';
+import TerrainScene from './terrain/TerrainScene.js';
 
 function iconFor(mode: Mode): LucideIcon {
   switch (mode) {
@@ -93,75 +98,65 @@ export default function App() {
         </div>
       </div>
 
-      {/* ---- Empty canvas region -------------------------------------- */}
-      <main
-        id="main"
-        tabIndex={-1}
-        className="flex flex-1 items-center justify-center
-                   px-[var(--space-s)] py-[var(--space-xl)]"
+      {/*
+        The terrain viewer. It owns the canvas and its own HUD; the shell above
+        stays exactly as phase 1 left it.
+      */}
+      <TerrainScene />
+
+      {/*
+        The honesty banner stays pinned and always visible over the scene. A
+        disclaimer that has to be scrolled to, or that disappears behind a
+        control panel, is a disclaimer most people never read.
+      */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-[var(--space-xl)] z-30
+                   mx-auto w-[min(100%,520px)] px-[var(--space-s)]
+                   md:top-[var(--space-s)] md:right-[var(--space-s)] md:left-auto"
+        role="note"
+        data-testid="disclaimer-banner"
       >
-        <div className="max-w-[46ch]">
-          <p
-            className="font-data text-[length:var(--step--2)] uppercase tracking-[0.14em] text-[color:var(--water)]"
-            data-testid="phase-label"
-          >
-            {strings.phaseLabel}
-          </p>
-
-          <h2 className="mt-[var(--space-s)] font-display text-[length:var(--step-3)] leading-[1.15] tracking-[-0.015em] text-balance">
-            {strings.canvasEmptyTitle}
-          </h2>
-
-          <p className="mt-[var(--space-s)] text-[length:var(--step-0)] text-[color:var(--text-muted)]">
-            {strings.canvasEmptyBody}
-          </p>
-
-          {/* The Assamese phrase the brief requires, rendered in the shipping
-              face. tests/fonts.test.ts asserts its glyph coverage in the
-              actual font binary. */}
-          <p
-            className="mt-[var(--space-l)] font-assamese text-[length:var(--step-1)] text-[color:var(--text)]"
-            lang="as"
-            data-testid="assamese-phrase"
-          >
-            ভূমিকম্প আৰু বান
-          </p>
-
-          <div
-            className="mt-[var(--space-l)] flex items-start gap-[var(--space-xs)]
-                       rounded-[var(--radius)] border-[length:1px]
-                       border-[color:var(--hairline)] bg-[color:var(--surface)]
-                       p-[var(--space-s)] backdrop-blur-[14px]"
-            role="note"
-          >
-            <Info
-              // Optical alignment with the first line's cap height, using a
-              // space token rather than a raw 2px nudge.
-              className="mt-[var(--space-2xs)] shrink-0 text-[color:var(--seismic-amber)]"
-              size={16}
-              strokeWidth={1.5}
-              aria-hidden="true"
-            />
-            <div>
-              {/*
-                Sentence case, not uppercase. DESIGN.md section 5 bans
-                all-caps sentences; this is a disclaimer, and shouting a
-                disclaimer makes it easier to skim past. Only short
-                all-caps labels are acceptable.
-              */}
-              <p
-                className="text-[length:var(--step--1)] font-medium text-[color:var(--seismic-amber)]"
-                data-testid="disclaimer"
-              >
-                {strings.disclaimerShort}
-              </p>
-              <p className="mt-[var(--space-2xs)] text-[length:var(--step--1)] text-[color:var(--text-muted)]">
-                {strings.earthquakesCannotBePredicted}
-              </p>
-            </div>
+        <div
+          className="flex items-start gap-[var(--space-xs)]
+                     rounded-[var(--radius)] border-[length:1px]
+                     border-[color:var(--hairline)] bg-[color:var(--surface)]
+                     p-[var(--space-s)] backdrop-blur-[var(--blur-panel)]"
+        >
+          <Info
+            // Optical alignment with the first line's cap height, using a
+            // space token rather than a raw 2px nudge.
+            className="mt-[var(--space-2xs)] shrink-0 text-[color:var(--seismic-amber)]"
+            size={16}
+            strokeWidth={1.5}
+            aria-hidden="true"
+          />
+          <div>
+            {/*
+              Sentence case, not uppercase. DESIGN.md section 5 bans
+              all-caps sentences; this is a disclaimer, and shouting a
+              disclaimer makes it easier to skim past. Only short
+              all-caps labels are acceptable.
+            */}
+            <p
+              className="text-[length:var(--step--1)] font-medium text-[color:var(--seismic-amber)]"
+              data-testid="disclaimer"
+            >
+              {strings.disclaimerShort}
+            </p>
+            {/*
+              The terrain-specific line. PRODUCT.md 4.1 forbids any framing that
+              suggests prediction; "illustrative" is the word that keeps a
+              screenshot of this scene from being mistakable for a forecast.
+            */}
+            <p
+              className="mt-[var(--space-2xs)] text-[length:var(--step--1)] text-[color:var(--text-muted)]"
+              data-testid="terrain-honesty"
+            >
+              {strings.terrainIllustrativeNote}
+            </p>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Rendered mode icons once so the rail's icon set is proven present. */}
       <span className="sr-only" data-testid="mode-icon-set">
