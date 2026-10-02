@@ -126,9 +126,15 @@ export function probeFloatTargets(
       depthBuffer: false,
       stencilBuffer: false,
     });
+  // RGBA, not RG, for the state. RG32F is renderable with
+  // EXT_color_buffer_float but readPixels from it is not guaranteed to be
+  // supported, and the stats readback silently returned garbage (depths of
+  // 1e19 m) that the HUD reported as real. RGBA32F is both renderable and
+  // readable everywhere the extension exists. Terrain stays in .r and depth in
+  // .g; the extra channels are unused.
   const targets: FloatTargets = {
-    stateA: make(THREE.RGFormat),
-    stateB: make(THREE.RGFormat),
+    stateA: make(THREE.RGBAFormat),
+    stateB: make(THREE.RGBAFormat),
     fluxA: make(THREE.RGBAFormat),
     fluxB: make(THREE.RGBAFormat),
   };
@@ -170,16 +176,17 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
 
   // Initial state texture: terrain plus a dry sheet, uploaded once and kept
   // for reset(). Row 0 is the north edge, unflipped, matching the shaders.
-  const initialData = new Float32Array(sim.width * sim.height * 2);
+  // RGBA: .r terrain metres, .g depth. NaN in .r marks a wall.
+  const initialData = new Float32Array(sim.width * sim.height * 4);
   for (let i = 0; i < sim.width * sim.height; i += 1) {
-    initialData[i * 2] = sim.heights[i] ?? Number.NaN;
-    initialData[i * 2 + 1] = 0;
+    initialData[i * 4] = sim.heights[i] ?? Number.NaN;
+    initialData[i * 4 + 1] = 0;
   }
   const initialTex = new THREE.DataTexture(
     initialData,
     sim.width,
     sim.height,
-    THREE.RGFormat,
+    THREE.RGBAFormat,
     THREE.FloatType,
   );
   initialTex.minFilter = THREE.NearestFilter;
@@ -294,7 +301,7 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     maxDepthM: 0,
     simTimeS: 0,
   };
-  const readback = new Float32Array(sim.width * sim.height * 2);
+  const readback = new Float32Array(sim.width * sim.height * 4);
 
   function refreshStats(): void {
     try {
@@ -304,11 +311,26 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     }
     let wet = 0;
     let max = 0;
+    let suspect = 0;
     for (let i = 0; i < sim.width * sim.height; i += 1) {
-      const d = readback[i * 2 + 1] ?? 0;
+      const d = readback[i * 4 + 1] ?? 0;
       if (!Number.isFinite(d) || d < WET_THRESHOLD_M) continue;
+      // A depth past a few tens of metres means the sim diverged or the
+      // readback came back garbage. Report it as unknown rather than printing
+      // 5e19 m as if it were a measurement.
+      if (d > 1e4) {
+        suspect += 1;
+        continue;
+      }
       wet += 1;
       if (d > max) max = d;
+    }
+    if (suspect > 0) {
+      stats.wetAreaKm2 = 0;
+      stats.maxDepthM = 0;
+      stats.simTimeS = simTime;
+      version += 1;
+      return;
     }
     stats.wetAreaKm2 = (wet * cellArea) / 1e6;
     stats.maxDepthM = max;

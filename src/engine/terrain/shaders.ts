@@ -205,6 +205,10 @@ void main() {
 
   float lambert = max(dot(normal, uLightDirection), 0.0);
   float shade = uAmbient + (1.0 - uAmbient) * lambert;
+  // Sky bounce: light from above, so up-facing ground never sits at the
+  // ambient floor and never reads as a black hole in the middle of the scene.
+  float sky = max(normal.y, 0.0);
+  shade += 0.18 * sky;
 
   // --- Hypsometric tint ---------------------------------------------------
   float span = max(uElevationRange.y - uElevationRange.x, 1.0);
@@ -231,6 +235,12 @@ void main() {
 
   if (!hasData) {
     colour = uNoDataColour;
+  } else {
+    // A hairline lift on the floodplain: GLO-30 flattens water surfaces and
+    // inverts riverbeds, so the water the model runs on is a smooth ribbon at
+    // local water level. Without this the channel the product is about sits
+    // at the very bottom of the ramp and is hard to see against its banks.
+    colour *= 1.22;
   }
 
   // --- Edge fade: no hard cut at the bbox border -------------------------
@@ -240,6 +250,12 @@ void main() {
   float edge = min(toEdge.x, toEdge.y);
   float edgeMix = smoothstep(0.0, max(uEdgeFade, 1e-4), edge);
   colour = mix(skyColour(), colour, edgeMix);
+
+  // --- Ground plane below the horizon -------------------------------------
+  // Fills the space under a tilted view with one flat tone instead of the page
+  // background, so the area reads as a slab sitting in a scene rather than as
+  // a shape floating in a void. Never near-black: it is behind the terrain.
+  vec3 under = mix(skyColour(), uNoDataColour, 0.55);
 
   // --- Subtle depth haze --------------------------------------------------
   float viewDistance = length(vViewPosition);
