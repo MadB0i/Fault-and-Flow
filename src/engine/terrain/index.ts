@@ -84,6 +84,7 @@ export {
   createTerrainView,
   MAX_MESH_SEGMENTS,
   MAX_PIXEL_RATIO,
+  DEFAULT_SIM_WIDTH,
   TerrainViewError,
   type AreaSources,
   type ProbeTarget,
@@ -94,4 +95,5 @@ export {
   type TerrainView,
   type TerrainViewOptions,
   type TerrainViewState,
+  type WaterLayerState,
 } from './terrain-view.js';

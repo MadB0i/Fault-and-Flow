@@ -31,3 +31,19 @@ export {
   type SimGrid,
   type ChannelCells,
 } from './channel.js';
+
+export {
+  WATER_SPEEDS,
+  DEFAULT_WATER_SPEED,
+  MIN_DISCHARGE_M3S,
+  MAX_DISCHARGE_M3S,
+  DISCHARGE_STEP_M3S,
+  DEFAULT_DISCHARGE_M3S,
+  WET_THRESHOLD_M,
+  DEEP_DEPTH_M,
+  probeFloatTargets,
+  createWaterLayer,
+  type WaterStats,
+  type WaterLayerOptions,
+  type WaterLayer,
+} from './water-layer.js';

@@ -61,6 +61,14 @@ import {
 import { sampleBilinear } from './sampling.js';
 import { decodeTerrainRgba, NO_DATA_HEIGHT } from './decode-terrain.js';
 import { TERRAIN_FRAGMENT_SHADER, TERRAIN_VERTEX_SHADER } from './shaders.js';
+import {
+  buildSimGrid,
+  deriveChannel,
+  createWaterLayer,
+  DEFAULT_WATER_SPEED,
+  DEFAULT_DISCHARGE_M3S,
+  type WaterLayer,
+} from '../water/index.js';
 
 /** Hard cap on mesh subdivision, per the renderer budget. */
 export const MAX_MESH_SEGMENTS = 512;
@@ -76,6 +84,10 @@ export type TerrainPalette = {
   readonly terrain4: string;
   readonly noData: string;
   readonly contour: string;
+  /** Shallow water tint, read from --water. */
+  readonly waterShallow: string;
+  /** Deep water fill, read from --water-deep. */
+  readonly waterDeep: string;
 };
 
 export type AreaSources = Readonly<
@@ -114,7 +126,36 @@ export type TerrainViewState = {
   /** Null until an area has loaded. */
   readonly contourIntervalM: number | null;
   readonly probe: TerrainProbe | null;
+  /** Null until the water layer is enabled; terrain works either way. */
+  readonly water: WaterLayerState | null;
 };
+
+/**
+ * Host-visible water state for the HUD. `supported: false` is not an error
+ * in the terrain — it means this device cannot render to float textures, so
+ * the UI explains that and the terrain view carries on alone.
+ */
+export type WaterLayerState = {
+  readonly supported: boolean;
+  /** Machine-readable reason when unsupported: no-terrain | float-render-unsupported | channel-failed. */
+  readonly reason: string | null;
+  readonly playing: boolean;
+  readonly speed: number;
+  readonly dischargeM3s: number;
+  readonly wetAreaKm2: number;
+  readonly maxDepthM: number;
+  readonly inflowLon: number;
+  readonly inflowLat: number;
+  readonly outletLon: number;
+  readonly outletLat: number;
+  readonly simWidth: number;
+  readonly simHeight: number;
+};
+
+/** Provisional sim width; the bench in the tune-up commit sets the final default. */
+export const DEFAULT_SIM_WIDTH = 512;
+const MIN_SIM_WIDTH = 64;
+const MAX_SIM_WIDTH = 1024;
 
 export type TerrainViewOptions = {
   readonly palette: TerrainPalette;
@@ -137,6 +178,18 @@ export type TerrainView = {
   subscribe(listener: (state: TerrainViewState) => void): () => void;
   /** Reset the camera to the area's opening view. */
   resetCamera(): void;
+  /**
+   * Build the water layer for the loaded area. False when the device cannot
+   * render to float (see state.water.reason); the terrain is unaffected.
+   * The layer rebuilds per area, so every view runs the same model on its
+   * own DEM: zoomed views of the same flow.
+   */
+  enableWater(opts?: { simWidth?: number }): boolean;
+  disableWater(): void;
+  setWaterPlaying(playing: boolean): void;
+  setWaterSpeed(mult: number): void;
+  setWaterDischarge(qM3s: number): void;
+  resetWater(): void;
   dispose(): void;
 };
 
@@ -181,6 +234,17 @@ export function createTerrainView(
   let minDistanceM = 1;
   let maxDistanceM = 1e6;
 
+  // --- Water layer (FLOW phase 1) ------------------------------------------
+  // Wanted persists across area loads: every area rebuilds the same model on
+  // its own DEM. The layer is null until enabled, or when this device failed
+  // the float-render probe (terrain keeps working; see WaterLayerState).
+  let waterWanted = false;
+  let waterLayer: WaterLayer | null = null;
+  let waterState: WaterLayerState | null = null;
+  let waterSpeed = DEFAULT_WATER_SPEED;
+  let waterDischarge = DEFAULT_DISCHARGE_M3S;
+  let currentSimWidth = DEFAULT_SIM_WIDTH;
+
   const listeners = new Set<(s: TerrainViewState) => void>();
 
   function snapshot(): TerrainViewState {
@@ -190,6 +254,7 @@ export function createTerrainView(
       contours: contoursOn,
       contourIntervalM,
       probe: lastProbe,
+      water: waterState,
     };
   }
 
@@ -322,8 +387,19 @@ export function createTerrainView(
     lastFrameMs = nowMs;
 
     const settled = advanceCamera(deltaSeconds);
+
+    // The water layer drives continuous frames while it plays and costs
+    // nothing when paused: the loop below is what keeps 0fps idle honest.
+    let waterRunning = false;
+    if (waterLayer && waterLayer.isPlaying()) {
+      const before = waterLayer.statsVersion();
+      waterLayer.stepFrame(deltaSeconds);
+      waterRunning = true;
+      if (waterLayer.statsVersion() !== before) refreshWaterSnapshot();
+    }
+
     render();
-    if (!settled) scheduleFrame();
+    if (!settled || waterRunning) scheduleFrame();
   }
 
   function invalidateCamera(): void {
@@ -747,6 +823,11 @@ export function createTerrainView(
 
     resetCamera();
     lastProbe = null;
+
+    // A new DEM means a new river: rebuild the same model on this area's own
+    // grid when water is wanted, so the reaches read as zoomed views of the
+    // same flow rather than a stale sheet from elsewhere.
+    if (waterWanted) refreshWaterLayer();
   }
 
   function resetCamera(): void {
@@ -774,9 +855,172 @@ export function createTerrainView(
     if (next === exaggeration) return;
     exaggeration = next;
     material.uniforms['uExaggeration']!.value = next;
+    waterLayer?.setExaggeration(next);
     emit();
     // No geometry to rebuild, but the hillshade depends on the exaggeration, so
     // the pixels are stale until the next frame.
+    scheduleFrame();
+  }
+
+  // --- Water layer -----------------------------------------------------------
+  function clampSimWidth(value: number | undefined): number {
+    if (value === undefined || !Number.isFinite(value)) return currentSimWidth;
+    return Math.min(MAX_SIM_WIDTH, Math.max(MIN_SIM_WIDTH, Math.floor(value)));
+  }
+
+  function unsupportedWater(reason: string): false {
+    waterLayer = null;
+    waterState = {
+      supported: false,
+      reason,
+      playing: false,
+      speed: waterSpeed,
+      dischargeM3s: waterDischarge,
+      wetAreaKm2: 0,
+      maxDepthM: 0,
+      inflowLon: 0,
+      inflowLat: 0,
+      outletLon: 0,
+      outletLat: 0,
+      simWidth: 0,
+      simHeight: 0,
+    };
+    emit();
+    return false;
+  }
+
+  function refreshWaterSnapshot(): void {
+    if (!waterLayer || !waterState?.supported) return;
+    const stats = waterLayer.getStats();
+    waterState = {
+      ...waterState,
+      wetAreaKm2: stats.wetAreaKm2,
+      maxDepthM: stats.maxDepthM,
+    };
+    emit();
+  }
+
+  function refreshWaterLayer(simWidthOpt?: number): boolean {
+    waterLayer?.dispose();
+    waterLayer = null;
+    if (!loaded) return unsupportedWater('no-terrain');
+    currentSimWidth = clampSimWidth(simWidthOpt);
+    let channel: { inflow: number; outlet: number; path: readonly number[] };
+    let sim: {
+      width: number;
+      height: number;
+      dxM: number;
+      dyM: number;
+      heights: Float32Array;
+      noData: Uint8Array;
+    };
+    try {
+      const extent = extentMeters(loaded.sidecar);
+      sim = buildSimGrid(
+        loaded.heights,
+        loaded.noData,
+        loaded.sidecar.width,
+        loaded.sidecar.height,
+        extent.widthM,
+        extent.heightM,
+        currentSimWidth,
+      );
+      channel = deriveChannel(sim.heights, sim.noData, sim.width, sim.height);
+    } catch {
+      return unsupportedWater('channel-failed');
+    }
+    const extent = extentMeters(loaded.sidecar);
+    const layer = createWaterLayer({
+      renderer,
+      scene,
+      sim,
+      channel,
+      extentWM: extent.widthM,
+      extentHM: extent.heightM,
+      exaggeration,
+      shallowColor: options.palette.waterShallow,
+      deepColor: options.palette.waterDeep,
+    });
+    if (!layer) return unsupportedWater('float-render-unsupported');
+    layer.setSpeed(waterSpeed);
+    layer.setDischargeM3s(waterDischarge);
+    const inflow = gridToLonLat(
+      loaded.sidecar.bbox,
+      ((channel.inflow % sim.width) + 0.5) / sim.width,
+      (Math.floor(channel.inflow / sim.width) + 0.5) / sim.height,
+    );
+    const outlet = gridToLonLat(
+      loaded.sidecar.bbox,
+      ((channel.outlet % sim.width) + 0.5) / sim.width,
+      (Math.floor(channel.outlet / sim.width) + 0.5) / sim.height,
+    );
+    waterLayer = layer;
+    waterState = {
+      supported: true,
+      reason: null,
+      playing: layer.isPlaying(),
+      speed: waterSpeed,
+      dischargeM3s: waterDischarge,
+      wetAreaKm2: 0,
+      maxDepthM: 0,
+      inflowLon: inflow.lon,
+      inflowLat: inflow.lat,
+      outletLon: outlet.lon,
+      outletLat: outlet.lat,
+      simWidth: sim.width,
+      simHeight: sim.height,
+    };
+    emit();
+    scheduleFrame();
+    return true;
+  }
+
+  function enableWater(opts?: { simWidth?: number }): boolean {
+    waterWanted = true;
+    return refreshWaterLayer(opts?.simWidth);
+  }
+
+  function disableWater(): void {
+    waterWanted = false;
+    waterLayer?.dispose();
+    waterLayer = null;
+    waterState = null;
+    emit();
+  }
+
+  function setWaterPlaying(playing: boolean): void {
+    waterLayer?.setPlaying(playing);
+    if (waterState?.supported) {
+      waterState = { ...waterState, playing };
+      emit();
+    }
+    // Kicks the render loop while playing; silence resumes when paused.
+    if (playing) scheduleFrame();
+  }
+
+  function setWaterSpeed(mult: number): void {
+    if (!Number.isFinite(mult) || mult <= 0) return;
+    waterSpeed = mult;
+    waterLayer?.setSpeed(mult);
+    if (waterState?.supported) {
+      waterState = { ...waterState, speed: mult };
+      emit();
+    }
+  }
+
+  function setWaterDischarge(qM3s: number): void {
+    if (!Number.isFinite(qM3s) || qM3s < 0) return;
+    waterDischarge = qM3s;
+    waterLayer?.setDischargeM3s(qM3s);
+    if (waterState?.supported) {
+      waterState = { ...waterState, dischargeM3s: qM3s };
+      emit();
+    }
+  }
+
+  function resetWater(): void {
+    waterLayer?.reset();
+    refreshWaterSnapshot();
     scheduleFrame();
   }
 
@@ -840,6 +1084,8 @@ export function createTerrainView(
     observers?.disconnect();
     observers = null;
     heightTexture?.dispose();
+    waterLayer?.dispose();
+    waterLayer = null;
     geometry.dispose();
     material.dispose();
     renderer.dispose();
@@ -863,6 +1109,12 @@ export function createTerrainView(
       return () => listeners.delete(listener);
     },
     resetCamera,
+    enableWater,
+    disableWater,
+    setWaterPlaying,
+    setWaterSpeed,
+    setWaterDischarge,
+    resetWater,
     dispose,
   };
 }

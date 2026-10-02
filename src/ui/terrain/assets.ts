@@ -60,6 +60,8 @@ export function readPalette(element: Element): TerrainPalette {
     terrain4: token('--terrain-4'),
     contour: token('--text-muted'),
     noData: token('--surface-raised'),
+    waterShallow: token('--water'),
+    waterDeep: token('--water-deep'),
   };
 }
 

@@ -25,6 +25,7 @@ import {
   type TerrainStatus,
   type TerrainView,
   type TerrainViewState,
+  type WaterLayerState,
 } from '@engine/terrain';
 
 import { AREA_SOURCES, prefersReducedMotion, readDocumentPalette } from './assets.js';
@@ -35,6 +36,7 @@ const IDLE: TerrainViewState = {
   contours: false,
   contourIntervalM: null,
   probe: null,
+  water: null,
 };
 
 export type TerrainViewController = {
@@ -55,7 +57,29 @@ export type TerrainViewController = {
   refreshCameraTarget: () => void;
   /** Fatal construction error, if the device cannot run the renderer at all. */
   fatal: TerrainViewError | null;
+  /** FLOW water layer (engine-owned; this is only the React binding). */
+  water: WaterLayerState | null;
+  waterOn: boolean;
+  setWaterOn: (on: boolean) => void;
+  setWaterPlaying: (playing: boolean) => void;
+  setWaterSpeed: (mult: number) => void;
+  setWaterDischarge: (qM3s: number) => void;
+  resetWater: () => void;
 };
+
+/**
+ * Bench/debug hook: `?sim=256` forces the water sim grid width (clamped by
+ * the engine). Absent in production use; present so grid sizes can be
+ * compared on real hardware without a rebuild.
+ */
+function simWidthOverride(): number | undefined {
+  if (typeof window === 'undefined' || typeof window.location === 'undefined')
+    return undefined;
+  const raw = new URLSearchParams(window.location.search).get('sim');
+  if (raw === null) return undefined;
+  const n = Math.floor(Number(raw));
+  return Number.isFinite(n) ? n : undefined;
+}
 
 export function useTerrainView(): TerrainViewController {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -70,6 +94,7 @@ export function useTerrainView(): TerrainViewController {
   const [contours, setContoursState] = useState(false);
   const [fatal, setFatal] = useState<TerrainViewError | null>(null);
   const [targetProbe, setTargetProbe] = useState<TerrainViewState['probe']>(null);
+  const [waterOn, setWaterOnState] = useState(false);
 
   // --- Create / destroy the view -----------------------------------------
   // Runs once. The view's lifetime is the canvas's lifetime, and re-creating it
@@ -165,6 +190,34 @@ export function useTerrainView(): TerrainViewController {
     loadArea(areaId);
   }, [areaId, loadArea, createView]);
 
+  const setWaterOn = useCallback((on: boolean) => {
+    setWaterOnState(on);
+    const view = viewRef.current;
+    if (!view) return;
+    if (on) {
+      const override = simWidthOverride();
+      view.enableWater(override === undefined ? undefined : { simWidth: override });
+    } else {
+      view.disableWater();
+    }
+  }, []);
+
+  const setWaterPlaying = useCallback((playing: boolean) => {
+    viewRef.current?.setWaterPlaying(playing);
+  }, []);
+
+  const setWaterSpeed = useCallback((mult: number) => {
+    viewRef.current?.setWaterSpeed(mult);
+  }, []);
+
+  const setWaterDischarge = useCallback((qM3s: number) => {
+    viewRef.current?.setWaterDischarge(qM3s);
+  }, []);
+
+  const resetWater = useCallback(() => {
+    viewRef.current?.resetWater();
+  }, []);
+
   /**
    * The keyboard equivalent of the pointer readout.
    *
@@ -201,6 +254,13 @@ export function useTerrainView(): TerrainViewController {
       cameraTargetProbe: targetProbe,
       refreshCameraTarget,
       fatal,
+      water: state.water,
+      waterOn,
+      setWaterOn,
+      setWaterPlaying,
+      setWaterSpeed,
+      setWaterDischarge,
+      resetWater,
     }),
     [
       attachCanvas,
@@ -216,6 +276,12 @@ export function useTerrainView(): TerrainViewController {
       targetProbe,
       refreshCameraTarget,
       fatal,
+      waterOn,
+      setWaterOn,
+      setWaterPlaying,
+      setWaterSpeed,
+      setWaterDischarge,
+      resetWater,
     ],
   );
 
