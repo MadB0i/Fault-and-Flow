@@ -44,10 +44,6 @@ export interface Strings {
   /** Shown on each rail item while the mode is unimplemented. */
   modeUnavailable: string;
 
-  /** The empty canvas region. */
-  canvasEmptyTitle: string;
-  canvasEmptyBody: string;
-
   /** Language toggle. */
   languageToggleLabel: string;
   languageEnglish: string;
@@ -65,10 +61,6 @@ export interface Strings {
    * word: PRODUCT.md section 4.1 forbids any framing that implies prediction.
    */
   terrainIllustrativeNote: string;
-
-  /** Construction status for phase 1. */
-  phaseLabel: string;
-  phaseBody: string;
 
   // --- Phase 3: the terrain viewer ---------------------------------------
   /** Accessible name for the canvas that shows the terrain. */
@@ -139,11 +131,6 @@ export const EN: Strings = {
   modeRailLabel: 'Sandbox modes',
   modeUnavailable: 'Not built yet',
 
-  canvasEmptyTitle: 'The valley will render here',
-  canvasEmptyBody:
-    'The 3D scene arrives in phase 3. This page exists to prove the design ' +
-    'system: the type, the colour, the language toggle, and the panel layout.',
-
   languageToggleLabel: 'Language',
   languageEnglish: 'English',
   languageAssamese: 'অসমীয়া',
@@ -155,10 +142,6 @@ export const EN: Strings = {
   terrainIllustrativeNote:
     'Illustrative terrain model, not a hazard map or forecast. Heights on ' +
     'screen are exaggerated; the ground area is not.',
-
-  phaseLabel: 'Phase 1 of 8 — foundation',
-  phaseBody:
-    'Design system and repository scaffolding only. No simulation, no 3D, no data.',
 
   // --- Phase 3 -----------------------------------------------------------
   terrainCanvasLabel:
@@ -225,12 +208,6 @@ export const AS: Strings = {
   modeRailLabel: 'বালিৰ বোক্সৰ ধৰন', // DRAFT
   modeUnavailable: 'এতিয়ালৈ তৈয়া হোৱা নহয়', // DRAFT
 
-  canvasEmptyTitle: 'এই খাতৰ ইয়াত দেখা যাব', // DRAFT
-  canvasEmptyBody:
-    // DRAFT
-    'তিনিটা মাপৰ দৃশ্য তৃতীয় পৰ্যায়ত আহব। এই পৃষ্ঠাটো কেৱল আমৰ নকশাপত্ৰ পৰীক্ষা ' +
-    'কৰিবলৈ বনানো হৈছে — আখৰ, ৰং, ভাষা বদলেৰা আৰু পেনেলৰ বিন্যাস।',
-
   languageToggleLabel: 'ভাষা', // DRAFT
   languageEnglish: 'ইংৰাজী', // DRAFT
   languageAssamese: 'অসমীয়া', // DRAFT
@@ -246,11 +223,6 @@ export const AS: Strings = {
   terrainIllustrativeNote:
     // DRAFT
     'এই ভূমিটো কেৱল ব্যাখ্যাৰ ছবি, কোনো বিপদ মানচিত্ৰ বা পূৰ্বাভাস নহয়। দেখুওৱা উচ্চতা বেছাই কৰা হৈছে, কিন্তু ভূমিৰ আকাৰ সেইকৈয়েই আছে।', // DRAFT
-
-  phaseLabel: 'প্ৰথম পৰ্যায়, আটাৰ পৰা প্ৰথম', // DRAFT
-  phaseBody:
-    // DRAFT
-    'কেৱল নকশাপত্ৰ আৰু পুৱা-সংৰক্ষণ। কোনো নকশা, তিনিটা-মাপৰ দৃশ্য বা তথ্য নহয়।',
 
   // --- Phase 3 -----------------------------------------------------------
   // Punctuation is kept to the ASCII range plus the Assamese block. The
