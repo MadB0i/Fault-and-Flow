@@ -239,12 +239,12 @@ void main() {
   vec2 toEdge = min(vGrid, vec2(1.0) - vGrid);
   float edge = min(toEdge.x, toEdge.y);
   float edgeMix = smoothstep(0.0, max(uEdgeFade, 1e-4), edge);
-  colour = mix(skyColour, colour, edgeMix);
+  colour = mix(skyColour(), colour, edgeMix);
 
   // --- Subtle depth haze --------------------------------------------------
   float viewDistance = length(vViewPosition);
   float fog = smoothstep(uFogRange.x, uFogRange.y, viewDistance);
-  colour = mix(colour, skyColour, fog * uFogStrength);
+  colour = mix(colour, skyColour(), fog * uFogStrength);
 
   gl_FragColor = vec4(colour, 1.0);
 }

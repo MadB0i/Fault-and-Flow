@@ -42,6 +42,69 @@ test.describe('terrain view', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the scene actually paints, and the terrain is not the background colour', async ({
+    page,
+  }) => {
+    // A shader that fails to compile leaves a valid WebGL context, a working
+    // HUD, and a completely black canvas: every other assertion here passes
+    // while nothing is on screen. This is the only check that notices.
+    const area = page.getByTestId('area-majuli');
+    for (let i = 0; i < 80 && !(await area.isEnabled()); i += 1) {
+      await page.waitForTimeout(250);
+    }
+    await area.check();
+    await page.waitForTimeout(2500);
+
+    const painted: {
+      ok: boolean;
+      why?: string;
+      lit?: number;
+      total?: number;
+      brightest?: number;
+      bg?: string;
+    } = await page.evaluate(() => {
+      const canvas = document.querySelector<HTMLCanvasElement>(
+        '[data-testid="terrain-canvas"]',
+      );
+      if (!canvas) return { ok: false, why: 'no canvas' };
+      const scratch = document.createElement('canvas');
+      scratch.width = canvas.width;
+      scratch.height = canvas.height;
+      const ctx = scratch.getContext('2d');
+      if (!ctx) return { ok: false, why: 'no 2d context' };
+      ctx.drawImage(canvas, 0, 0);
+      // Sample a grid across the lower half, where the terrain sits under a
+      // tilted camera, and count pixels that are neither the page background
+      // nor pure black.
+      const bg = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg')
+        .trim();
+      const probe = (x: number, y: number): number[] => {
+        const d = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+        return [d[0] ?? 0, d[1] ?? 0, d[2] ?? 0];
+      };
+      let lit = 0;
+      let total = 0;
+      let brightest = 0;
+      for (let fx = 0.1; fx <= 0.9; fx += 0.05) {
+        for (let fy = 0.35; fy <= 0.9; fy += 0.05) {
+          const p = probe(canvas.width * fx, canvas.height * fy);
+          total += 1;
+          const lum = 0.2126 * (p[0] ?? 0) + 0.7152 * (p[1] ?? 0) + 0.0722 * (p[2] ?? 0);
+          if (lum > brightest) brightest = lum;
+          if (lum > 12) lit += 1;
+        }
+      }
+      return { ok: true, lit, total, brightest: Math.round(brightest), bg };
+    });
+
+    expect(painted.ok, painted.why).toBe(true);
+    expect(
+      (painted.lit ?? 0) / (painted.total ?? 1),
+      `only ${painted.lit}/${painted.total} sampled pixels were lit (brightest ${painted.brightest})`,
+    ).toBeGreaterThan(0.25);
+  });
+
   test('has one h1 and the correct landmarks', async ({ page }) => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
     await expect(page.getByRole('main')).toHaveCount(1);
