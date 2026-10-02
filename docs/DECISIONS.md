@@ -20,6 +20,7 @@ below.
 | 6   | Bird PB2002: not shipped                                                      | 2026-10-01 | Blocked, decide in phase 2                                |
 | 7   | FLOW inputs are user-chosen scenarios, not observations                       | 2026-10-01 | Settled                                                   |
 | 8   | DEM: Copernicus GLO-30; three areas as Terrain-RGB, overview at a 0.15 m step | 2026-10-01 | Settled; re-check if a verified bare-earth source appears |
+| 9   | Terrain renderer: float32 heights, render on demand, exaggeration stated      | 2026-10-02 | Settled, re-check when the scene grows past one mesh      |
 
 **On numbering.** Decision 3 is the narrower fact — CWC is out of scope. Decision 7 is the
 general rule that supersedes it: _no_ FLOW input is an observation, whoever would have supplied
@@ -202,6 +203,57 @@ gap in `docs/DATA.md` §13 and `docs/ROADMAP.md`. **Reversed or extended by:** a
 bare-earth (DTM) source for NE India, which would remove the surface-model limitation that
 most constrains FLOW; or benchmark levelling data, which would turn the plausibility checks
 into real validation.
+
+## 9. Terrain renderer — float32 heights, render on demand, and a stated exaggeration
+
+**Date 2026-10-02.** Three choices that a reader of the render could not otherwise explain.
+
+**Heights live in an R32F texture and are interpolated by hand in the shader.** The
+alternative was packing elevation into an 8-bit or half-float texture, which is the
+default-looking way to do this and is wrong here for a reason worth stating in metres
+rather than adjectives. The two reaches encode at a **0.1 m** step, and 16 bits across a
+1,742 m range is already a **6.5 m** step — larger than the _entire_ floodplain relief the
+product exists to explain. Half float is worse: 11 bits of mantissa, so it sheds metres at
+any plausible range. A quantised height field does not look like a bug; it looks like
+terrain with suspiciously flat benches. Bilinear filtering is done in the shader rather
+than by the sampler so the path never depends on `OES_texture_float_linear`, which is not
+universal on mobile. Capability is **probed for real** — a 1×1 R32F texture is uploaded and
+the GL error state read — and a device that cannot does so gets a stated error rather than
+a black plane. See `docs/ARCHITECTURE.md` §7.
+
+**Rendering happens on demand, never in a loop.** An idle viewer requests **zero** frames,
+which is the whole point on a ₹8,000 Android. A frame is requested on camera input, resize,
+parameter change, and area load. Damping looks like it needs a permanent loop and does not:
+each step requests the next frame, and the chain ends when the camera settles. Termination
+is decided by comparing the _remaining gap_, not by rounding the damping factor to zero —
+a factor rounded to zero leaves the camera frozen without telling the caller it had
+arrived, and the loop then runs forever. `tests/terrain-camera.test.ts` simulates the actual
+loop and asserts it stops. Frames are also cancelled outright while the tab is hidden.
+
+**Vertical exaggeration is stated, always, and defaulted per area.** At 1× the Brahmaputra
+floodplain is flat, because a few metres of relief spread across tens of kilometres is a
+sheet — the ridges that would make the landscape legible are not there at true scale. So the
+default is per-area, chosen by one rule — make the area's own relief about a tenth of its
+east–west extent — which gives 8× / 6× / 8× for the three areas. The alternative, a single
+global default, would leave the 699 km overview unreadable at any value that suits a 114 km
+island. The multiplier is **always visible** in the legend and beside the slider, because a
+scene whose heights are multiplied by eight and does not say so misleads about every slope
+in it. Contours are unaffected: they are drawn at true-altitude multiples, so a contour
+means the same altitude whatever the exaggeration, which is the property that makes them
+worth having. **Reversed by:** evidence that the honest presentation is 1× — which would
+mean a different teaching aid entirely, a labelled cross-section rather than a landscape —
+or a verified bare-earth source with enough vertical accuracy to justify a smaller
+multiplier.
+
+**One consequence recorded rather than fixed here.** The committed encoding reserves code 0
+for no-data and sets `offset` to the minimum elevation, so a real pixel sitting exactly at
+the minimum encodes as the no-data code and reads back as a hole: 1,938 cells on Majuli
+(0.09%) and 49 on the overview. The renderer treats those as no-data, which is the safe
+failure — it shows "—" rather than inventing a number — but it is not accurate, because
+those cells are data. The fix belongs to the encoding in `scripts/build-dem.ts` and requires
+regenerating the artefacts, so it is tracked in `docs/ROADMAP.md` phase 2 rather than
+attempted from the renderer. `tests/terrain-sampling.test.ts` asserts the exact counts so
+the number cannot change unnoticed.
 
 ---
 

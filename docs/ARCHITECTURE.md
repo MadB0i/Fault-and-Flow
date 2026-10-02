@@ -266,6 +266,162 @@ a 60fps desktop is a flood we cannot test.
 Headless-testable simulation is the reason for §1. If a simulation cannot be unit-tested
 without a browser, it belongs in the wrong layer.
 
+---
+
+## 9. The terrain renderer
+
+Phase 3. One mesh, one height texture, no post-processing.
+
+### What renders
+
+A single `PlaneGeometry(1, 1, 512, 512)` — 513 × 513 vertices, one draw call — rotated
+into the XZ plane. Its real extent comes from the sidecar, not from the geometry, so one
+buffer serves all three areas. The **vertex shader** displaces it by sampling the height
+texture; the **fragment shader** does the rest.
+
+**The fragment shader recomputes the surface normal per fragment from the full-resolution
+heights**, taking the gradient from neighbouring texels rather than interpolating a normal
+from the mesh. That is the reason the mesh may be as coarse as 512 segments while the
+hillshade stays sharp: the lighting detail comes from the data, not the tessellation.
+Raising the segment count would cost vertices and buy nothing.
+
+The gradient is taken in true metres and **then** multiplied by the exaggeration, because
+the rendered surface is exaggerated and the hillshade has to describe the surface actually
+on screen. Omitting that multiply makes the lighting flatter than the terrain as the user
+raises the slider, which reads as a bug in the control.
+
+Colour comes from the four `--terrain-*` tokens in ramp order, mapped across the sidecar's
+declared elevation range. Light is from the north-west at low altitude — the cartographic
+convention, and a real bearing rather than a decorative one. Terrain edges fade into the
+background over a fraction of the half-extent so the bounding box never shows as a hard cut,
+with a light depth haze on top.
+
+### Coordinates, and the flip that matters
+
+`+x` is east, `+z` is south, `+y` is up, and the orbit target is the origin. Row 0 of the
+decoded grid is the **north** edge.
+
+`PlaneGeometry` puts `uv.y = 1` at local `+y`; rotating −90° about X sends local `+y` to
+world `−z`, i.e. north. Row 0 of the data is therefore at `uv.y = 1`, not `uv.y = 0`, and the
+shader uses `v = 1 - uv.y`. Getting this backwards mirrors the terrain north–south, which
+looks almost right until you put a river on it. `tests/terrain-sampling.test.ts` pins the
+row order on the CPU side.
+
+GLO-30 pixels are **not square**, so `pixelSizeMx` and `pixelSizeMy` are carried as a pair
+everywhere and never multiplied into a single number. See `docs/DATA.md` §1.
+
+### The height texture: float32, and why
+
+`R32F`, `NearestFilter`, no mipmaps, bilinear by hand in the shader.
+
+The rejection of narrower types is in `DECISIONS.md` §9 because it is the kind of decision
+that gets re-litigated: the two reaches encode at a 0.1 m step, so 16 bits over their range
+is already a 6.5 m step, larger than the whole floodplain relief. Half float is worse.
+Manual bilinear rather than hardware filtering means the path never depends on
+`OES_texture_float_linear`.
+
+Capability is **probed, not assumed**: a 1×1 R32F texture is uploaded and the GL error state
+read. A device that fails gets the `float-texture-unsupported` error state with its own
+explanation, because "the map is blank" and "your GPU cannot do this" call for different
+actions.
+
+No-data is `NaN` in the texture. GLSL ES 1.00 has no `isnan`, so the test is `h != h`, which
+is equivalent for a quiet NaN and costs nothing. A sample touching any no-data texel
+returns no-data rather than blending a hole into a number.
+
+### Shaders are ESSL1 on a WebGL2 context
+
+Not `#version 300 es`. Everything needed here works in ESSL1 on WebGL2 — derivatives are
+core there, so `fwidth` needs no extension pragma, and exact texel fetches are done by
+sampling texel centres on a NEAREST texture. The one requirement that actually needs
+WebGL2 is the float texture _format_, which is not a shader-language question. Declaring an
+explicit `out` for GLSL3 would collide with the output declaration Three.js emits for GLSL3
+`ShaderMaterial`s, which is a link error waiting for a driver nobody tested against.
+
+### Render on demand
+
+No continuous `requestAnimationFrame`. A frame is requested on camera input, resize,
+parameter change and area load; an idle viewer costs zero frames and therefore zero battery,
+which matters when the primary audience is on a phone.
+
+Damping is the only thing that looks like it needs a loop. It does not: each step requests
+the next frame and the chain ends when the camera settles. **Termination is decided by
+comparing the remaining gap, never by rounding the damping factor to zero** — a factor
+rounded to zero leaves the camera frozen without the caller being told it arrived, and the
+loop then never stops. `tests/terrain-camera.test.ts` runs the real loop and asserts it
+stops within roughly DESIGN.md's 600 ms `--dur-slow`.
+
+Frames are cancelled outright while the tab is hidden, and the frame timestamp is dropped so
+the first frame back does not take one enormous damping step. Device pixel ratio is capped
+at **1.5**, inside the DESIGN.md §6 ceiling of 2, because the target device is a mid-range
+Android.
+
+### Contours
+
+Interval from `10 / 25 / 50 / 100 / 250 / 500 / 1000` m — nice numbers only, because a
+contour at 175 m asks the reader to do arithmetic, which is the one thing a contour exists
+to avoid. The picker takes the smallest interval keeping the band count at or under 14 and
+the interval at least two pixels above the ground sampling; when nothing in the set
+qualifies it returns the largest rather than extrapolating outside the documented set. The
+overview gets 1000 m, both reaches 250 m.
+
+Lines are drawn at multiples of the interval in **true** metres, so a contour means the same
+altitude at every exaggeration. Width comes from `fwidth`, giving constant apparent
+thickness, and the line fades out rather than aliasing when contours become denser than the
+pixel grid can resolve.
+
+### Data loading
+
+Artefacts are imported with Vite's `?url` suffix, not copied by a build step. There is
+therefore nothing to forget to copy, and the emitted URL already carries Vite's configured
+`base` — verified by building with `--base=/fault-and-flow/` and confirming both
+`index.html` and the asset references are prefixed. GitHub Pages is a one-line config
+change rather than a path bug.
+
+Loading **cancels**: a token guards each `loadArea`, and a superseded load returns without
+touching state.
+
+The browser decode path is `createImageBitmap` with `premultiplyAlpha: 'none'` and
+`colorSpaceConversion: 'none'`, as §4 requires. Both are load-bearing: alpha premultiplication
+multiplies the elevation bytes by alpha and a profile transform pushes them through a
+transfer curve, and neither failure looks like an error.
+
+A sidecar whose declared grid disagrees with its own PNG is a **pipeline fault and throws**,
+rather than being resampled to fit. Silently reconciling them would defeat the point of
+decoding the committed bytes.
+
+Note that Vite inlines the three sidecars as `data:` URLs, because each is under its 4 KB
+inline limit. `fetch()` on a `data:` URL is specified and works, so this is the load path
+today; it also means a sidecar that grows past the limit becomes a network request with no
+code change, which is a behaviour change worth knowing about.
+
+### Where the CPU and GPU samplers can disagree
+
+The renderer has two implementations of "what is the elevation here": one in GLSL and one in
+`sampling.ts`, for the pointer readout. They are kept honest by testing the CPU one against
+the decoder rather than against its own arithmetic — a test that re-derives bilinear by hand
+over the same array the function reads proves nothing. `tests/terrain-sampling.test.ts` also
+pins the exact per-area no-data counts, because the committed encoding has a known collision
+at the minimum elevation (`DECISIONS.md` §9) and that number must not drift silently.
+
+### Budget, measured
+
+| Item                | Value                                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------------- |
+| Draw calls          | 1 (plus the background clear)                                                                           |
+| Mesh vertices       | 263,169 (513 × 513), one `PlaneGeometry`, built once for all areas                                      |
+| Height texture      | **4 bytes/px** (R32F): 4.75 / 8.07 / 12.49 MiB GPU for the three areas                                  |
+| On-the-wire terrain | 1.94 / 2.21 / 3.70 MiB PNG — roughly half the GPU cost, since the PNG is compressed                     |
+| Uniforms            | 21                                                                                                      |
+| Frame rate          | **0 fps when idle.** Frames are requested only on camera input, resize, parameter change and area load. |
+
+The texture row is the one worth pausing on. `docs/ARCHITECTURE.md` §6 budgets _transfer_
+at 8 MB, and the three PNGs come to 7.86 MB over the wire, but once decoded the float
+heights occupy **25.3 MiB of GPU memory** in total — three times the transfer. That is the
+direct cost of the float32 decision in `DECISIONS.md` §9, it is why only one area's texture
+is resident at a time (loading a second disposes the first), and it is the number to watch
+if phase 4 adds water simulation state alongside it.
+
 Accessibility is verified three ways, all required: an **automated axe scan**, a
 **keyboard walk** (Tab through everything, assert a visible focus indicator on each stop),
 and reading the screenshots at both widths. The first catches about a third of issues; the

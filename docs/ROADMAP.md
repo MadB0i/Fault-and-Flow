@@ -83,15 +83,52 @@ elevation validation is an open gap rather than a completed item.
 
 **Goal:** the Brahmaputra valley on screen, lit and readable.
 
-- Engine loads a DEM into a `THREE.BufferGeometry`
-- Elevation ramp from `--terrain-1` → `--terrain-4`
-- Hillshade and a subtle specular pass; no heavy post-processing
-- Orbit camera with damped, cinematic movement (600ms, `--ease`)
-- Responsive: DPR capped at 2, reduced below 768px
-- Headless test: terrain mesh builds with correct vertex count and bounding box
+- [x] Engine loads a DEM and displaces one mesh — `createTerrainView` in
+      `src/engine/terrain/`, one `PlaneGeometry` at 512 × 512 segments, one draw call, extent
+      in true metres from each sidecar
+- [x] Elevation ramp from `--terrain-1` → `--terrain-4`, colours read from the CSS variables at
+      runtime and passed in through `options.palette` so the engine holds no colour of its own
+- [x] Hillshade from **full-resolution** heights computed per fragment, light from the
+      north-west at low altitude. No specular pass and no post-processing: `--terrain-1` and
+      `--water-deep` are already a documented WCAG exception, and adding a shine to them would
+      make the exception harder to defend rather than the terrain better to read
+- [x] Float32 height path — R32F with manual bilinear in the shader, capability probed for
+      real, clear error state if unsupported (`DECISIONS.md` §9)
+- [x] Shader contour lines, interval from 10/25/50/100/250/500/1000 m by visible relief, shown
+      in the legend. 1000 m on the overview, 250 m on both reaches
+- [x] Orbit camera with damped movement, polar angle clamped so it can never go under the
+      terrain, per-area zoom limits, touch pinch, and keyboard orbit/zoom/reset
+- [x] Render on demand — **zero frames while idle**, cancelled while the tab is hidden.
+      DPR capped at 1.5
+- [x] Vertical exaggeration, per-area default, slider 1–30×, **always** shown in the legend and
+      beside the slider. Contours stay at true altitude
+- [x] Loading skeleton matching the real panel geometry, plus distinct WebGL2, float-texture
+      and load-failure error states with a retry
+- [x] Legend with numeric elevation ticks in the mono font, contour interval, units, and the
+      pointer readout with a keyboard-accessible equivalent. Elevation is never carried by
+      colour alone
+- [x] Attribution and the limitations list rendered **from the sidecar JSON**, never retyped
+- [x] Data loaded through Vite `?url`, verified to respect a configurable `base`
+- [x] Headless tests: bilinear probe against decoder values, metric scaling from sidecars,
+      contour-interval picker, legend tick generator, camera polar clamp and damping
+      termination, area registry matching `manifest.json` exactly, and no React or hex literal
+      under `src/engine/`
+- [ ] **Fix the no-data encoding collision.** Code 0 is reserved for no-data and `offset` is
+      the minimum elevation, so cells sitting exactly at the minimum read back as holes: 1,938
+      on Majuli (0.09%), 49 on the overview (`DECISIONS.md` §9). Needs an encoding change in
+      `scripts/build-dem.ts` and a rebuild, so it does not belong to the renderer
+- [ ] **Independent elevation validation** — still open, carried from phase 2
+      (`docs/DATA.md` §13)
+- [ ] **Visually review the render.** Done by eye in a real browser, not by an automated
+      check: whether 8× reads as terrain or as spikes, whether the edge fade is invisible,
+      whether the hillshade is legible at 390px, and whether the fog is doing anything at all
 
 **Done when:** terrain renders at 60fps on a mid-range Android and the engine builds it
 in Node without a browser.
+
+**Not yet done.** The automated half of that is met and green: 89 tests pass, and every
+number the HUD shows is asserted rather than eyeballed. The half that cannot be automated is
+the render itself — nobody has yet confirmed that the scene looks like Assam.
 
 ---
 
