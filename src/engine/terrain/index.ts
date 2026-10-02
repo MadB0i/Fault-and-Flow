@@ -70,6 +70,7 @@ export {
   clampPolar,
   clampSpherical,
   dampingFactor,
+  framingDistance,
   hasSettled,
   sphericalToCartesian,
   wrapAzimuth,

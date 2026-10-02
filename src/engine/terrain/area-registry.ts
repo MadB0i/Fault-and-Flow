@@ -84,7 +84,10 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     id: 'assam-overview',
     defaultVerticalExaggeration: 8,
     titleKey: 'areaOverviewTitle',
-    defaultPolarDeg: 40,
+    // 50 degrees from straight down: inside the 45..55 band where the relief
+    // reads as a landscape without flattening into a profile. The old 40 sat
+    // nearly overhead, which hid the hills behind the floodplain.
+    defaultPolarDeg: 50,
     defaultAzimuthDeg: 0,
     minZoomFactor: 0.35,
     maxZoomFactor: 2.2,
@@ -93,7 +96,7 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     id: 'majuli',
     defaultVerticalExaggeration: 6,
     titleKey: 'areaMajuliTitle',
-    defaultPolarDeg: 42,
+    defaultPolarDeg: 48,
     defaultAzimuthDeg: 20,
     minZoomFactor: 0.3,
     maxZoomFactor: 2.4,
@@ -102,7 +105,7 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     id: 'sadiya-dibrugarh',
     defaultVerticalExaggeration: 8,
     titleKey: 'areaSadiyaTitle',
-    defaultPolarDeg: 41,
+    defaultPolarDeg: 50,
     defaultAzimuthDeg: 10,
     minZoomFactor: 0.3,
     maxZoomFactor: 2.4,

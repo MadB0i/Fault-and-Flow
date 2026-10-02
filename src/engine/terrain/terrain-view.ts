@@ -45,6 +45,7 @@ import {
   clampPolar,
   clampSpherical,
   dampingFactor,
+  framingDistance,
   hasSettled,
   sphericalToCartesian,
   wrapAzimuth,
@@ -879,7 +880,21 @@ export function createTerrainView(
     const extent = extentMeters(loaded.sidecar);
     target.polarDeg = clampPolar(def.defaultPolarDeg);
     target.azimuthDeg = wrapAzimuth(def.defaultAzimuthDeg);
-    target.distanceM = clampDistance(extent.diagonalM * 0.95, minDistanceM, maxDistanceM);
+    // Fit the area to the viewport rather than guessing from its diagonal, so
+    // the whole area is visible and centred at any aspect ratio. Reset returns
+    // here because this is the opening view.
+    const aspect = camera.aspect > 0 ? camera.aspect : 1;
+    target.distanceM = clampDistance(
+      framingDistance(
+        extent.widthM,
+        extent.heightM,
+        CAMERA_FOV_DEG,
+        aspect,
+        target.polarDeg,
+      ),
+      minDistanceM,
+      maxDistanceM,
+    );
 
     if (reducedMotion) {
       current.polarDeg = target.polarDeg;
