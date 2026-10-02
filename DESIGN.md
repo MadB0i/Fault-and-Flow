@@ -111,7 +111,7 @@ copied from there verbatim.
 
 ### 2.1 Colour rationale
 
-The base is not neutral grey — it is a very dark desaturated blue-green (`#0A0F14`). This
+The base is not neutral grey — it is a very dark desaturated blue-green (`#0a0f14`). This
 is deliberate: the entire product is one river and one tectonic zone, so the chrome adopts
 their hues at the lowest possible chroma. A neutral grey would make the scene look pasted
 onto the page; a blue-green base makes the water look like it belongs there.
@@ -231,20 +231,20 @@ reporting.
 
 | Foreground              | Background               |       Ratio | Needs | Result |
 | ----------------------- | ------------------------ | ----------: | ----: | ------ |
-| `#E6EDF3` text          | `#0A0F14` bg             | **16.29:1** | 4.5:1 | PASS   |
-| `#E6EDF3` text          | `#111A22` surface        | **14.88:1** | 4.5:1 | PASS   |
-| `#E6EDF3` text          | `#172430` surface-raised | **13.35:1** | 4.5:1 | PASS   |
-| `#8CA0B0` text-muted    | `#0A0F14` bg             |  **7.12:1** | 4.5:1 | PASS   |
-| `#8CA0B0` text-muted    | `#111A22` surface        |  **6.50:1** | 4.5:1 | PASS   |
-| `#8CA0B0` text-muted    | `#172430` surface-raised |  **5.84:1** | 4.5:1 | PASS   |
-| `#3FD0E0` water         | `#0A0F14` bg             | **10.36:1** | 4.5:1 | PASS   |
-| `#3FD0E0` water         | `#111A22` surface        |  **9.47:1** | 4.5:1 | PASS   |
-| `#3FD0E0` water         | `#172430` surface-raised |  **8.49:1** | 4.5:1 | PASS   |
-| `#FFB547` seismic-amber | `#0A0F14` bg             | **10.95:1** | 4.5:1 | PASS   |
-| `#FFB547` seismic-amber | `#111A22` surface        | **10.00:1** | 4.5:1 | PASS   |
-| `#FFB547` seismic-amber | `#172430` surface-raised |  **8.98:1** | 4.5:1 | PASS   |
-| `#FF5A3C` seismic-hot   | `#0A0F14` bg             |  **6.21:1** | 4.5:1 | PASS   |
-| `#FF5A3C` seismic-hot   | `#111A22` surface        |  **5.67:1** | 4.5:1 | PASS   |
+| `#e6edf3` text          | `#0a0f14` bg             | **16.29:1** | 4.5:1 | PASS   |
+| `#e6edf3` text          | `#111a22` surface        | **14.88:1** | 4.5:1 | PASS   |
+| `#e6edf3` text          | `#172430` surface-raised | **13.35:1** | 4.5:1 | PASS   |
+| `#8ca0b0` text-muted    | `#0a0f14` bg             |  **7.12:1** | 4.5:1 | PASS   |
+| `#8ca0b0` text-muted    | `#111a22` surface        |  **6.50:1** | 4.5:1 | PASS   |
+| `#8ca0b0` text-muted    | `#172430` surface-raised |  **5.84:1** | 4.5:1 | PASS   |
+| `#3fd0e0` water         | `#0a0f14` bg             | **10.36:1** | 4.5:1 | PASS   |
+| `#3fd0e0` water         | `#111a22` surface        |  **9.47:1** | 4.5:1 | PASS   |
+| `#3fd0e0` water         | `#172430` surface-raised |  **8.49:1** | 4.5:1 | PASS   |
+| `#ffb547` seismic-amber | `#0a0f14` bg             | **10.95:1** | 4.5:1 | PASS   |
+| `#ffb547` seismic-amber | `#111a22` surface        | **10.00:1** | 4.5:1 | PASS   |
+| `#ffb547` seismic-amber | `#172430` surface-raised |  **8.98:1** | 4.5:1 | PASS   |
+| `#ff5a3c` seismic-hot   | `#0a0f14` bg             |  **6.21:1** | 4.5:1 | PASS   |
+| `#ff5a3c` seismic-hot   | `#111a22` surface        |  **5.67:1** | 4.5:1 | PASS   |
 
 Display title on a panel (`text` on `surface`, large-text threshold 3:1): **14.88:1** PASS.
 
@@ -252,15 +252,15 @@ Display title on a panel (`text` on `surface`, large-text threshold 3:1): **14.8
 
 | Pair                                  |       Ratio | Needs | Result    | Note                                |
 | ------------------------------------- | ----------: | ----: | --------- | ----------------------------------- |
-| `#3FD0E0` water focus ring on bg      | **10.36:1** |   3:1 | PASS      | Clears SC 2.4.11 with room to spare |
-| `#3FD0E0` water focus ring on surface |  **9.47:1** |   3:1 | PASS      |                                     |
-| `#9AA7B4` plate-line on bg            |  **7.84:1** |   3:1 | PASS      |                                     |
-| `#9AA7B4` plate-line on surface       |  **7.17:1** |   3:1 | PASS      |                                     |
-| `#D8D2C4` terrain-4 on bg             | **12.77:1** |   3:1 | PASS      | Ridge lines read clearly            |
-| `#22323F` hairline on bg              |      1.46:1 |     — | exempt    | Decorative only — see below         |
-| `#22323F` hairline on surface         |      1.34:1 |     — | exempt    | Decorative only — see below         |
-| `#1C3B35` terrain-1 on bg             |      1.58:1 |   3:1 | exception | 3D render data — §4.3               |
-| `#0E5A73` water-deep on bg            |      2.50:1 |   3:1 | exception | 3D render data — §4.3               |
+| `#3fd0e0` water focus ring on bg      | **10.36:1** |   3:1 | PASS      | Clears SC 2.4.11 with room to spare |
+| `#3fd0e0` water focus ring on surface |  **9.47:1** |   3:1 | PASS      |                                     |
+| `#9aa7b4` plate-line on bg            |  **7.84:1** |   3:1 | PASS      |                                     |
+| `#9aa7b4` plate-line on surface       |  **7.17:1** |   3:1 | PASS      |                                     |
+| `#d8d2c4` terrain-4 on bg             | **12.77:1** |   3:1 | PASS      | Ridge lines read clearly            |
+| `#22323f` hairline on bg              |      1.46:1 |     — | exempt    | Decorative only — see below         |
+| `#22323f` hairline on surface         |      1.34:1 |     — | exempt    | Decorative only — see below         |
+| `#1c3b35` terrain-1 on bg             |      1.58:1 |   3:1 | exception | 3D render data — §4.3               |
+| `#0e5a73` water-deep on bg            |      2.50:1 |   3:1 | exception | 3D render data — §4.3               |
 
 **Why hairline is exempt.** WCAG 2.2 SC 1.4.11 applies to boundaries _required to identify a
 component or its state_. A hairline divider between HUD sections carries no information —
@@ -283,15 +283,15 @@ recorded here as a **reviewed exception** rather than silently satisfied.
 
 | Pair                       |  Ratio | Needs | Decision                       |
 | -------------------------- | -----: | ----: | ------------------------------ |
-| `#1C3B35` terrain-1 on bg  | 1.58:1 |   3:1 | **Exception accepted.** Stays. |
-| `#0E5A73` water-deep on bg | 2.50:1 |   3:1 | **Exception accepted.** Stays. |
+| `#1c3b35` terrain-1 on bg  | 1.58:1 |   3:1 | **Exception accepted.** Stays. |
+| `#0e5a73` water-deep on bg | 2.50:1 |   3:1 | **Exception accepted.** Stays. |
 
 The adjustment that was computed and declined, for the record:
 
 | Token          | Current   | Same-hue alternative |  Ratio | Why declined                                                                |
 | -------------- | --------- | -------------------- | -----: | --------------------------------------------------------------------------- |
-| `--terrain-1`  | `#1C3B35` | `#4B645F`            | 3.01:1 | Lifts the ramp's dark end; the ramp loses depth it needs to read as terrain |
-| `--water-deep` | `#0E5A73` | `#21677E`            | 3.03:1 | Flattens the shallow/deep distinction, which is a _data_ property here      |
+| `--terrain-1`  | `#1c3b35` | `#4b645f`            | 3.01:1 | Lifts the ramp's dark end; the ramp loses depth it needs to read as terrain |
+| `--water-deep` | `#0e5a73` | `#21677e`            | 3.03:1 | Flattens the shallow/deep distinction, which is a _data_ property here      |
 
 #### The rule that makes the exception defensible
 
@@ -303,7 +303,7 @@ redundant — never the sole carrier — which is the same principle as `AGENTS.
 communicate state by colour alone) extended to the 3D scene. **A render of these shades
 without a readout or legend is not covered by this exception and is a defect.**
 
-**Legend swatches use the adjusted shades**, `#4B645F` for terrain and `#21677E` for water.
+**Legend swatches use the adjusted shades**, `#4b645f` for terrain and `#21677e` for water.
 A legend swatch sits on the HUD surface and is read as a UI element, so it must be legible as
 one — and it can be, because it is detached from the ramp it describes.
 
