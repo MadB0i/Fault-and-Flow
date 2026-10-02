@@ -25,6 +25,9 @@ type Props = {
   exaggeration: number;
   contourIntervalM: number | null;
   contoursOn: boolean;
+  /** Water depth section; shown only while the layer runs on a device that can. */
+  waterOn: boolean;
+  waterMaxDepthM: number | null;
 };
 
 /** RAMP_STOPS must stay in DESIGN.md's order: low elevation to high. */
@@ -40,6 +43,8 @@ export default function TerrainLegend({
   exaggeration,
   contourIntervalM,
   contoursOn,
+  waterOn,
+  waterMaxDepthM,
 }: Props) {
   const strings = useUiStore((s) => s.strings());
 
@@ -164,7 +169,26 @@ export default function TerrainLegend({
             {strings.exaggerationValueSuffix}
           </dd>
         </div>
+        {waterOn && (
+          <div className="flex justify-between gap-[var(--space-xs)]">
+            <dt className="text-[color:var(--text-muted)]">{strings.legendWaterLabel}</dt>
+            <dd className="text-[color:var(--water)]" data-testid="legend-water-max">
+              {waterMaxDepthM === null ? '—' : `${waterMaxDepthM.toFixed(1)} m`}
+            </dd>
+          </div>
+        )}
       </dl>
+      {waterOn && (
+        <div
+          aria-hidden="true"
+          className="mt-[var(--space-2xs)] h-[var(--space-xs)] w-full rounded-[2px] border-[length:1px]
+                     border-[color:var(--hairline)]"
+          style={{
+            backgroundImage: 'linear-gradient(to right, var(--water), var(--water-deep))',
+          }}
+          data-testid="legend-water-ramp"
+        />
+      )}
     </section>
   );
 }

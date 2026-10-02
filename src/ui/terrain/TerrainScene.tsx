@@ -31,6 +31,7 @@ import TerrainPanel from './TerrainPanel.js';
 import TerrainLegend from './TerrainLegend.js';
 import TerrainReadout from './TerrainReadout.js';
 import TerrainAttribution from './TerrainAttribution.js';
+import WaterPanel from './WaterPanel.js';
 import { useTerrainView } from './useTerrainView.js';
 
 export default function TerrainScene() {
@@ -193,11 +194,23 @@ export default function TerrainScene() {
             onReset={view.resetCamera}
             disabled={!ready}
           />
+          <WaterPanel
+            waterOn={view.waterOn}
+            onWaterOn={view.setWaterOn}
+            water={view.water}
+            onPlaying={view.setWaterPlaying}
+            onSpeed={view.setWaterSpeed}
+            onDischarge={view.setWaterDischarge}
+            onReset={view.resetWater}
+            disabled={!ready}
+          />
           <TerrainLegend
             sidecar={sidecar}
             exaggeration={view.exaggeration}
             contourIntervalM={view.state.contourIntervalM}
             contoursOn={view.contours}
+            waterOn={view.waterOn && (view.water?.supported ?? false)}
+            waterMaxDepthM={view.water?.maxDepthM ?? null}
           />
         </div>
 

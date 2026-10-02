@@ -109,6 +109,26 @@ export interface Strings {
   terrainErrorFloat: string;
   terrainErrorLoad: string;
   terrainRetry: string;
+
+  // --- FLOW phase 1: illustrative water ---------------------------------
+  /** Panel title. The word "illustrative" is carried by waterIllustrativeNote. */
+  waterTitle: string;
+  waterToggleLabel: string;
+  waterIllustrativeNote: string;
+  waterPlay: string;
+  waterPause: string;
+  waterSpeedLabel: string;
+  waterSpeedHint: string;
+  waterDischargeLabel: string;
+  waterDischargeHint: string;
+  waterReset: string;
+  waterWetArea: string;
+  waterMaxDepth: string;
+  waterInflowLabel: string;
+  waterOutletLabel: string;
+  waterUnsupportedFloat: string;
+  waterUnsupportedChannel: string;
+  legendWaterLabel: string;
 }
 
 /**
@@ -185,6 +205,31 @@ export const EN: Strings = {
     'avoid quantising elevation into visible steps.',
   terrainErrorLoad: 'The terrain could not be loaded.',
   terrainRetry: 'Try again',
+
+  // --- FLOW phase 1 ------------------------------------------------------
+  waterTitle: 'Flow water',
+  waterToggleLabel: 'Flood water',
+  waterIllustrativeNote:
+    'Illustrative flood model, not a forecast. The DEM has no riverbed, ' +
+    'so the river runs on a flat surface.',
+  waterPlay: 'Run water',
+  waterPause: 'Pause water',
+  waterSpeedLabel: 'Speed',
+  waterSpeedHint: 'Simulated seconds per real second. Faster is not truer.',
+  waterDischargeLabel: 'River inflow (scenario)',
+  waterDischargeHint:
+    'A value you set for this illustration. Not a gauge reading, not a forecast.',
+  waterReset: 'Reset water',
+  waterWetArea: 'Wet area',
+  waterMaxDepth: 'Deepest water',
+  waterInflowLabel: 'River enters, found in the terrain',
+  waterOutletLabel: 'River leaves west',
+  waterUnsupportedFloat:
+    'This device cannot render water (no 32-bit float rendering). ' +
+    'The terrain still works.',
+  waterUnsupportedChannel:
+    'No continuous river channel found in this terrain, so water stays off.',
+  legendWaterLabel: 'Water depth, illustrative',
 };
 
 /**
@@ -273,6 +318,34 @@ export const AS: Strings = {
     'এই যন্ত্ৰই ৩২-বিট ফ্লোট ছবিপড় পঢ়া পুৰা নাযায়, আৰু উচ্চতাক স্পষ্ট স্তৰত টুকুৱাবলৈ ভূমিটোক এইটো লাগে।', // DRAFT
   terrainErrorLoad: "ভূমিটো আনা নহ'ল।", // DRAFT
   terrainRetry: 'পুনৰ চেষ্টা কৰা', // DRAFT
+
+  // --- FLOW phase 1 ------------------------------------------------------
+  waterTitle: 'বানৰ পানী', // DRAFT
+  waterToggleLabel: 'বানৰ পানী', // DRAFT
+  waterIllustrativeNote:
+    // DRAFT
+    'এইখন কেৱল ব্যাখ্যাৰ বানৰ ছবি, পূৰ্বাভাস নহয়। নদীৰ তলি জনা নাযায়, ' +
+    'সেয়ে নদী সমান পৃষ্ঠতহে বৈছে।', // DRAFT
+  waterPlay: 'পানী চলোৱা', // DRAFT
+  waterPause: 'পানী ৰখোৱা', // DRAFT
+  waterSpeedLabel: 'গতি', // DRAFT
+  waterSpeedHint: 'প্ৰকৃত এক ছেকেণ্ডত কিমান ছেকেণ্ডৰ বান। বেগ বেছি হ’লেও সঁচা নহয়।', // DRAFT
+  waterDischargeLabel: 'নদীৰ সোঁত, আপুনি বাছনি কৰা', // DRAFT
+  waterDischargeHint:
+    // DRAFT
+    'এই ছবিৰ বাবে আপুনি বাছনি কৰা মান। জোখ-মাখ বা পূৰ্বাভাস নহয়।', // DRAFT
+  waterReset: 'পানী খালী কৰা', // DRAFT
+  waterWetArea: 'তিতা মাটি', // DRAFT
+  waterMaxDepth: 'গভীৰতম পানী', // DRAFT
+  waterInflowLabel: 'নদী সোমায়, ভূমিৰ পৰা পোৱা', // DRAFT
+  waterOutletLabel: 'নদী পশ্চিমে ওলায়', // DRAFT
+  waterUnsupportedFloat:
+    // DRAFT
+    'এই যন্ত্ৰই পানী দেখাব নোৱাৰে। ভূমি এতিয়াও চাব পাৰি।', // DRAFT
+  waterUnsupportedChannel:
+    // DRAFT
+    'এই ভূমিত একেৰাহে নদীৰ বাট পোৱা নগ’ল, সেয়ে পানী বন্ধ আছে।', // DRAFT
+  legendWaterLabel: 'পানীৰ গভীৰতা, ব্যাখ্যাৰ বাবে', // DRAFT
 };
 
 /**
