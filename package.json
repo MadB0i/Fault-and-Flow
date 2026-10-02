@@ -25,7 +25,8 @@
     "contrast": "node scripts/check-contrast.mjs",
     "data:dem": "node scripts/build-dem.ts",
     "data:dem:check": "node scripts/build-dem.ts --check",
-    "data:dem:previews": "node scripts/build-dem.ts --previews"
+    "data:dem:previews": "node scripts/build-dem.ts --previews",
+    "data:dem:migrate": "node scripts/migrate-nodata-encoding.ts"
   },
   "dependencies": {
     "@fontsource/fraunces": "^5.2.5",

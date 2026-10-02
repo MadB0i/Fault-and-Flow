@@ -226,12 +226,12 @@
         {
           "file": "assam-overview.png",
           "bytes": 2038300,
-          "sha256": "09c8d1e4e735e58f33f91f5d1b059f8ae8c024c158a8e1ffbc5b91fdd86cc46d"
+          "sha256": "887ec40630389a1c6640de7d434b3265045353929ca4c2dedc8503088edef440"
         },
         {
           "file": "assam-overview.json",
-          "bytes": 3359,
-          "sha256": "41f675e2eff297d5aad56d40eea581c0b566e34fb7c69e3fd72e97bb3ff2ea02"
+          "bytes": 4162,
+          "sha256": "7931c2e55e06eb349d68530c144a0862bec7b9dfbb2ee0a441a3645d007e6e80"
         }
       ]
     },
@@ -295,13 +295,13 @@
       "outputs": [
         {
           "file": "majuli.png",
-          "bytes": 2315189,
-          "sha256": "94d40c5d7657468531392905c0270d9006c06df642b5aa430e080727cff853d4"
+          "bytes": 2315279,
+          "sha256": "d920b8e8c043e65f927203ed775e38185e0f01554162b12845e02daafa1932d7"
         },
         {
           "file": "majuli.json",
-          "bytes": 2585,
-          "sha256": "3c3eba87a55746be819741aecf13742b1d55d3ccf66af10a4f108f60d3ec9626"
+          "bytes": 3388,
+          "sha256": "696c314fb4d1a7dad462e5c3fe8f944a88142903f87b095559f0d92a94ac83fc"
         }
       ]
     },
@@ -345,15 +345,24 @@
       "outputs": [
         {
           "file": "sadiya-dibrugarh.png",
-          "bytes": 3883564,
-          "sha256": "8112c68954f41ac9c34abc2b5f2005f127b7805e1c9e06fa9f05738ee1c8e071"
+          "bytes": 3883836,
+          "sha256": "71ce18af0fda82a3ef6e28bca1c16f35a3199d317f034c49f35d3c102ceffae2"
         },
         {
           "file": "sadiya-dibrugarh.json",
-          "bytes": 2540,
-          "sha256": "16db1480caf54b62ceb28b8319769160c8d4b4ebeddc686c25023adf592d02ad"
+          "bytes": 3340,
+          "sha256": "81b6c78d3d16dc252c64b33c1c59a961d5f29aa0e75498320f108050c7e85397"
         }
       ]
     }
-  ]
+  ],
+  "migration": {
+    "date": "2026-10-02",
+    "script": "scripts/migrate-nodata-encoding.ts",
+    "change": "encoding.offset lowered by one step per area; every code incremented by 1",
+    "lossless": true,
+    "pipelineRebuilt": false,
+    "reproducibilityVerified": false,
+    "note": "npm run data:dem was NOT re-run against this encoding, so byte-identical rebuild from source is unverified. See docs/DATA.md section 13."
+  }
 }

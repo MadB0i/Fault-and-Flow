@@ -575,7 +575,7 @@ async function main(): Promise<void> {
     }
 
     const step = area.step;
-    const offset = offsetFor(minElev);
+    const offset = offsetFor(minElev, step);
     const range = maxElev - offset;
     if (range / step > 65535) {
       throw new Error(
@@ -583,8 +583,11 @@ async function main(): Promise<void> {
       );
     }
 
-    // Encode. No-data pixels take code 0; because `offset` is at or below the
-    // observed minimum, a real elevation can never legitimately encode to 0.
+    // Encode. No-data pixels take code 0; because `offset` sits a full step
+    // BELOW the observed minimum (see `offsetFor`), a real elevation can never
+    // legitimately encode to 0. Flooring the minimum was not enough: a pixel
+    // sitting exactly at the floor elevation encoded to 0 and read back as a
+    // hole, which cost Majuli 1,938 cells and the overview 49.
     const rgb = new Uint8Array(grid.width * grid.height * 3);
     for (let i = 0; i < heights.length; i++) {
       const o = i * 3;
@@ -638,7 +641,9 @@ async function main(): Promise<void> {
         noDataCode: 0,
         sourceNoDataSentinel: SOURCE_NODATA,
         colourType: 2,
-        note: 'code = round((elevation - offset) / step); no-data is code 0',
+        note:
+          'code = round((elevation - offset) / step); no-data is code 0, and offset is one ' +
+          'step below the lowest elevation so no real measurement can reach code 0',
       },
       source: {
         dataset: 'Copernicus DEM GLO-30 Public',

@@ -21,11 +21,11 @@
   "encoding": {
     "format": "terrain-rgb",
     "step": 0.1,
-    "offset": 68,
+    "offset": 67.9,
     "noDataCode": 0,
     "sourceNoDataSentinel": -32767,
     "colourType": 2,
-    "note": "code = round((elevation - offset) / step); no-data is code 0"
+    "note": "code = round((elevation - offset) / step); no-data is code 0, and offset is one step below the lowest elevation so no real measurement can reach code 0"
   },
   "source": {
     "dataset": "Copernicus DEM GLO-30 Public",
@@ -54,5 +54,16 @@
     "Water surfaces are flattened and rivers edited for consistency; there is NO riverbed bathymetry.",
     "Vertical error LE90 is 1.472 m per source tile, a large fraction of the floodplain's few metres of relief.",
     "Pixels are not square: GLO-30 is a 1 arcsecond grid, so ground size varies with latitude."
-  ]
+  ],
+  "migration": {
+    "date": "2026-10-02",
+    "script": "scripts/migrate-nodata-encoding.ts",
+    "change": "every Terrain-RGB code incremented by 1 and encoding.offset reduced by one step, which is exactly invertible: (c+1)*step + (O-step) === c*step + O",
+    "reason": "the previous offset was the minimum elevation, so cells at that minimum encoded to code 0 and read back as no-data",
+    "pixelsRecoveredAsTerrain": 1938,
+    "maxCode": 20213,
+    "pipelineRebuilt": false,
+    "reproducibilityVerified": false,
+    "note": "npm run data:dem was NOT re-run against this encoding. Byte-identical rebuild from source is therefore unverified; see docs/DATA.md section 13 and docs/ROADMAP.md phase 2."
+  }
 }

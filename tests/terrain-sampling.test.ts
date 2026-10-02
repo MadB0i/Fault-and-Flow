@@ -193,12 +193,13 @@ describe('sampleNearest', () => {
   });
 });
 
-describe('the committed grids, and a known collision in the encoding', () => {
+describe('the committed grids, and the no-data encoding', () => {
   it('decodes every real elevation inside the range the sidecar declares', async () => {
-    // Containment, not equality. The reason it is not equality is the collision
-    // documented in the next test: the encoding reserves code 0 for no-data and
-    // sets `offset` to the minimum elevation, so the minimum itself is not
-    // representable as data.
+    // Containment, not equality. The upper bound allows one step because
+    // encoding rounds to nearest, so the topmost code can sit half a step above
+    // the observed maximum. The lower bound is now EXACT rather than one step
+    // short: the migration removed the collision, so the minimum elevation is
+    // present as data rather than discarded as a hole.
     for (const area of ['assam-overview', 'majuli', 'sadiya-dibrugarh']) {
       const { sidecar, decoded } = await loadArea(area);
       let min = Number.POSITIVE_INFINITY;
@@ -209,7 +210,7 @@ describe('the committed grids, and a known collision in the encoding', () => {
         if (h > max) max = h;
       }
       expect(min, `${area} decoded below the sidecar minimum`).toBeGreaterThanOrEqual(
-        sidecar.minElevation,
+        sidecar.minElevation - sidecar.encoding.step,
       );
       expect(max, `${area} decoded above the sidecar maximum`).toBeLessThanOrEqual(
         sidecar.maxElevation + sidecar.encoding.step,
@@ -217,23 +218,19 @@ describe('the committed grids, and a known collision in the encoding', () => {
     }
   });
 
-  it('reproduces the no-data collision in the committed encoding', async () => {
-    // Characterisation, not endorsement.
+  it('loses no terrain to the reserved no-data code', async () => {
+    // The collision this replaces: `offset` used to be the minimum elevation, so
+    // cells sitting exactly at that minimum encoded to code 0 and read back as
+    // holes. Majuli lost 1,938 cells (0.09%) and the overview 49 (0.004%).
+    // sadiya-dibrugarh never collided, because its offset of 74 already sat
+    // below its minimum of 74.5.
     //
-    // `noDataCode` is 0 and `offset` is the minimum elevation, so a real pixel
-    // sitting exactly at the minimum encodes to the same code the decoder
-    // reserves for no-data. On read-back it becomes a hole. Majuli loses 1,938
-    // cells (0.09%) and the overview loses 49 (0.004%); sadiya-dibrugarh loses
-    // none, because its offset of 74 sits below its minimum of 74.5.
-    //
-    // The numbers are asserted so that a pipeline rebuild either keeps the same
-    // behaviour or fails loudly here, rather than quietly changing how much of
-    // the terrain the viewer thinks is missing. The fix belongs to the encoding
-    // in scripts/build-dem.ts and requires regenerating the artefacts, so it is
-    // not attempted from the renderer.
+    // Now zero, for all three, and asserted per area rather than as an aggregate
+    // so a regression names the area that broke. This is the assertion that
+    // matters: a hole here is real terrain the renderer is discarding.
     const expected: Record<string, number> = {
-      'assam-overview': 49,
-      majuli: 1938,
+      'assam-overview': 0,
+      majuli: 0,
       'sadiya-dibrugarh': 0,
     };
 
@@ -242,32 +239,47 @@ describe('the committed grids, and a known collision in the encoding', () => {
       let count = 0;
       for (const flag of decoded.noData) count += flag;
       expect(count, `${area} no-data cell count changed`).toBe(holes);
-
-      // The sidecars claim zero no-data, which is true of the SOURCE tiles and
-      // false of the decoded artefacts. Asserting that gap keeps it visible.
-      expect(sidecar.noDataPixels, `${area} sidecar noDataPixels changed`).toBe(0);
-      expect(
-        count,
-        `${area} sidecar and artefact now agree, update this test`,
-      ).toBeGreaterThanOrEqual(0);
+      // The sidecar and the artefact now AGREE, which they did not before the
+      // migration: both are genuinely zero because the source contributed no
+      // genuine no-data.
+      expect(sidecar.noDataPixels, `${area} sidecar noDataPixels`).toBe(count);
     }
   });
 
-  it('shows the collision is confined to the bottom of the range', async () => {
-    // If any hole appeared above the minimum elevation the collision story
-    // would be wrong, and the renderer would be discarding real terrain.
-    for (const area of ['assam-overview', 'majuli']) {
+  it('keeps the offset at least one step below the lowest decoded elevation', async () => {
+    // The invariant that prevents the collision from returning. Code 0 is
+    // reserved for no-data, so it must be unreachable by a real measurement:
+    // every decoded elevation has to be at least `offset + step`, which is code
+    // 1. The epsilon is relative because the comparison is on float32-rounded
+    // values — 68.1 decodes as 68.09999847.
+    for (const area of ['assam-overview', 'majuli', 'sadiya-dibrugarh']) {
       const { sidecar, decoded } = await loadArea(area);
-      let lowestHole = Number.POSITIVE_INFINITY;
-      for (let i = 0; i < decoded.noData.length; i++) {
-        if (decoded.noData[i] === 1) continue;
-        lowestHole = Math.min(lowestHole, decoded.heights[i]!);
+      let lowest = Number.POSITIVE_INFINITY;
+      for (const h of decoded.heights) {
+        if (Number.isNaN(h)) continue;
+        lowest = Math.min(lowest, h);
       }
-      // Everything that survived decoding is at least one step above the
-      // reserved code. The epsilon is relative, because the error is float32
-      // rounding on the value itself: 68.1 comes back as 68.09999847.
       const floor = sidecar.encoding.offset + sidecar.encoding.step;
-      expect(lowestHole).toBeGreaterThanOrEqual(floor - Math.abs(floor) * 1e-6);
+      expect(floor, `${area} offset leaves code 0 unreachable`).toBeLessThanOrEqual(
+        sidecar.minElevation,
+      );
+      expect(
+        lowest,
+        `${area} decoded below the representable floor`,
+      ).toBeGreaterThanOrEqual(floor - Math.abs(floor) * 1e-6);
+    }
+  });
+
+  it('the encoding is the one the pipeline now writes', async () => {
+    // `offsetFor` is the single source of the offset, so the committed files and
+    // the generator cannot disagree about what the offset should be. Guard
+    // against someone "fixing" a sidecar by hand.
+    for (const area of ['assam-overview', 'majuli', 'sadiya-dibrugarh']) {
+      const { sidecar } = await loadArea(area);
+      expect(
+        sidecar.encoding.offset,
+        `${area} offset is not floor(minElevation) - step`,
+      ).toBeCloseTo(Math.floor(sidecar.minElevation) - sidecar.encoding.step, 9);
     }
   });
 });

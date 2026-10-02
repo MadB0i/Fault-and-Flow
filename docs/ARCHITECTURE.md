@@ -401,8 +401,32 @@ The renderer has two implementations of "what is the elevation here": one in GLS
 `sampling.ts`, for the pointer readout. They are kept honest by testing the CPU one against
 the decoder rather than against its own arithmetic — a test that re-derives bilinear by hand
 over the same array the function reads proves nothing. `tests/terrain-sampling.test.ts` also
-pins the exact per-area no-data counts, because the committed encoding has a known collision
-at the minimum elevation (`DECISIONS.md` §9) and that number must not drift silently.
+pins the exact per-area no-data counts, because they are **zero** and that is a fact worth
+protecting: the encoding reserves code 0 for no-data and places `offset` one step below the
+lowest elevation, so code 0 is unreachable by a real measurement. Before 2026-10-02 the
+offset was the minimum elevation itself, cells at that minimum encoded to the reserved
+code, and the decoder discarded them as holes — 1,938 cells on Majuli and 49 on the
+overview (`DECISIONS.md` §9). A non-zero count here means the renderer is throwing away
+real terrain, so the assertion is per area rather than an aggregate.
+
+### The no-data encoding, and why the offset is not the minimum
+
+Code 0 means no-data, so the offset — the elevation of code 0 — must sit strictly below
+the lowest elevation that can occur. `offsetFor` returns `floor(minElevation) - step`
+rather than `floor(minElevation)`, and the extra step costs 0.1 m of span against a
+65,535-code budget that the overview already spends 48,873 of.
+
+Flooring is not sufficient on its own, and the reason is worth stating because the
+failure is invisible: GLO-30 flattens water surfaces, and the floodplain is a few metres of
+relief, so a real pixel at exactly the floor elevation is common rather than exotic. It
+encodes to code 0, and a decoder has no way to know that is not a hole. The renderer treated
+those cells as missing data, which is the safe direction — it shows "—" rather than
+inventing a number — but it is not accurate, because those cells _are_ data.
+
+The committed artefacts were migrated rather than rebuilt: every code incremented by 1 and
+each offset reduced by one step, which is exactly invertible under
+`code * step + offset`. `docs/DATA.md` §13 records what is and is not verified about that,
+including the fact that `npm run data:dem` was not re-run.
 
 ### Budget, measured
 

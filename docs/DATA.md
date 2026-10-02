@@ -789,9 +789,68 @@ Total **7.86 MB**, against the 9 MB budget for this task and the 5 MB per-file c
 `AGENTS.md` §5. Both are asserted in `tests/dem-artifacts.test.ts`, so the budget cannot be
 quietly exceeded by a later edit.
 
-The PNG column is measured from the committed files — 2,038,300, 2,315,189 and 3,883,564
+The PNG column is measured from the committed files — 2,038,300, 2,315,279 and 3,883,836
 bytes respectively — and rounded to two decimal places in MiB, which is the unit the total
 uses. The `bytes` field of each entry in `manifest.json` is the exact value.
+
+### The no-data encoding, and how the committed files were migrated
+
+`offset` is the elevation of code 0, and **code 0 is reserved for no-data**. So the offset
+must sit strictly below the lowest elevation that can occur, or the minimum encodes to 0
+and the decoder cannot tell it from a hole. `offsetFor` therefore returns
+`Math.floor(minElevation) - step`.
+
+Until 2026-10-02 it returned `Math.floor(minElevation)`, which is not enough: GLO-30
+flattens water surfaces and the floodplain has metres of relief, so a real pixel sitting
+at exactly the floor elevation is common, and it encoded to the reserved code. On
+read-back those cells became holes — real terrain the renderer was discarding:
+
+| Area                 | Cells lost | Share of grid | Old offset | New offset |
+| -------------------- | ---------- | ------------- | ---------- | ---------- |
+| **assam-overview**   | 49         | 0.004%        | 0          | −0.15      |
+| **majuli**           | 1,938      | 0.09%         | 68         | 67.9       |
+| **sadiya-dibrugarh** | 0          | 0%            | 74         | 73.9       |
+
+**1,987 cells recovered, 0 remaining.** Sadiya-dibrugarh never collided because its
+minimum of 74.5 m already sat above the floored offset of 74.
+
+`noDataPixels` in all three sidecars reads **0**, and after this migration that number is
+finally true of the artefacts rather than only of the source tiles — it now agrees with
+what the decoder finds.
+
+#### These files were migrated, not rebuilt
+
+> **The committed artefacts were NOT regenerated from the Copernicus source.**
+> `npm run data:dem` was not re-run against the fixed encoding. What happened instead is
+> `npm run data:dem:migrate` (`scripts/migrate-nodata-encoding.ts`), a one-off that
+> transformed the committed bytes:
+>
+> ```
+> every Terrain-RGB code  += 1
+> sidecar encoding.offset -= step
+> ```
+>
+> That is exactly invertible, because decoding is `code * step + offset`:
+> `(c+1)*step + (O−step) === c*step + O`. **No pixel's elevation changed.** Measured over
+> all 6,635,948 pixels: 0 pixels differ in the float32 values the decoder delivers. The
+> worst float64 deviation between the two algebraically identical forms is 2.2e-16
+> relative — one ULP — and it vanishes on narrowing to float32, which is what the decoder
+> stores. Both the sidecars and `manifest.json` carry a `migration` block recording this,
+> with `pipelineRebuilt: false` and `reproducibilityVerified: false`.
+
+**What this means for reproducibility, stated plainly.** The manifest's SHA-256 values
+cover the committed files, and the files are self-consistent: `tests/dem-artifacts.test.ts`
+hashes them and `tests/terrain-sampling.test.ts` decodes them. What is **unverified** is
+that running `npm run data:dem` against the fixed encoder would reproduce these exact
+bytes. The migration uses the same `PNG.sync.write` call with the same options the
+pipeline makes, which is the strongest claim available without network access, but it is
+a claim rather than a measurement. Tracked as an unchecked item in `docs/ROADMAP.md`
+phase 2: rebuild one area and compare hashes.
+
+The migration refuses to run if either `noDataPixels` or `sourceNoDataPixels` is non-zero
+in any sidecar. Those are real holes, and after the fact a genuine hole is
+indistinguishable from the collision — promoting one to code 1 would invent terrain out
+of nothing, which is the failure `AGENTS.md` §6 exists to prevent. All three read 0.
 
 ### Why the overview uses a 0.15 m step and the reaches use 0.1 m
 
@@ -814,6 +873,10 @@ container, `decodeTerrainRgba` for the pixels. No-data is explicit — code 0 be
 in the height array with a companion `Uint8Array` mask, so a caller cannot read a no-data
 cell as an elevation because there is no number there. `encodeElevation` throws rather than
 wrapping on an out-of-range value.
+
+Because the offset now sits one step below the lowest elevation, code 0 is unreachable by
+a real measurement: no-data and "the lowest terrain in the world" are no longer the same
+number. See "The no-data encoding" above.
 
 > **In the browser, decode via `createImageBitmap` with `premultiplyAlpha: 'none'` and
 > `colorSpaceConversion: 'none'`.** Terrain-RGB is a measurement encoding, not a picture.

@@ -21,6 +21,7 @@ below.
 | 7   | FLOW inputs are user-chosen scenarios, not observations                       | 2026-10-01 | Settled                                                   |
 | 8   | DEM: Copernicus GLO-30; three areas as Terrain-RGB, overview at a 0.15 m step | 2026-10-01 | Settled; re-check if a verified bare-earth source appears |
 | 9   | Terrain renderer: float32 heights, render on demand, exaggeration stated      | 2026-10-02 | Settled, re-check when the scene grows past one mesh      |
+| 10  | No-data offset is one step below the minimum; artefacts migrated, not rebuilt | 2026-10-02 | Settled; rebuild one area to verify byte reproducibility  |
 
 **On numbering.** Decision 3 is the narrower fact — CWC is out of scope. Decision 7 is the
 general rule that supersedes it: _no_ FLOW input is an observation, whoever would have supplied
@@ -245,15 +246,67 @@ mean a different teaching aid entirely, a labelled cross-section rather than a l
 or a verified bare-earth source with enough vertical accuracy to justify a smaller
 multiplier.
 
-**One consequence recorded rather than fixed here.** The committed encoding reserves code 0
-for no-data and sets `offset` to the minimum elevation, so a real pixel sitting exactly at
-the minimum encodes as the no-data code and reads back as a hole: 1,938 cells on Majuli
-(0.09%) and 49 on the overview. The renderer treats those as no-data, which is the safe
-failure — it shows "—" rather than inventing a number — but it is not accurate, because
-those cells are data. The fix belongs to the encoding in `scripts/build-dem.ts` and requires
-regenerating the artefacts, so it is tracked in `docs/ROADMAP.md` phase 2 rather than
-attempted from the renderer. `tests/terrain-sampling.test.ts` asserts the exact counts so
-the number cannot change unnoticed.
+**One consequence, recorded here and fixed on 2026-10-02 — see decision 10.** The committed
+encoding originally reserved code 0 for no-data and set `offset` to the minimum elevation,
+so a real pixel sitting exactly at the minimum encoded as the no-data code and read back as
+a hole: 1,938 cells on Majuli (0.09%) and 49 on the overview. The renderer treated those as
+no-data, which is the safe failure — it shows "—" rather than inventing a number — but it is
+not accurate, because those cells are data.
+
+---
+
+## 10. The no-data offset sits one step below the minimum, and the artefacts were migrated rather than rebuilt
+
+**Date 2026-10-02.** Fixes the collision recorded as an open consequence in decision 9.
+Two halves, and the second is the one worth arguing about.
+
+**`offsetFor` now returns `floor(minElevation) - step`, not `floor(minElevation)`.** Code 0
+is reserved for no-data, so the offset — the elevation of code 0 — has to sit strictly
+below the lowest elevation that can occur. Flooring was not enough, and the reason is a
+property of the source rather than of the code: GLO-30 flattens water surfaces and the
+floodplain is a few metres of relief, so a real pixel sitting at exactly the floor
+elevation is **common**, not exotic. It encoded to the reserved code and the decoder had no
+way to know that was not a hole. The alternative fixes — reserving a different code, or
+special-casing the minimum — both make the decoder carry knowledge the format does not have,
+whereas lowering the offset by one step moves the entire problem into the encoder where it
+belongs. The cost is 0.1 m of additional span against a 65,535-code budget the overview
+already spends 48,873 of, and 0.15 m on the overview, where one step is 0.0003 of a pixel.
+The invariant is asserted twice: per area over the committed files, and as a unit-level
+property of `offsetFor` across several steps and minimum elevations, so a future caller
+passing a different step cannot silently reintroduce it.
+
+**The committed artefacts were migrated, not rebuilt.** `npm run data:dem` was **not**
+re-run — it reads 46 Copernicus COG tiles over HTTP, and a rebuild was not warranted for a
+purely arithmetic encoding change. Instead `scripts/migrate-nodata-encoding.ts` transformed
+the committed bytes: every code `+1`, each sidecar offset `−step`. That is exactly
+invertible under `code * step + offset`, since `(c+1)*step + (O−step) === c*step + O`, so
+**no pixel's elevation changed**. Measured across all 6,635,948 pixels: zero differ in the
+float32 values the decoder delivers; the worst float64 deviation between the two
+algebraically identical forms is 2.2e-16 relative, one ULP, which vanishes on narrowing to
+float32. The 1,987 previously-discarded cells are now code 1 and decode to the elevation
+they always held; **0 holes remain** in all three areas.
+
+The migration **refuses to run** if any sidecar reports non-zero `noDataPixels` or
+`sourceNoDataPixels`. That guard is the whole reason it is safe: after the fact a genuine
+hole is indistinguishable from the collision, so promoting one to code 1 would invent
+terrain out of nothing. All three read 0, which is what makes the transform lossless.
+
+**What is recorded as unverified.** Byte-identical reproducibility. The files were never
+rebuilt from source against the fixed encoder, so it is not established that
+`npm run data:dem` would produce these exact bytes. The migration uses the same
+`PNG.sync.write` call with the same options as the pipeline, which is the strongest claim
+available offline, but it is a claim and not a measurement. Every sidecar and the manifest
+carry a `migration` block with `pipelineRebuilt: false` and
+`reproducibilityVerified: false`, so the artefact itself does not claim a reproducibility
+it does not have. `docs/DATA.md` §13 states it in prose, and `docs/ROADMAP.md` phase 2
+carries an unchecked item to rebuild one area and compare hashes.
+
+**Reversed or extended by:** rebuilding any area from source and finding a hash difference,
+which would mean the migration and the pipeline disagree somewhere — most plausibly in PNG
+encoder options, which is why the options are duplicated verbatim rather than imported.
+Extended by any future area whose source contributes genuine no-data: those cells must
+stay code 0, the count will be non-zero, and the sidecar's `noDataPixels` becomes a real
+measurement rather than a formality.
 
 ---
 

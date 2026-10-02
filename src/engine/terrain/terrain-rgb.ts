@@ -7,7 +7,9 @@
  *
  * Encoding: `code = round((elevation - offset) / 0.1)`, packed big-endian into
  * R, G, B. No-data is written as code 0 and flagged in the sidecar, so a decoder
- * never has to distinguish "0 m" from "no data" by guessing.
+ * never has to distinguish "0 m" from "no data" by guessing — which requires the
+ * offset to sit at least one step BELOW the lowest elevation, so that code 0 is
+ * unreachable by a real measurement. See {@link offsetFor}.
  */
 
 export const TERRAIN_RGB_STEP_M = 0.1;
@@ -37,9 +39,31 @@ export function isNoData(value: number): boolean {
   return value === SOURCE_NODATA;
 }
 
-/** Offset to record in a sidecar for a given observed minimum elevation. */
-export function offsetFor(minElevation: number): number {
-  return Math.floor(minElevation);
+/**
+ * Offset to record in a sidecar for a given observed minimum elevation.
+ *
+ * **One step below the floor of the minimum, deliberately.**
+ *
+ * Code 0 is reserved for no-data, so the offset must sit strictly below the
+ * lowest elevation that can occur, or the minimum itself encodes to 0 and the
+ * decoder cannot tell it from a hole. Flooring the minimum is not enough: a
+ * pixel at exactly the floor elevation — which GLO-30 produces routinely, since
+ * water surfaces are flattened and the floodplain is metres of relief — lands
+ * on code 0 and reads back as "no data".
+ *
+ * With the offset one step lower, every real elevation encodes to code ≥ 1 and
+ * code 0 means only no-data. The cost is 10 cm (or 15 cm on the overview) of
+ * additional span, against a 65,535-code budget: unmeasurable next to the
+ * 7,447 m the overview already spans.
+ *
+ * Changed 2026-10-02 to fix the collision characterised in `DECISIONS.md` §9,
+ * which cost Majuli 1,938 cells (0.09%) and the overview 49 (0.004%).
+ */
+export function offsetFor(
+  minElevation: number,
+  step: number = TERRAIN_RGB_STEP_M,
+): number {
+  return Math.floor(minElevation) - step;
 }
 
 /** Quantise an elevation to a 16-bit Terrain-RGB code. */

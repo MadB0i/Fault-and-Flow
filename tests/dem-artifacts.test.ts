@@ -29,6 +29,7 @@ import {
   decodeElevation,
   encodeElevation,
   isNoData,
+  offsetFor,
 } from '@engine/terrain/terrain-rgb.js';
 import {
   AREAS,
@@ -199,6 +200,30 @@ describe('no-data is never an elevation (regression)', () => {
     expect(isNoData(-32767)).toBe(true);
     expect(isNoData(-32.7)).toBe(false);
     expect(isNoData(0)).toBe(false);
+  });
+
+  it('the offset leaves code 0 unreachable by a real elevation', () => {
+    // The property that makes the reserved no-data code unambiguous, stated on
+    // the generator rather than only on the committed files: whatever elevation
+    // is handed in, the offset leaves at least one step of headroom, so code 0
+    // can only ever mean no-data.
+    //
+    // This is the unit-level counterpart to the per-area assertions over the
+    // committed artefacts. It is here because a future caller passing a
+    // different step would otherwise silently reintroduce the collision that
+    // cost Majuli 1,938 cells.
+    for (const step of [0.1, 0.15, 1]) {
+      for (const minElevation of [0, 68, 74.5, -12.3, 1234.56]) {
+        const offset = offsetFor(minElevation, step);
+        // The minimum itself must not encode to the reserved code.
+        expect(
+          encodeElevation(minElevation, offset, step),
+          `step ${step}, min ${minElevation}`,
+        ).toBeGreaterThan(0);
+        // And neither may anything between the offset and the minimum.
+        expect(encodeElevation(offset + step, offset, step)).toBe(1);
+      }
+    }
   });
 
   it('no decoded pixel holds the sentinel, and the sidecar records it', async () => {

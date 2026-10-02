@@ -113,10 +113,17 @@ elevation validation is an open gap rather than a completed item.
       contour-interval picker, legend tick generator, camera polar clamp and damping
       termination, area registry matching `manifest.json` exactly, and no React or hex literal
       under `src/engine/`
-- [ ] **Fix the no-data encoding collision.** Code 0 is reserved for no-data and `offset` is
-      the minimum elevation, so cells sitting exactly at the minimum read back as holes: 1,938
-      on Majuli (0.09%), 49 on the overview (`DECISIONS.md` §9). Needs an encoding change in
-      `scripts/build-dem.ts` and a rebuild, so it does not belong to the renderer
+- [x] **Fix the no-data encoding collision.** `offsetFor` returns `floor(minElevation) - step`
+      now, so code 0 is unreachable by a real measurement. 1,987 cells recovered (1,938 on
+      Majuli, 49 on the overview); 0 holes remain in all three areas
+      (`DECISIONS.md` §10)
+- [ ] **UNCHECKED — verify byte-identical rebuild.** The artefacts were migrated by
+      `scripts/migrate-nodata-encoding.ts`, not regenerated: `npm run data:dem` was **not**
+      re-run against the fixed encoder, so byte-identical reproducibility is unverified.
+      Rebuild **one** area (majuli is the cheapest at 4 tiles) and compare the SHA-256
+      against `manifest.json`. A mismatch means the migration and the pipeline disagree
+      somewhere — most plausibly PNG encoder options — and the committed file must then be
+      replaced by the pipeline's output rather than patched. Recorded in `docs/DATA.md` §13
 - [ ] **Independent elevation validation** — still open, carried from phase 2
       (`docs/DATA.md` §13)
 - [ ] **Visually review the render.** Done by eye in a real browser, not by an automated
@@ -126,9 +133,9 @@ elevation validation is an open gap rather than a completed item.
 **Done when:** terrain renders at 60fps on a mid-range Android and the engine builds it
 in Node without a browser.
 
-**Not yet done.** The automated half of that is met and green: 89 tests pass, and every
-number the HUD shows is asserted rather than eyeballed. The half that cannot be automated is
-the render itself — nobody has yet confirmed that the scene looks like Assam.
+**Not yet done.** The automated half of that is met and green: `npm run verify` is green and
+every number the HUD shows is asserted rather than eyeballed. The half that cannot be
+automated is the render itself — nobody has yet confirmed that the scene looks like Assam.
 
 ---
 
