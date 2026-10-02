@@ -29,6 +29,7 @@ import {
 } from '@engine/terrain';
 
 import { AREA_SOURCES, prefersReducedMotion, readDocumentPalette } from './assets.js';
+import { setFlowMode } from '../state/setFlowMode.js';
 
 const IDLE: TerrainViewState = {
   status: { phase: 'idle' },
@@ -193,6 +194,9 @@ export function useTerrainView(): TerrainViewController {
 
   const setWaterOn = useCallback((on: boolean) => {
     setWaterOnState(on);
+    // The rail's FLOW channel and this checkbox are the same switch: showing
+    // the flood panel is what "Flow" means today, so they cannot disagree.
+    setFlowMode();
     const view = viewRef.current;
     if (!view) return;
     if (on) {

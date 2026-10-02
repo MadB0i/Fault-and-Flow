@@ -30,8 +30,16 @@ function iconFor(mode: Mode): LucideIcon {
   }
 }
 
-export default function ModeRail() {
+type Props = {
+  /** Opens the flood panel. Owned by the terrain hook; passed down so the
+   *  rail does not have to reach into it. */
+  onSelectFlow: () => void;
+};
+
+export default function ModeRail({ onSelectFlow }: Props) {
   const strings = useUiStore((s) => s.strings());
+  const activeMode = useUiStore((s) => s.mode);
+  const setMode = useUiStore((s) => s.setMode);
 
   return (
     <nav
@@ -51,39 +59,78 @@ export default function ModeRail() {
         {MODE_ENTRIES.map(({ mode, labelKey, code }) => {
           const Icon = iconFor(mode);
 
+          const isFlow = mode === 'flow';
           return (
             <li key={mode} className="flex-1 md:flex-none">
-              <button
-                type="button"
-                // Genuinely disabled: the mode is not built. Never `disabled`
-                // on a submit as a validation gate, and never a control that
-                // looks live but does nothing.
-                disabled
-                aria-disabled="true"
-                data-testid={`mode-${mode}`}
-                data-mode={mode}
-                className="group flex min-h-[44px] w-full cursor-not-allowed items-center gap-[var(--space-xs)]
-                           rounded-[var(--radius-sm)] px-[var(--space-xs)] text-left
-                           opacity-45 transition-[background-color,opacity] duration-150
-                           ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color:var(--surface-raised)]
-                           focus-visible:bg-[color:var(--surface-raised)]"
-              >
-                <span
-                  className="font-data text-[length:var(--step--2)] tabular-nums text-[color:var(--text-muted)]"
-                  aria-hidden="true"
+              {isFlow ? (
+                // FLOW is the one mode that is actually built, so it is a real
+                // button that switches the rail's active state and opens the
+                // flood panel. It never pretends to be disabled.
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode(mode);
+                    onSelectFlow();
+                  }}
+                  aria-current={activeMode === mode ? 'true' : undefined}
+                  data-testid={`mode-${mode}`}
+                  data-mode={mode}
+                  className="group flex min-h-[44px] w-full items-center gap-[var(--space-xs)]
+                             rounded-[var(--radius-sm)] border-[length:1px] px-[var(--space-xs)] text-left
+                             border-[color:var(--water)]
+                             bg-[color:var(--surface-raised)]
+                             transition-[background-color,border-color] duration-150
+                             ease-[cubic-bezier(0.22,1,0.36,1)]"
                 >
-                  {code}
-                </span>
-                <Icon
-                  size={16}
-                  strokeWidth={1.5}
-                  className="shrink-0 text-[color:var(--text-muted)]"
-                  aria-hidden="true"
-                />
-                <span className="truncate text-[length:var(--step-0)]">
-                  {strings[labelKey]}
-                </span>
-              </button>
+                  <span
+                    className="font-data text-[length:var(--step--2)] tabular-nums text-[color:var(--water)]"
+                    aria-hidden="true"
+                  >
+                    {code}
+                  </span>
+                  <Icon
+                    size={16}
+                    strokeWidth={1.5}
+                    className="shrink-0 text-[color:var(--water)]"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate text-[length:var(--step-0)]">
+                    {strings[labelKey]}
+                  </span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  // Genuinely disabled: the mode is not built. Never `disabled`
+                  // on a submit as a validation gate, and never a control that
+                  // looks live but does nothing.
+                  disabled
+                  aria-disabled="true"
+                  data-testid={`mode-${mode}`}
+                  data-mode={mode}
+                  className="group flex min-h-[44px] w-full cursor-not-allowed items-center gap-[var(--space-xs)]
+                             rounded-[var(--radius-sm)] px-[var(--space-xs)] text-left
+                             opacity-45 transition-[background-color,opacity] duration-150
+                             ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color:var(--surface-raised)]
+                             focus-visible:bg-[color:var(--surface-raised)]"
+                >
+                  <span
+                    className="font-data text-[length:var(--step--2)] tabular-nums text-[color:var(--text-muted)]"
+                    aria-hidden="true"
+                  >
+                    {code}
+                  </span>
+                  <Icon
+                    size={16}
+                    strokeWidth={1.5}
+                    className="shrink-0 text-[color:var(--text-muted)]"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate text-[length:var(--step-0)]">
+                    {strings[labelKey]}
+                  </span>
+                </button>
+              )}
             </li>
           );
         })}

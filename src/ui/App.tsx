@@ -12,12 +12,15 @@
 
 import { Waves, Mountain, Activity, Info, type LucideIcon } from 'lucide-react';
 
+import { useRef } from 'react';
+
 import { MODE_ENTRIES } from '../shared/i18n/strings.js';
 import { useUiStore } from './state/useUiStore.js';
 import type { Mode } from '../shared/types.js';
 import ModeRail from './ModeRail.js';
 import LangToggle from './LangToggle.js';
 import TerrainScene from './terrain/TerrainScene.js';
+import type { TerrainViewController } from './terrain/useTerrainView.js';
 
 function iconFor(mode: Mode): LucideIcon {
   switch (mode) {
@@ -33,6 +36,10 @@ function iconFor(mode: Mode): LucideIcon {
 export default function App() {
   const locale = useUiStore((s) => s.locale);
   const strings = useUiStore((s) => s.strings());
+  // The rail selects the mode; the terrain hook owns the engine. A ref holding
+  // the view controller lets the rail open the flood panel without either of
+  // them importing the other, and without a render cycle on every state change.
+  const terrainRef = useRef<TerrainViewController | null>(null);
 
   return (
     <div
@@ -71,8 +78,9 @@ export default function App() {
           <div
             className="pointer-events-auto flex flex-col gap-[var(--space-s)]
                        md:flex-row md:items-start md:p-[var(--space-l)]"
+            data-testid="hud-top-left"
           >
-            <ModeRail />
+            <ModeRail onSelectFlow={() => terrainRef.current?.setWaterOn(true)} />
 
             <header className="md:pt-[var(--space-2xs)]">
               <h1
@@ -100,9 +108,10 @@ export default function App() {
 
       {/*
         The terrain viewer. It owns the canvas and its own HUD; the shell above
-        stays exactly as phase 1 left it.
+        stays exactly as phase 1 left it. onController hands the controller up
+        so the mode rail can drive the water layer.
       */}
-      <TerrainScene />
+      <TerrainScene onController={(view) => (terrainRef.current = view)} />
 
       {/*
         The honesty banner stays pinned and always visible over the scene. A

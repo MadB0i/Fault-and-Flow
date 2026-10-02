@@ -72,22 +72,39 @@ test.describe('terrain view', () => {
     // Overflow checks miss the common responsive failure: two absolutely
     // positioned regions colliding. This asserts the actual rectangles, which
     // is the defect that shipped in the first version of this page.
-    for (const width of [390, 768, 1440]) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const [width, height] of [
+      [390, 844],
+      [1366, 768],
+      [1440, 900],
+      [1920, 1080],
+    ] as const) {
+      await page.setViewportSize({ width, height });
       await page.waitForTimeout(120);
 
       const collisions = await page.evaluate(() => {
-        const regions: Array<{ name: string; el: Element }> = [
-          { name: 'mode-rail', el: document.querySelector('[data-testid="mode-rail"]')! },
-          { name: 'wordmark', el: document.querySelector('[data-testid="wordmark"]')! },
+        const regions: Array<{ name: string; el: Element | null }> = [
+          { name: 'mode-rail', el: document.querySelector('[data-testid="mode-rail"]') },
+          { name: 'wordmark', el: document.querySelector('[data-testid="wordmark"]') },
           {
             name: 'lang-toggle',
-            el: document.querySelector('[data-testid="lang-toggle"]')!,
+            el: document.querySelector('[data-testid="lang-toggle"]'),
+          },
+          {
+            name: 'left-column',
+            el: document.querySelector('[data-testid="hud-left-column"]'),
+          },
+          {
+            name: 'right-column',
+            el: document.querySelector('[data-testid="hud-right-column"]'),
+          },
+          {
+            name: 'disclaimer',
+            el: document.querySelector('[data-testid="disclaimer-banner"]'),
           },
         ];
 
         const boxes = regions
-          .filter((r) => r.el)
+          .filter((r): r is { name: string; el: Element } => r.el !== null)
           .map((r) => ({ name: r.name, rect: r.el.getBoundingClientRect() }));
 
         const hits: string[] = [];
@@ -106,13 +123,53 @@ test.describe('terrain view', () => {
         return hits;
       });
 
-      expect(collisions, `HUD overlap at ${width}px`).toEqual([]);
+      expect(collisions, `HUD overlap at ${width}x${height}`).toEqual([]);
+    }
+  });
+
+  test('the left HUD column scrolls inside itself at every width', async ({ page }) => {
+    // The overlap check above catches collisions; this catches the other half
+    // of the defect, where a panel column grows taller than the viewport and
+    // slides up under the mode rail. A column that scrolls cannot do that.
+    for (const [width, height] of [
+      [390, 844],
+      [1366, 768],
+      [1920, 1080],
+    ] as const) {
+      await page.setViewportSize({ width, height });
+      await page.waitForTimeout(120);
+
+      const columns = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const sel of ['hud-left-column', 'hud-right-column']) {
+          const el = document.querySelector(`[data-testid="${sel}"]`);
+          if (!el) continue;
+          const r = el.getBoundingClientRect();
+          const scrollable = el.scrollHeight > el.clientHeight + 1;
+          const scrollableOk =
+            !scrollable ||
+            getComputedStyle(el).overflowY === 'auto' ||
+            getComputedStyle(el).overflowY === 'scroll';
+          if (!scrollableOk) out.push(`${sel}: content overflows without scrolling`);
+          if (r.top < -1) out.push(`${sel}: top=${Math.round(r.top)}`);
+          if (r.bottom > window.innerHeight + 1) {
+            out.push(`${sel}: bottom=${Math.round(r.bottom)} vs ${window.innerHeight}`);
+          }
+        }
+        return out;
+      });
+
+      expect(columns, `column layout at ${width}x${height}`).toEqual([]);
     }
   });
 
   test('HUD regions stay inside the viewport', async ({ page }) => {
-    for (const width of [390, 1440]) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const [width, height] of [
+      [390, 844],
+      [1366, 768],
+      [1920, 1080],
+    ] as const) {
+      await page.setViewportSize({ width, height });
       await page.waitForTimeout(120);
 
       const escaped = await page.evaluate(() => {
@@ -128,7 +185,7 @@ test.describe('terrain view', () => {
         return out;
       });
 
-      expect(escaped, `element outside viewport at ${width}px`).toEqual([]);
+      expect(escaped, `element outside viewport at ${width}x${height}`).toEqual([]);
     }
   });
 
@@ -233,16 +290,31 @@ test.describe('terrain view', () => {
     );
   });
 
-  test('the three mode rail items are present and genuinely disabled', async ({
+  test('FLOW is the live channel; FAULT and PLATES are honestly disabled', async ({
     page,
   }) => {
-    for (const mode of ['flow', 'fault', 'plates']) {
+    // FLOW is built, so it must be operable and announce itself as current.
+    const flow = page.getByTestId('mode-flow');
+    await expect(flow).toBeVisible();
+    await expect(flow).toBeEnabled();
+    await expect(flow).toHaveAttribute('aria-current', 'true');
+
+    // The two unbuilt channels stay genuinely disabled rather than looking
+    // live: a control that looks inert but still takes clicks is worse than one
+    // that is honest.
+    for (const mode of ['fault', 'plates']) {
       const button = page.getByTestId(`mode-${mode}`);
       await expect(button).toBeVisible();
-      // Disabled is a real attribute, not just a dimmed class. A control that
-      // looks inert but still takes clicks is worse than one that is honest.
       await expect(button).toBeDisabled();
+      await expect(button).toHaveAttribute('aria-disabled', 'true');
     }
+  });
+
+  test('selecting FLOW on the rail shows the flood panel', async ({ page }) => {
+    const toggle = page.getByTestId('water-toggle');
+    await expect(toggle).not.toBeChecked();
+    await page.getByTestId('mode-flow').click();
+    await expect(toggle).toBeChecked();
   });
 
   test('keyboard traversal reaches every control with a visible focus ring', async ({

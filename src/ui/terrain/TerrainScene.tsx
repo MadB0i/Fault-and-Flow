@@ -32,13 +32,22 @@ import TerrainLegend from './TerrainLegend.js';
 import TerrainReadout from './TerrainReadout.js';
 import TerrainAttribution from './TerrainAttribution.js';
 import WaterPanel from './WaterPanel.js';
-import { useTerrainView } from './useTerrainView.js';
+import { useTerrainView, type TerrainViewController } from './useTerrainView.js';
 
-export default function TerrainScene() {
+type Props = {
+  /** Reports the view controller upward so the mode rail can open water. */
+  onController?: (view: TerrainViewController) => void;
+};
+
+export default function TerrainScene({ onController }: Props = {}) {
   const strings = useUiStore((s) => s.strings());
   const view = useTerrainView();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    onController?.(view);
+  }, [onController, view]);
 
   const setCanvas = useCallback(
     (node: HTMLCanvasElement | null) => {
@@ -179,10 +188,19 @@ export default function TerrainScene() {
         className="z-20 flex flex-1 flex-col gap-[var(--space-s)] p-[var(--space-s)]
                    md:pointer-events-none md:absolute md:inset-0 md:block md:p-0"
       >
+        {/*
+          One column, top-anchored under the shell, with a bounded height and
+          its own scrollbar. The old bottom-anchored, un-bounded stack grew
+          upward as panels were added and slid under the mode rail and wordmark
+          at 1920x1080; anchoring to the top and letting the column scroll means
+          the panels can never leave their own region.
+        */}
         <div
-          className="flex flex-col gap-[var(--space-s)]
-                     md:absolute md:bottom-[var(--space-s)] md:left-[var(--space-s)]
-                     md:w-[320px] md:p-0 md:pointer-events-auto"
+          className="flex max-h-[calc(100dvh-var(--space-2xl)-var(--space-xl))] flex-col gap-[var(--space-s)]
+                     overflow-y-auto overscroll-contain md:pointer-events-auto
+                     md:absolute md:left-[var(--space-s)] md:top-[calc(var(--space-2xl)+var(--space-xl))]
+                     md:w-[320px] md:p-0"
+          data-testid="hud-left-column"
         >
           <TerrainPanel
             areaId={view.areaId}
@@ -216,9 +234,11 @@ export default function TerrainScene() {
         </div>
 
         <div
-          className="flex flex-col gap-[var(--space-s)]
-                     md:absolute md:bottom-[var(--space-s)] md:right-[var(--space-s)]
-                     md:w-[320px] md:p-0 md:pointer-events-auto"
+          className="flex max-h-[calc(100dvh-var(--space-2xl)-var(--space-xl))] flex-col gap-[var(--space-s)]
+                     overflow-y-auto overscroll-contain md:pointer-events-auto
+                     md:absolute md:right-[var(--space-s)] md:top-[calc(var(--space-2xl)+var(--space-xl))]
+                     md:w-[320px] md:p-0"
+          data-testid="hud-right-column"
         >
           <TerrainReadout
             pointer={view.state.probe}
