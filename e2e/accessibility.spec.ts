@@ -1,5 +1,5 @@
 /**
- * Accessibility and rendering checks for the phase 1 placeholder.
+ * Accessibility and rendering checks for the terrain view.
  *
  * Automated tools catch roughly a third of accessibility defects. The keyboard
  * walk and the screenshots catch most of the rest, which is why both are here
@@ -27,7 +27,7 @@ function watchForErrors(page: Page): string[] {
   return errors;
 }
 
-test.describe('placeholder page', () => {
+test.describe('terrain view', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     // networkidle is the right default for first load of a Vite dev server.
@@ -83,10 +83,6 @@ test.describe('placeholder page', () => {
           {
             name: 'lang-toggle',
             el: document.querySelector('[data-testid="lang-toggle"]')!,
-          },
-          {
-            name: 'phase-label',
-            el: document.querySelector('[data-testid="phase-label"]')!,
           },
         ];
 
@@ -288,29 +284,36 @@ test.describe('placeholder page', () => {
   });
 
   test('the language toggle switches the interface to Assamese', async ({ page }) => {
-    const phrase = page.getByTestId('assamese-phrase');
-    await expect(phrase).toHaveAttribute('lang', 'as');
+    await expect(page.getByTestId('app')).toHaveAttribute('data-locale', 'en');
 
     await page.getByRole('radio', { name: 'অসমীয়া' }).check();
+
+    await expect(page.getByTestId('app')).toHaveAttribute('data-locale', 'as');
 
     // The mode rail label must change too - not just the toggle itself.
     await expect(
       page.getByRole('navigation', { name: 'বালিৰ বোক্সৰ ধৰন' }),
     ).toBeVisible();
 
-    // The Assamese phrase must still render in the Assamese face.
-    const fontFamily = await phrase.evaluate((el) => getComputedStyle(el).fontFamily);
+    // The Assamese option must render in the Assamese face.
+    const option = page
+      .locator('label', { has: page.getByRole('radio', { name: 'অসমীয়া' }) })
+      .locator('[lang="as"]');
+    const fontFamily = await option.evaluate((el) => getComputedStyle(el).fontFamily);
     expect(fontFamily).toContain('Noto Sans Bengali');
   });
 
-  test('the required Assamese phrase renders with no missing glyphs', async ({
-    page,
-  }) => {
+  test('Assamese headings render with no missing glyphs', async ({ page }) => {
     // A tofu box is not detectable from the DOM, so measure the glyphs: if a
     // fallback face were substituted, the rendered advance width per character
     // would differ from what Noto Sans Bengali produces. Comparing rendered
     // width against the declared font gives a cheap, real signal.
-    const measured = await page.getByTestId('assamese-phrase').evaluate((el) => {
+    // The Assamese wordmark contains ৰ (U+09F0), the glyph this check exists for.
+    await page.getByRole('radio', { name: 'অসমীয়া' }).check();
+    const wordmark = page.getByTestId('wordmark');
+    await expect(wordmark).toHaveText('ফল্ট আৰু ফ্লো');
+
+    const measured = await wordmark.evaluate((el) => {
       const style = getComputedStyle(el);
       const range = document.createRange();
       range.selectNodeContents(el);
@@ -323,25 +326,35 @@ test.describe('placeholder page', () => {
       };
     });
 
-    expect(measured.text).toBe('ভূমিকম্প আৰু বান');
+    expect(measured.text).toBe('ফল্ট আৰু ফ্লো');
 
-    // 14 code points (including 2 spaces). A fallback would render these at a
-    // very different total advance; assert the text is non-degenerate and
-    // wider than a single space, which a tofu-only render cannot achieve.
+    // Wider than a single space, which a tofu-only render cannot achieve.
     expect(measured.width).toBeGreaterThan(measured.fontSize * 2);
     expect(measured.fontFamily).toContain('Noto Sans Bengali');
   });
 
   test('honesty disclaimer is present in English', async ({ page }) => {
-    await expect(page.getByText(/not a forecast and not a hazard map/i)).toBeVisible();
-    await expect(page.getByText(/earthquakes cannot be predicted/i)).toBeVisible();
+    await expect(page.getByTestId('disclaimer')).toHaveText(
+      /not a forecast and not a hazard map/i,
+    );
+    await expect(page.getByTestId('terrain-honesty')).toHaveText(/illustrative/i);
+    // NOTE: the "earthquakes cannot be predicted" notice ships with FAULT mode
+    // (Roadmap Phase 5). Assert it here once that mode renders its own banner.
   });
 
-  test('the canvas region has real empty-state copy, not a placeholder', async ({
+  test('the terrain view exposes canvas, controls, legend and readout', async ({
     page,
   }) => {
-    await expect(page.getByRole('heading', { level: 2 })).toBeVisible();
-    await expect(page.getByTestId('phase-label')).toContainText(/phase 1 of 8/i);
+    const canvas = page.getByTestId('terrain-canvas');
+    await expect(canvas).toBeVisible();
+    // A canvas without an accessible name is a picture, not an instrument.
+    const accessibleName = await canvas.getAttribute('aria-label');
+    expect((accessibleName ?? '').trim().length).toBeGreaterThan(0);
+
+    await expect(page.getByTestId('terrain-panel')).toBeVisible();
+    await expect(page.getByTestId('terrain-legend')).toBeVisible();
+    await expect(page.getByTestId('terrain-readout')).toBeVisible();
+
     // A fabricated statistic or lorem ipsum would show up here.
     const body = await page.locator('main').innerText();
     expect(body).not.toMatch(/lorem ipsum/i);
