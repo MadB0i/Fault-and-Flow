@@ -83,19 +83,42 @@ npm run preview     # serve the built output
 
 npm run lint        # ESLint
 npm run format      # Prettier, write
-npm run format:check
+npm run format:check # Prettier, read-only
 npm run typecheck   # tsc --noEmit
 npm test            # Vitest (unit)
 npm run test:watch
 npm run e2e         # Playwright
 npm run shots       # screenshots -> docs/screenshots/
-npm run verify      # lint + typecheck + test + build  ← run before finishing
+npm run verify      # format:check + lint + typecheck + test + build  ← run before finishing
 npm run contrast    # recompute WCAG contrast for the palette
 ```
 
 **`npm run verify` must pass before you finish any task.** If it fails, the task is
 not done. If it fails for a reason unrelated to your change, say so explicitly in
 your report rather than reverting someone else's work.
+
+### Prettier is pinned, and that is the point
+
+`package.json` pins `"prettier": "3.9.9"` **exactly, with no caret**. Do not widen
+it to a range.
+
+The reason is specific. With `^3.4.2`, the formatter that checks out this repo is
+whatever 3.x was newest on the day `npm install` ran. A newer minor reformats
+files nobody edited, `npm run format:check` goes red across the repo, and the
+obvious response — run `prettier --write` and commit whatever comes out — will
+happily restyle `DESIGN.md`, which is a colour-token source of truth. That is a
+build tool silently rewriting a document people are supposed to treat as
+canonical.
+
+**Before changing the pinned version:** run `npm run format`, run
+`npm run contrast`, and **read the diff**. If the diff touches anything beyond
+emphasis markers, markdown table realignment, hex letter-case, and line
+rewraps, stop and report it rather than committing it. A Prettier bump that
+changes meaning is a bug in the bump, not a formatting chore.
+
+`format:check` runs first in `verify` because it is the cheapest gate and the
+one most likely to be red for a reason unrelated to your change — if so, say so
+in your report rather than reformatting files you did not touch.
 
 ---
 
@@ -193,6 +216,11 @@ not.
 `DESIGN.md` is the source of truth. In short:
 
 - Colours come from CSS-variable tokens only. No raw hex in components.
+- **Hex colours are lowercase everywhere** — `#0a0f14`, never `#0A0F14`.
+  `src/ui/styles/tokens.css` is the source of truth and writes them that way;
+  `DESIGN.md` follows it so the two files can be compared by eye as well as by
+  `tests/design-tokens-sync.test.ts`. The one exception is a block quoting tool
+  output verbatim, which stays exactly as the tool printed it.
 - Water and seismic-amber are the **only** accents.
 - Fonts: Fraunces (display only), Instrument Sans (UI), JetBrains Mono (data),
   Noto Sans Bengali (Assamese). Never Inter, Roboto, Arial, or `system-ui` as a
@@ -240,7 +268,7 @@ Target WCAG 2.2 AA.
 
 ## 11. Definition of done
 
-- [ ] `npm run verify` passes (lint + typecheck + test + build)
+- [ ] `npm run verify` passes (format:check + lint + typecheck + test + build)
 - [ ] No React import anywhere in `src/engine/`
 - [ ] No raw hex, raw px, or off-scale spacing in `src/ui/`
 - [ ] Every new data artefact documented in `docs/DATA.md` with verbatim license

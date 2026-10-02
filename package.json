@@ -21,7 +21,7 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "shots": "playwright test e2e/screenshots.spec.ts --project=shots",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
