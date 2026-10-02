@@ -125,8 +125,7 @@ export default function TerrainLegend({
                    text-[length:var(--step--2)] tabular-nums text-[color:var(--text-muted)]"
         aria-labelledby="legend-elevation-label"
       >
-        {ticks.map((value, index) => {
-          const atEdge = index === 0 || index === ticks.length - 1;
+        {ticks.map((value) => {
           return (
             <li
               key={value}
@@ -135,7 +134,6 @@ export default function TerrainLegend({
               data-testid={`legend-tick-${value}`}
             >
               {Math.round(value * 10) / 10}
-              {atEdge ? '' : ''}
             </li>
           );
         })}
