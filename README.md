@@ -78,7 +78,7 @@ npm run contrast    # recompute WCAG contrast for the palette
 ## Stack
 
 Vite · TypeScript (strict) · React (HUD only) · Three.js (imperative engine, no React
-imports) · Zustand · Tailwind + CSS-variable tokens · motion · Vitest · Playwright ·
+imports) · Zustand · Tailwind + CSS-variable tokens · Vitest · Playwright ·
 ESLint · Prettier. Fonts are self-hosted via `@fontsource` — never a CDN.
 
 The 3D engine under `src/engine/` is framework-agnostic and runnable headless, so

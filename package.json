@@ -34,7 +34,6 @@
     "@fontsource/jetbrains-mono": "^5.2.5",
     "@fontsource/noto-sans-bengali": "^5.2.5",
     "lucide-react": "^0.469.0",
-    "motion": "^11.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.171.0",
