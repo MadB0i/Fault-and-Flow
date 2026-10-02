@@ -57,6 +57,8 @@ import {
   extentMeters,
   gridToLonLat,
   lonLatToGrid,
+  rampRangeFor,
+  type RampRange,
 } from './metrics.js';
 import { sampleBilinear } from './sampling.js';
 import { decodeTerrainRgba, NO_DATA_HEIGHT } from './decode-terrain.js';
@@ -84,10 +86,16 @@ export type TerrainPalette = {
   readonly terrain4: string;
   readonly noData: string;
   readonly contour: string;
-  /** Shallow water tint, read from --water. */
+  /** Shallow water tint, read from --water-shallow. */
   readonly waterShallow: string;
   /** Deep water fill, read from --water-deep. */
   readonly waterDeep: string;
+  /** Shoreline highlight on the water surface; --water-shoreline. */
+  readonly waterShoreline: string;
+  /** Horizon haze the edge fade dissolves into; one step above --bg. */
+  readonly skyLow: string;
+  /** Zenith of the background gradient; slightly lighter than skyLow. */
+  readonly skyHigh: string;
 };
 
 export type AreaSources = Readonly<
@@ -125,6 +133,12 @@ export type TerrainViewState = {
   readonly contours: boolean;
   /** Null until an area has loaded. */
   readonly contourIntervalM: number | null;
+  /**
+   * Elevation range the colour ramp displays (2nd..98th percentile of the
+   * loaded area), and whether real terrain is clipped at either end. The
+   * legend must show this rather than the sidecar's bbox extremes.
+   */
+  readonly ramp: RampRange | null;
   readonly probe: TerrainProbe | null;
   /** Null until the water layer is enabled; terrain works either way. */
   readonly water: WaterLayerState | null;
@@ -236,6 +250,8 @@ export function createTerrainView(
   let contoursOn = false;
   let exaggeration = 1;
   let contourIntervalM: number | null = null;
+  /** Elevation range the ramp actually displays; null until an area loads. */
+  let rampRange: RampRange | null = null;
   let lastProbe: TerrainProbe | null = null;
   let disposed = false;
   let minDistanceM = 1;
@@ -260,6 +276,7 @@ export function createTerrainView(
       verticalExaggeration: exaggeration,
       contours: contoursOn,
       contourIntervalM,
+      ramp: rampRange,
       probe: lastProbe,
       water: waterState,
     };
@@ -319,6 +336,12 @@ export function createTerrainView(
   const camera = new THREE.PerspectiveCamera(CAMERA_FOV_DEG, 1, 1, 1e7);
   camera.up.set(0, 1, 0);
 
+  // A graded sky rather than a flat clear colour: the horizon sits one step
+  // above --bg and the zenith a little lighter, both passed in from the tokens
+  // so the engine still holds no colour of its own.
+  const skyLow = new THREE.Color(options.palette.skyLow);
+  const skyHigh = new THREE.Color(options.palette.skyHigh);
+
   const material = new THREE.ShaderMaterial({
     vertexShader: TERRAIN_VERTEX_SHADER,
     fragmentShader: TERRAIN_FRAGMENT_SHADER,
@@ -343,7 +366,13 @@ export function createTerrainView(
       uEdgeFade: { value: 0.06 },
       uFogRange: { value: new THREE.Vector2(1, 1) },
       uFogStrength: { value: 0.35 },
-      uAmbient: { value: 0.45 },
+      // Ambient floor. 0.45 left steep faces facing away from the light at a fifth
+      // of the ramp colour, which on the floodplain read as near-black; 0.62 keeps
+      // the hillshade legible while slopes away from the light still separate.
+      uAmbient: { value: 0.62 },
+      uSkyLow: { value: skyLow.clone() },
+      uSkyHigh: { value: skyHigh.clone() },
+      uScreenHeight: { value: 1 },
     },
   });
 
@@ -355,7 +384,7 @@ export function createTerrainView(
   mesh.frustumCulled = false; // displacement happens in the shader
   scene.add(mesh);
 
-  scene.background = new THREE.Color(options.palette.bg);
+  scene.background = skyLow.clone();
 
   // --- Camera state -------------------------------------------------------
   const current: MutableSpherical = { polarDeg: 40, azimuthDeg: 0, distanceM: 1e5 };
@@ -616,6 +645,9 @@ export function createTerrainView(
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    // The background gradient is sized off the drawing buffer, so it has to
+    // follow both the CSS size and the DPR.
+    material.uniforms['uScreenHeight']!.value = Math.max(1, height * dpr);
   }
 
   if (typeof ResizeObserver !== 'undefined') {
@@ -799,11 +831,12 @@ export function createTerrainView(
       sidecar.pixelSizeMy,
     );
     (u['uWorldSizeM']!.value as THREE.Vector2).set(extent.widthM, extent.heightM);
-    (u['uElevationRange']!.value as THREE.Vector2).set(
-      sidecar.minElevation,
-      sidecar.maxElevation,
-    );
     u['uNoDataLevel']!.value = sidecar.minElevation;
+
+    // The ramp shows this area's own 2nd..98th percentile, not its bbox extremes.
+    const range = rampRangeFor(next.heights, sidecar.minElevation, sidecar.maxElevation);
+    rampRange = range;
+    (u['uElevationRange']!.value as THREE.Vector2).set(range.min, range.max);
 
     // Fog and the fade are proportional to the area's own size, so the overview
     // does not fade across 700 km while Majuli does not fade at all.

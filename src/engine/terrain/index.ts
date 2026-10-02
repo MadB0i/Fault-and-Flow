@@ -45,11 +45,17 @@ export {
   legendTicks,
   legendTicksFor,
   lonLatToGrid,
+  percentileOf,
   pickContourInterval,
   pickTickStep,
+  rampRangeFor,
+  rampTickStepFor,
+  rampTicks,
   reliefMeters,
+  RAMP_PERCENTILES,
   type ExtentM,
   type GridPoint,
+  type RampRange,
 } from './metrics.js';
 
 export { sampleBilinear, sampleNearest, type SampleResult } from './sampling.js';

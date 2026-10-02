@@ -14,6 +14,15 @@
 
   --water: #3fd0e0;
   --water-deep: #0e5a73;
+  --water-shallow: #7fe3ef;
+  --water-shoreline: #bff2f8;
+
+  /* Scene sky: two steps above --bg. The terrain's edge fade and its depth
+     haze dissolve into these, so the far side of a 699 km area ends in
+     atmosphere rather than in a black void. */
+  --sky-low: #131f28;
+  --sky-high: #1b2c38;
+
   --seismic-amber: #ffb547;
   --seismic-hot: #ff5a3c;
   --plate-line: #9aa7b4;

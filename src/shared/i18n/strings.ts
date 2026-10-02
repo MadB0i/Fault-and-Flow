@@ -129,6 +129,11 @@ export interface Strings {
   waterUnsupportedFloat: string;
   waterUnsupportedChannel: string;
   legendWaterLabel: string;
+  /** Percentile stretch of the elevation ramp, stated under the axis. */
+  legendRampNote: string;
+  legendClippedLow: string;
+  legendClippedHigh: string;
+  legendClippedBoth: string;
 }
 
 /**
@@ -230,6 +235,10 @@ export const EN: Strings = {
   waterUnsupportedChannel:
     'No continuous river channel found in this terrain, so water stays off.',
   legendWaterLabel: 'Water depth, illustrative',
+  legendRampNote: 'Colour spans the middle 96% of this area.',
+  legendClippedLow: 'Ground below is shown in the lowest colour:',
+  legendClippedHigh: 'Ground above is shown in the highest colour:',
+  legendClippedBoth: 'Ground outside this range shares the end colours:',
 };
 
 /**
@@ -346,6 +355,10 @@ export const AS: Strings = {
     // DRAFT
     'এই ভূমিত একেৰাহে নদীৰ বাট পোৱা নগ’ল, সেয়ে পানী বন্ধ আছে।', // DRAFT
   legendWaterLabel: 'পানীৰ গভীৰতা, ব্যাখ্যাৰ বাবে', // DRAFT
+  legendRampNote: 'ৰং এই ঠাইৰ মাজৰ ৯৬% ৰংত সূচাইছে।', // DRAFT
+  legendClippedLow: 'তলৰ মাটি আটাই ৰংত দেখুওৱা হয়:', // DRAFT
+  legendClippedHigh: 'ওপৰৰ মাটি আটাই ৰংত দেখুওৱা হয়:', // DRAFT
+  legendClippedBoth: 'এই পৰাৰ বাইৰৰ মাটি দুটা ৰং ব্যৱহাৰ কৰে:', // DRAFT
 };
 
 /**

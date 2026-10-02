@@ -35,6 +35,7 @@ const IDLE: TerrainViewState = {
   verticalExaggeration: 1,
   contours: false,
   contourIntervalM: null,
+  ramp: null,
   probe: null,
   water: null,
 };

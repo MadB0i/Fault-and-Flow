@@ -206,6 +206,7 @@ export default function TerrainScene() {
           />
           <TerrainLegend
             sidecar={sidecar}
+            ramp={view.state.ramp}
             exaggeration={view.exaggeration}
             contourIntervalM={view.state.contourIntervalM}
             contoursOn={view.contours}

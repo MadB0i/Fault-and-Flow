@@ -152,10 +152,25 @@ uniform float uEdgeFade;        // fraction of the half-extent used to fade out
 uniform vec2 uFogRange;         // (near, far) view distance
 uniform float uFogStrength;
 uniform float uAmbient;
+uniform float uScreenHeight;     // drawing-buffer height in pixels
 
 varying vec2 vGrid;
 varying float vElevation;
 varying vec3 vViewPosition;
+uniform vec3 uSkyLow;            // horizon haze, one step above --surface
+uniform vec3 uSkyHigh;           // zenith, slightly lighter
+
+/**
+ * Vertical background gradient, evaluated from the fragment's own screen
+ * position so it stays put while the camera orbits. Pure #bg behind a
+ * 699 km scene read as a black void; a graded horizon gives the eye somewhere
+ * for the terrain's edge fade to go.
+ */
+vec3 skyColour() {
+  float h = clamp(gl_FragCoord.y / max(uScreenHeight, 1.0), 0.0, 1.0);
+  vec3 sky = mix(uSkyLow, uSkyHigh, pow(h, 1.4));
+  return sky;
+}
 
 /** Four-stop hypsometric ramp. Stops are the DESIGN.md terrain tokens. */
 vec3 rampColour(float t) {
@@ -219,15 +234,17 @@ void main() {
   }
 
   // --- Edge fade: no hard cut at the bbox border -------------------------
+  // The fade goes to the SKY colour, not the flat page background, so the far
+  // edge of a 699 km area dissolves into atmosphere instead of into a void.
   vec2 toEdge = min(vGrid, vec2(1.0) - vGrid);
   float edge = min(toEdge.x, toEdge.y);
   float edgeMix = smoothstep(0.0, max(uEdgeFade, 1e-4), edge);
-  colour = mix(uBackground, colour, edgeMix);
+  colour = mix(skyColour, colour, edgeMix);
 
   // --- Subtle depth haze --------------------------------------------------
   float viewDistance = length(vViewPosition);
   float fog = smoothstep(uFogRange.x, uFogRange.y, viewDistance);
-  colour = mix(colour, uBackground, fog * uFogStrength);
+  colour = mix(colour, skyColour, fog * uFogStrength);
 
   gl_FragColor = vec4(colour, 1.0);
 }

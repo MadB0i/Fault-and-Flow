@@ -60,8 +60,11 @@ export function readPalette(element: Element): TerrainPalette {
     terrain4: token('--terrain-4'),
     contour: token('--text-muted'),
     noData: token('--surface-raised'),
-    waterShallow: token('--water'),
+    waterShallow: token('--water-shallow'),
     waterDeep: token('--water-deep'),
+    waterShoreline: token('--water-shoreline'),
+    skyLow: token('--sky-low'),
+    skyHigh: token('--sky-high'),
   };
 }
 
