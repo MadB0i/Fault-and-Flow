@@ -51,6 +51,13 @@ copied from there verbatim.
 
   --water: #3fd0e0; /* accent 1 — the river, water, interactive focus */
   --water-deep: #0e5a73; /* deep channel fill */
+  --water-shallow: #7fe3ef; /* the lightest a wet cell ever renders */
+  --water-shoreline: #bff2f8; /* shoreline edge highlight */
+
+  /* Scene sky. Two steps above --bg: the background gradient the terrain's
+     edge fade dissolves into, and the zenith of the same gradient. */
+  --sky-low: #131f28;
+  --sky-high: #1b2c38;
 
   --seismic-amber: #ffb547; /* accent 2 — seismicity, active state */
   --seismic-hot: #ff5a3c; /* magnitude 6+ / peak intensity only */
