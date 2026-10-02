@@ -3,7 +3,14 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath, URL } from 'node:url';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Production serves as a GitHub Pages project site under a sub-path
+  // (https://madb0i.github.io/Fault-and-Flow/), so every URL Vite emits must
+  // carry that prefix. Dev stays at '/' so `npm run dev` is unchanged.
+  // Runtime assets (DEM PNGs, sidecars, fonts) all arrive via `?url` imports
+  // and CSS, which Vite prefixes with this base automatically — nothing in
+  // src/ may hardcode a root-absolute asset path for the same reason.
+  base: command === 'build' ? '/Fault-and-Flow/' : '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -30,4 +37,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
