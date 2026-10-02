@@ -65,8 +65,15 @@ function parseTokens(css: string): Map<string, string> {
   const body = stripComments(css);
 
   for (const match of body.matchAll(/--([a-zA-Z0-9-]+)\s*:\s*([^;]+);/g)) {
-    const name = `--${match[1]}`;
-    const value = match[2].trim().replace(/\s+/g, ' ');
+    const [, rawName, rawValue] = match;
+    // Both capture groups are required by the pattern, so this cannot fire in
+    // practice; the guard is here because the regex is the thing most likely to
+    // be edited later, and a silently skipped declaration would look exactly
+    // like a passing sync check.
+    if (rawName === undefined || rawValue === undefined) continue;
+
+    const name = `--${rawName}`;
+    const value = rawValue.trim().replace(/\s+/g, ' ');
     // A later duplicate would mean the stylesheet redefines a token, which is
     // its own bug; keep the first so the report names the original.
     if (!found.has(name)) found.set(name, value);
@@ -75,16 +82,26 @@ function parseTokens(css: string): Map<string, string> {
   return found;
 }
 
-/** The fenced ```css block under DESIGN.md's "## 2. Tokens" heading. */
+/**
+ * The fenced ```css block under DESIGN.md's "## 2. Tokens" heading.
+ *
+ * Throws rather than asserting: this runs at module scope, where a failing
+ * `expect` has no test to attach itself to and surfaces as an opaque import
+ * failure rather than as the missing heading it actually is.
+ */
 function designMdTokenBlock(): string {
   const md = readFileSync(DESIGN_MD, 'utf8');
+
   const section = /##\s*2\.\s*Tokens/.exec(md);
-  expect(section, 'DESIGN.md has no "## 2. Tokens" heading').not.toBeNull();
+  if (!section) throw new Error('DESIGN.md has no "## 2. Tokens" heading');
 
-  const block = /```css\r?\n([\s\S]*?)```/.exec(md.slice(section!.index));
-  expect(block, 'DESIGN.md section 2 has no ```css block').not.toBeNull();
+  const block = /```css\r?\n([\s\S]*?)```/.exec(md.slice(section.index));
+  if (!block) throw new Error('DESIGN.md section 2 has no ```css block');
 
-  return block![1];
+  const css = block[1];
+  if (css === undefined) throw new Error('the section 2 ```css block captured nothing');
+
+  return css;
 }
 
 const cssTokens = parseTokens(readFileSync(TOKENS_CSS, 'utf8'));
