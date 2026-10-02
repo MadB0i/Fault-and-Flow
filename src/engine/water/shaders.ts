@@ -109,7 +109,7 @@ void main() {
   vec4 state = texture2D(uState, vUv);
   float h = state.r;
   if (h != h) {
-    gl_FragColor = vec4(h, 0.0);
+    gl_FragColor = vec4(h, 0.0, 0.0, 0.0);
     return;
   }
   float d = max(state.g, 0.0);
@@ -124,7 +124,7 @@ void main() {
   if (fcoord.x == uInflow.x && fcoord.y == uInflow.y && uInflow.z > 0.0) {
     nd += uInflow.z * uDt / uCellArea;
   }
-  gl_FragColor = vec4(h, max(nd, 0.0));
+  gl_FragColor = vec4(h, max(nd, 0.0), 0.0, 0.0);
 }
 `;
 

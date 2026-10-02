@@ -387,6 +387,12 @@ test.describe('terrain view', () => {
 
       await expect(page.getByTestId('legend-water-ramp')).toBeVisible();
 
+      // The sim must actually wet cells, not just run the UI: a shader that
+      // fails to compile leaves every control working and the terrain dry.
+      await expect(page.getByTestId('water-stats')).not.toContainText('0.00 km2', {
+        timeout: 30000,
+      });
+
       await play.click();
       await expect(play).toHaveText(/Run water/);
     }
