@@ -190,7 +190,16 @@ export function stepWater(
       }
       const w = h + d;
 
-      // Pass 1: update this cell's outflow pipes into the scratch field.
+      // Pass 1: update this cell's outflow pipes into the scratch field, then
+      // apply the overshoot guard HERE, while this cell is the only writer.
+      //
+      // The guard must live in this pass and not in the depth pass. Scaling a
+      // pipe during pass 2 means a neighbour that was already processed has
+      // its pipes scaled while a neighbour not yet processed has them
+      // unscaled, so the two importers of one pipe disagree and the domain
+      // manufactures water every step. Guard-then-read keeps every pipe's
+      // single value fixed for the whole of pass 2.
+      let outSum = 0;
       for (let p = 0; p < 4; p += 1) {
         const nx = x + (offX[p] ?? 0);
         const ny = y + (offY[p] ?? 0);
@@ -224,12 +233,26 @@ export function stepWater(
           (flux[fi] ?? 0) + (dtS * cellArea * GRAVITY_M_S2 * (w - wN)) / l,
         );
         nextFlux[fi] = Number.isFinite(f) ? f : 0;
+        outSum += nextFlux[fi] ?? 0;
+      }
+
+      // Never export more volume than the cell holds.
+      if (outSum > 0 && d > 0) {
+        const available = (d * cellArea) / dtS;
+        if (outSum > available) {
+          const k = available / outSum;
+          for (let p = 0; p < 4; p += 1)
+            nextFlux[i * 4 + p] = (nextFlux[i * 4 + p] ?? 0) * k;
+        }
+      } else if (d <= 0) {
+        for (let p = 0; p < 4; p += 1) nextFlux[i * 4 + p] = 0;
       }
     }
   }
 
-  // Pass 2: move volume through the scratch fluxes. Every pipe is read from
-  // the same field it was written to, so each export has exactly one import.
+  // Pass 2: move volume through the settled fluxes. Nothing is written to
+  // nextFlux here, so every pipe has exactly one value and exactly two
+  // readers - the cell that exports it and the cell it feeds.
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const i = y * width + x;
@@ -242,25 +265,11 @@ export function stepWater(
         nextDepth[i] = 0;
         continue;
       }
-      let outSum =
+      const outSum =
         (nextFlux[i * 4] ?? 0) +
         (nextFlux[i * 4 + 1] ?? 0) +
         (nextFlux[i * 4 + 2] ?? 0) +
         (nextFlux[i * 4 + 3] ?? 0);
-
-      // Overshoot guard: never export more volume than the cell holds.
-      if (outSum > 0 && d > 0) {
-        const available = (d * cellArea) / dtS;
-        if (outSum > available) {
-          const k = available / outSum;
-          for (let p = 0; p < 4; p += 1)
-            nextFlux[i * 4 + p] = (nextFlux[i * 4 + p] ?? 0) * k;
-          outSum = available;
-        }
-      } else if (d <= 0) {
-        for (let p = 0; p < 4; p += 1) nextFlux[i * 4 + p] = 0;
-        outSum = 0;
-      }
 
       // Net inflow: neighbours' outflow pipes pointing at this cell.
       // The W pipe of the eastern neighbour flows west into us, and so on.

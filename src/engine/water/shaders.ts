@@ -47,7 +47,7 @@ void main() {
     return;
   }
   float w = h + d;
-  vec4 f;
+  vec4 f = vec4(0.0);
   // W(-x)
   {
     vec4 n = texture2D(uState, vUv + vec2(-texel.x, 0.0));
@@ -80,14 +80,15 @@ void main() {
     float wN = outside ? h : n.r + max(n.g, 0.0);
     f.w = wall ? 0.0 : max(0.0, oldFlux.w + uDt * uCellArea * uGravity * (w - wN) / uCell.y);
   }
-  // Overshoot guard, same as the CPU mirror.
+  // Overshoot guard, in THIS pass for the same reason as the CPU mirror: the
+  // depth pass must only read settled fluxes, or the domain manufactures water.
   float outSum = f.x + f.y + f.z + f.w;
-  if (d > 0.0 && outSum * uDt > d * uCellArea) {
+  if (outSum > 0.0 && d > 0.0 && outSum * uDt > d * uCellArea) {
     f *= (d * uCellArea) / (outSum * uDt);
   } else if (d <= 0.0) {
     f = vec4(0.0);
   }
-  gl_FragColor = vec4(f.x, f.y, f.z, f.w);
+  gl_FragColor = f;
 }
 `;
 
@@ -120,6 +121,9 @@ void main() {
   inSum += texture2D(uFluxNew, vUv + vec2(-texel.x, 0.0)).y;
   inSum += texture2D(uFluxNew, vUv + vec2(0.0, texel.y)).z;
   inSum += texture2D(uFluxNew, vUv + vec2(0.0, -texel.y)).w;
+  // No clamp here: the flux pass already limited every exporter to what it
+  // held, so inSum is bounded by construction. Clamping again would silently
+  // delete water.
   float nd = d + uDt * (inSum - outSum) / uCellArea;
   if (fcoord.x == uInflow.x && fcoord.y == uInflow.y && uInflow.z > 0.0) {
     nd += uInflow.z * uDt / uCellArea;
