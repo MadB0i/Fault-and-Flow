@@ -18,19 +18,73 @@ import { brotliDecompressSync } from 'node:zlib';
  * rather than as four literal bytes; index 63 means the tag is inline.
  */
 const KNOWN_TAGS = [
-  'cmap', 'head', 'hhea', 'hmtx', 'maxp', 'name', 'OS/2', 'post',
-  'cvt ', 'fpgm', 'glyf', 'loca', 'prep', 'CFF ', 'VORG', 'EBDT',
-  'EBLC', 'gasp', 'hdmx', 'kern', 'LTSH', 'PCLT', 'VDMX', 'vhea',
-  'vmtx', 'BASE', 'GDEF', 'GPOS', 'GSUB', 'EBSC', 'JSTF', 'MATH',
-  'CBDT', 'CBLC', 'COLR', 'CPAL', 'SVG ', 'sbix', 'acnt', 'avar',
-  'bdat', 'bloc', 'bsln', 'cvar', 'fdsc', 'feat', 'fmtx', 'fvar',
-  'gvar', 'hsty', 'just', 'lcar', 'mort', 'morx', 'opbd', 'prop',
-  'trak', 'Zapf', 'Silf', 'Glat', 'Gloc', 'Feat', 'Sill',
+  'cmap',
+  'head',
+  'hhea',
+  'hmtx',
+  'maxp',
+  'name',
+  'OS/2',
+  'post',
+  'cvt ',
+  'fpgm',
+  'glyf',
+  'loca',
+  'prep',
+  'CFF ',
+  'VORG',
+  'EBDT',
+  'EBLC',
+  'gasp',
+  'hdmx',
+  'kern',
+  'LTSH',
+  'PCLT',
+  'VDMX',
+  'vhea',
+  'vmtx',
+  'BASE',
+  'GDEF',
+  'GPOS',
+  'GSUB',
+  'EBSC',
+  'JSTF',
+  'MATH',
+  'CBDT',
+  'CBLC',
+  'COLR',
+  'CPAL',
+  'SVG ',
+  'sbix',
+  'acnt',
+  'avar',
+  'bdat',
+  'bloc',
+  'bsln',
+  'cvar',
+  'fdsc',
+  'feat',
+  'fmtx',
+  'fvar',
+  'gvar',
+  'hsty',
+  'just',
+  'lcar',
+  'mort',
+  'morx',
+  'opbd',
+  'prop',
+  'trak',
+  'Zapf',
+  'Silf',
+  'Glat',
+  'Gloc',
+  'Feat',
+  'Sill',
 ] as const;
 
 /** 4-byte tag as bytes -> ASCII string, e.g. 'cmap'. */
-const readTag = (buf: Buffer, at: number): string =>
-  buf.toString('latin1', at, at + 4);
+const readTag = (buf: Buffer, at: number): string => buf.toString('latin1', at, at + 4);
 
 interface TableEntry {
   tag: string;
@@ -107,9 +161,7 @@ function findCmap(buf: Buffer): Buffer {
     // Reading the extra length under the wrong rule desynchronises every
     // subsequent offset, so this distinction has to be exact.
     const isGlyfOrLoca = tag === 'glyf' || tag === 'loca';
-    const isTransformed = isGlyfOrLoca
-      ? transformVersion === 0
-      : transformVersion !== 0;
+    const isTransformed = isGlyfOrLoca ? transformVersion === 0 : transformVersion !== 0;
 
     // `transformLength` is the size the transformed form occupies in the
     // decompressed stream; `origLength` is the size it decompresses to.
@@ -170,8 +222,7 @@ export function coveredCodePoints(buf: Buffer): Set<number> {
 
     // Unicode BMP (3,1), full repertoire (3,10), and Windows Unicode (0,x).
     const isUnicode =
-      (platformId === 3 && (encodingId === 1 || encodingId === 10)) ||
-      platformId === 0;
+      (platformId === 3 && (encodingId === 1 || encodingId === 10)) || platformId === 0;
 
     if (!isUnicode) continue;
 
@@ -211,8 +262,7 @@ function readFormat4(cmap: Buffer, at: number, out: Set<number>): void {
         glyph = (code + idDelta) & 0xffff;
       } else {
         // idRangeOffset is a byte offset from its own slot into glyphIdArray.
-        const glyphAt =
-          idRangeOffsetAt + seg * 2 + idRangeOffset + (code - start) * 2;
+        const glyphAt = idRangeOffsetAt + seg * 2 + idRangeOffset + (code - start) * 2;
         if (glyphAt + 1 >= cmap.length) continue;
         glyph = cmap.readUInt16BE(glyphAt);
         if (glyph !== 0) glyph = (glyph + idDelta) & 0xffff;

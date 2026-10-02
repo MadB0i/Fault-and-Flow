@@ -8,7 +8,7 @@ intent, not permission.
 
 ---
 
-## Phase 1 — Foundation ✅ *in progress*
+## Phase 1 — Foundation ✅ _in progress_
 
 **Goal:** a repository that another engineer can run, and a design system that can be
 trusted.
@@ -49,7 +49,7 @@ Fraunces, Instrument Sans, JetBrains Mono, and correct Assamese.
 - Credit lines from `DATA.md` §10 ship in the footer and about panel, in English and Assamese
 - **Decide the plate-boundary source: a clearly licensed dataset, or our own tracing from
   cited published sources.** PB2002 is not shipped either way (`DATA.md` §4,
-  `DECISIONS.md` §6 — the choice lands in *this* phase, not phase 6)
+  `DECISIONS.md` §6 — the choice lands in _this_ phase, not phase 6)
 - Natural Earth coastline into `src/data/`
 
 **Done when:** `npm run run-pipeline` from a clean clone produces byte-identical output,
@@ -89,7 +89,7 @@ in Node without a browser.
 - No station names, no gauge figures and no dates anywhere in the FLOW UI
 
 **Done when:** the simulation is covered by unit tests running headless, and no screen
-can be mistaken for a flood forecast *or* for a reading of the river.
+can be mistaken for a flood forecast _or_ for a reading of the river.
 
 ---
 
@@ -128,7 +128,7 @@ implies prediction.
   This phase consumes that decision; it does not make it.
 - `prefers-reduced-motion` reduces the flight to a cut
 
-**Done when:** a first-time viewer understands *why* the landscape exists within 45 seconds,
+**Done when:** a first-time viewer understands _why_ the landscape exists within 45 seconds,
 and no unsourced plate geometry ships.
 
 ---
@@ -140,7 +140,7 @@ and no unsourced plate geometry ships.
 - Complete English and Assamese — no English-only string in an Assamese session
 - **Owner (native speaker) reviews the Assamese copy and clears the DRAFT markers** — this is
   a gate, not a polish item (`DECISIONS.md` §5). Glyph coverage is already proven; whether the
-  words are *right* is not
+  words are _right_ is not
 - Assamese verified visually, not just by codepoint test
 - Full keyboard operability; focus visible everywhere; no traps
 - axe scan clean on all three modes
@@ -152,7 +152,7 @@ and no unsourced plate geometry ships.
   with hillshade and slope shading applied
 
 **Done when:** the `PRODUCT.md` §6 checklist passes with real evidence, a non-specialist
-looking at a screenshot cannot mistake this for an official product *or* for a reading of the
+looking at a screenshot cannot mistake this for an official product _or_ for a reading of the
 river, and the Assamese DRAFT markers are cleared.
 
 ---
@@ -178,26 +178,26 @@ know it is not an official warning.
 
 These apply in every phase, not just one:
 
-| Rule | Source |
-| --- | --- |
-| `npm run verify` green before any phase is called done | `AGENTS.md` §4 |
-| No React in `src/engine/` | `AGENTS.md` §3 |
-| No invented data, no guessed licences | `AGENTS.md` §6 |
-| No committed file over 5 MB | `AGENTS.md` §5 |
-| No raw hex, no off-grid spacing | `AGENTS.md` §8 |
-| Recompute contrast after touching a colour | `DESIGN.md` §4 |
-| Every string in English and Assamese | `AGENTS.md` §11 |
-| Check `docs/DECISIONS.md` before starting a phase — it records settled calls | `docs/DECISIONS.md` |
-| Every FLOW input is a user-chosen scenario, never an observation | `DECISIONS.md` §3, §7 |
+| Rule                                                                         | Source                |
+| ---------------------------------------------------------------------------- | --------------------- |
+| `npm run verify` green before any phase is called done                       | `AGENTS.md` §4        |
+| No React in `src/engine/`                                                    | `AGENTS.md` §3        |
+| No invented data, no guessed licences                                        | `AGENTS.md` §6        |
+| No committed file over 5 MB                                                  | `AGENTS.md` §5        |
+| No raw hex, no off-grid spacing                                              | `AGENTS.md` §8        |
+| Recompute contrast after touching a colour                                   | `DESIGN.md` §4        |
+| Every string in English and Assamese                                         | `AGENTS.md` §11       |
+| Check `docs/DECISIONS.md` before starting a phase — it records settled calls | `docs/DECISIONS.md`   |
+| Every FLOW input is a user-chosen scenario, never an observation             | `DECISIONS.md` §3, §7 |
 
 ## Open risks carried forward
 
-| Risk | Where it bites | Status |
-| --- | --- | --- |
-| USGS ComCat terms not yet transcribed verbatim | Phase 2, 5 | **Licence cleared 2026-10-01** — owner read the crediting page; public domain, credit requested. Bundle event parameters only. **Open:** paste the page text into `DATA.md` §3, `DECISIONS.md` §2 |
-| Bird PB2002 has no verifiable licence | Phase 2 | **Source choice moves to phase 2** — PB2002 not shipped, `DECISIONS.md` §6 |
-| CWC discharge data | — | **Settled: out of scope.** FLOW uses a user-chosen scenario, `DECISIONS.md` §3, §7 |
-| ASDMA not redistributable | — | **Settled: link only, never bundle.** No longer a phase-4 blocker, `DECISIONS.md` §4 |
-| Two palette pairs below 3:1 | Phase 7 | **Settled as a documented exception**, re-checked against real renders, `DECISIONS.md` §1 |
-| Assamese copy unreviewed | Phase 7 | **Open** — owner native-speaker review required, `DECISIONS.md` §5 |
-| GLO-30 is a DSM, not a DTM | Phase 3 | Document limitation; affects slope/flow math |
+| Risk                                           | Where it bites | Status                                                                                                                                                                                            |
+| ---------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| USGS ComCat terms not yet transcribed verbatim | Phase 2, 5     | **Licence cleared 2026-10-01** — owner read the crediting page; public domain, credit requested. Bundle event parameters only. **Open:** paste the page text into `DATA.md` §3, `DECISIONS.md` §2 |
+| Bird PB2002 has no verifiable licence          | Phase 2        | **Source choice moves to phase 2** — PB2002 not shipped, `DECISIONS.md` §6                                                                                                                        |
+| CWC discharge data                             | —              | **Settled: out of scope.** FLOW uses a user-chosen scenario, `DECISIONS.md` §3, §7                                                                                                                |
+| ASDMA not redistributable                      | —              | **Settled: link only, never bundle.** No longer a phase-4 blocker, `DECISIONS.md` §4                                                                                                              |
+| Two palette pairs below 3:1                    | Phase 7        | **Settled as a documented exception**, re-checked against real renders, `DECISIONS.md` §1                                                                                                         |
+| Assamese copy unreviewed                       | Phase 7        | **Open** — owner native-speaker review required, `DECISIONS.md` §5                                                                                                                                |
+| GLO-30 is a DSM, not a DTM                     | Phase 3        | Document limitation; affects slope/flow math                                                                                                                                                      |

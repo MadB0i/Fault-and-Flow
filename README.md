@@ -22,11 +22,11 @@ Three rules shape everything in this project, and they are not negotiable:
 
 For actual warnings and official flood information, go to the authorities:
 
-| Body | URL |
-| --- | --- |
-| **ASDMA** — Assam State Disaster Management Authority | <https://asdma.assam.gov.in/> |
-| **NCS** — National Center for Seismology, Ministry of Earth Sciences | <https://seismo.gov.in/> |
-| **IMD** — India Meteorological Department | <https://mausam.imd.gov.in/> |
+| Body                                                                 | URL                           |
+| -------------------------------------------------------------------- | ----------------------------- |
+| **ASDMA** — Assam State Disaster Management Authority                | <https://asdma.assam.gov.in/> |
+| **NCS** — National Center for Seismology, Ministry of Earth Sciences | <https://seismo.gov.in/>      |
+| **IMD** — India Meteorological Department                            | <https://mausam.imd.gov.in/>  |
 
 ---
 
@@ -95,11 +95,11 @@ Licence: [MIT](LICENSE).
 
 ## Documentation
 
-| File | What it covers |
-| --- | --- |
-| [`PRODUCT.md`](PRODUCT.md) | Audience, goals, non-goals, honesty rules, success criteria |
-| [`AGENTS.md`](AGENTS.md) | Rules for coding agents working on this repo |
-| [`DESIGN.md`](DESIGN.md) | Tokens, rationale, computed contrast table, anti-patterns |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Engine/UI split, typed API contract, data flow |
-| [`docs/DATA.md`](docs/DATA.md) | Dataset sources, licences, attribution |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Phases 1–8 |
+| File                                           | What it covers                                              |
+| ---------------------------------------------- | ----------------------------------------------------------- |
+| [`PRODUCT.md`](PRODUCT.md)                     | Audience, goals, non-goals, honesty rules, success criteria |
+| [`AGENTS.md`](AGENTS.md)                       | Rules for coding agents working on this repo                |
+| [`DESIGN.md`](DESIGN.md)                       | Tokens, rationale, computed contrast table, anti-patterns   |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Engine/UI split, typed API contract, data flow              |
+| [`docs/DATA.md`](docs/DATA.md)                 | Dataset sources, licences, attribution                      |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md)           | Phases 1–8                                                  |

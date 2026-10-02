@@ -59,12 +59,7 @@ test.describe('screenshots', () => {
       await page.getByRole('radio', { name: 'অসমীয়া' }).check();
       await expect(page.getByTestId('app')).toHaveAttribute('data-locale', 'as');
 
-      const path = await capture(
-        page,
-        vp.width,
-        vp.height,
-        `placeholder-${vp.name}-as`,
-      );
+      const path = await capture(page, vp.width, vp.height, `placeholder-${vp.name}-as`);
       expect(statSync(path).size).toBeGreaterThan(5_000);
     });
   }

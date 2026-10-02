@@ -19,10 +19,7 @@ import { dirname, resolve } from 'node:path';
 import { DEFAULT_FLOW_PARAMS } from '@shared/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const typesSource = readFileSync(
-  resolve(here, '../src/shared/types.ts'),
-  'utf8',
-);
+const typesSource = readFileSync(resolve(here, '../src/shared/types.ts'), 'utf8');
 
 /**
  * The doc comment immediately preceding `field`, or '' if there is none.

@@ -80,8 +80,14 @@ test.describe('placeholder page', () => {
         const regions: Array<{ name: string; el: Element }> = [
           { name: 'mode-rail', el: document.querySelector('[data-testid="mode-rail"]')! },
           { name: 'wordmark', el: document.querySelector('[data-testid="wordmark"]')! },
-          { name: 'lang-toggle', el: document.querySelector('[data-testid="lang-toggle"]')! },
-          { name: 'phase-label', el: document.querySelector('[data-testid="phase-label"]')! },
+          {
+            name: 'lang-toggle',
+            el: document.querySelector('[data-testid="lang-toggle"]')!,
+          },
+          {
+            name: 'phase-label',
+            el: document.querySelector('[data-testid="phase-label"]')!,
+          },
         ];
 
         const boxes = regions
@@ -175,9 +181,7 @@ test.describe('placeholder page', () => {
           // explicit label[for].
           const labels = (el as HTMLInputElement).labels;
           if (labels && labels.length > 0) {
-            const named = [...labels].some(
-              (l) => (l.textContent ?? '').trim() !== '',
-            );
+            const named = [...labels].some((l) => (l.textContent ?? '').trim() !== '');
             if (named) return false;
           }
 
@@ -200,9 +204,11 @@ test.describe('placeholder page', () => {
     await page.addScriptTag({ content: axeSource });
 
     const violations = await page.evaluate(async () => {
-      const axe = (window as unknown as {
-        axe: { run: (ctx: Document, opts: unknown) => Promise<unknown> };
-      }).axe;
+      const axe = (
+        window as unknown as {
+          axe: { run: (ctx: Document, opts: unknown) => Promise<unknown> };
+        }
+      ).axe;
 
       const result = (await axe.run(document, {
         runOnly: {
@@ -226,8 +232,9 @@ test.describe('placeholder page', () => {
       }));
     });
 
-    expect(violations, `axe violations: ${JSON.stringify(violations, null, 2)}`)
-      .toEqual([]);
+    expect(violations, `axe violations: ${JSON.stringify(violations, null, 2)}`).toEqual(
+      [],
+    );
   });
 
   test('the three mode rail items are present and genuinely disabled', async ({
@@ -292,9 +299,7 @@ test.describe('placeholder page', () => {
     ).toBeVisible();
 
     // The Assamese phrase must still render in the Assamese face.
-    const fontFamily = await phrase.evaluate(
-      (el) => getComputedStyle(el).fontFamily,
-    );
+    const fontFamily = await phrase.evaluate((el) => getComputedStyle(el).fontFamily);
     expect(fontFamily).toContain('Noto Sans Bengali');
   });
 
@@ -305,20 +310,18 @@ test.describe('placeholder page', () => {
     // fallback face were substituted, the rendered advance width per character
     // would differ from what Noto Sans Bengali produces. Comparing rendered
     // width against the declared font gives a cheap, real signal.
-    const measured = await page
-      .getByTestId('assamese-phrase')
-      .evaluate((el) => {
-        const style = getComputedStyle(el);
-        const range = document.createRange();
-        range.selectNodeContents(el);
-        const rect = range.getBoundingClientRect();
-        return {
-          text: el.textContent ?? '',
-          width: rect.width,
-          fontFamily: style.fontFamily,
-          fontSize: parseFloat(style.fontSize),
-        };
-      });
+    const measured = await page.getByTestId('assamese-phrase').evaluate((el) => {
+      const style = getComputedStyle(el);
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const rect = range.getBoundingClientRect();
+      return {
+        text: el.textContent ?? '',
+        width: rect.width,
+        fontFamily: style.fontFamily,
+        fontSize: parseFloat(style.fontSize),
+      };
+    });
 
     expect(measured.text).toBe('ভূমিকম্প আৰু বান');
 
@@ -330,9 +333,7 @@ test.describe('placeholder page', () => {
   });
 
   test('honesty disclaimer is present in English', async ({ page }) => {
-    await expect(
-      page.getByText(/not a forecast and not a hazard map/i),
-    ).toBeVisible();
+    await expect(page.getByText(/not a forecast and not a hazard map/i)).toBeVisible();
     await expect(page.getByText(/earthquakes cannot be predicted/i)).toBeVisible();
   });
 

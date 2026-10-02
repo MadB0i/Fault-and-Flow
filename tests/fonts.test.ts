@@ -16,10 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 import { codePointsInFontFile, codePointsInString } from './helpers/woff2.js';
-import {
-  ASSAMESE_STRINGS,
-  ASSAMESE_COPY_STATUS,
-} from '@shared/i18n/strings.js';
+import { ASSAMESE_STRINGS, ASSAMESE_COPY_STATUS } from '@shared/i18n/strings.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fontRoot = resolve(here, '../node_modules/@fontsource/noto-sans-bengali/files');
@@ -122,10 +119,7 @@ describe('Noto Sans Bengali — shipped font files', () => {
     // followed by Noto Sans Bengali, an Assamese heading or data label falls
     // through to the generic `serif`/`monospace` keyword and the OS picks the
     // font - which renders, but differently on every platform.
-    const tokens = readFileSync(
-      resolve(here, '../src/ui/styles/tokens.css'),
-      'utf8',
-    );
+    const tokens = readFileSync(resolve(here, '../src/ui/styles/tokens.css'), 'utf8');
 
     for (const variable of [
       '--font-display',
@@ -171,10 +165,7 @@ describe('Assamese copy review status', () => {
   it('keeps the DRAFT marker in the source file itself', () => {
     // The exported constant is convenient; the comment is what a human reads
     // before editing a string. Losing either is a regression.
-    const source = readFileSync(
-      resolve(here, '../src/shared/i18n/strings.ts'),
-      'utf8',
-    );
+    const source = readFileSync(resolve(here, '../src/shared/i18n/strings.ts'), 'utf8');
     expect(source).toContain('DRAFT');
     expect(source).toContain('DECISIONS.md');
   });

@@ -63,8 +63,7 @@ export default tseslint.config(
         'error',
         {
           name: 'window',
-          message:
-            'Engine code must run in Node. Use an explicit host adapter instead.',
+          message: 'Engine code must run in Node. Use an explicit host adapter instead.',
         },
       ],
     },

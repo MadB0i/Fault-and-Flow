@@ -79,7 +79,8 @@ const offGrid = await page.evaluate(() => {
       const px = parseFloat(raw);
       if (Number.isNaN(px)) continue;
       // 8px grid, allowing the documented 4px half-step token.
-      if (px % 8 !== 0 && px % 4 !== 0) bad.push(`${el.tagName}.${cls.slice(0, 40)} ${prop}=${raw}`);
+      if (px % 8 !== 0 && px % 4 !== 0)
+        bad.push(`${el.tagName}.${cls.slice(0, 40)} ${prop}=${raw}`);
     }
   }
   return [...new Set(bad)].slice(0, 15);

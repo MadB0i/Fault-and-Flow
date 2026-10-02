@@ -110,7 +110,7 @@ export interface EngineApi {
 
   // simulation control
   setFlowParams(params: FlowParams): void;
-  setTime(t: number): void;          // scrub, seconds or unix ms per mode
+  setTime(t: number): void; // scrub, seconds or unix ms per mode
   play(): void;
   pause(): void;
 
@@ -175,7 +175,7 @@ export type Provenance =
   | { kind: 'measured'; source: string; url: string; retrieved: string }
   | { kind: 'modelled'; note: string }
   | { kind: 'illustrative' }
-  | { kind: 'unknown' };            // renders as "—"
+  | { kind: 'unknown' }; // renders as "—"
 ```
 
 `getSnapshot()` returns provenance alongside values. The UI renders "measured" data
@@ -191,15 +191,15 @@ exact failure `PRODUCT.md` §4 forbids.
 From the UX workflow — the UI is designed around states, not screens. Each of these
 applies to every mode:
 
-| State | Trigger | Requirement |
-| --- | --- | --- |
-| **Loading** | DEM or catalogue fetching | Skeleton matching the real HUD layout, delayed ~200ms so fast loads don't flash. Keep the canvas background visible — never a white flash. |
-| **Ready** | Data loaded | Full HUD. |
-| **Partial** | Some sources failed, some loaded | Show what loaded, mark what didn't, offer retry for that part only. |
-| **Error — recoverable** | Fetch timeout, offline | Say what happened and what to do; a retry control. Never a raw status code. |
-| **Error — WebGL absent** | No GPU context | Fall back to a static, informative panel. Say the 3D view needs WebGL and point at the data view. |
-| **Empty / unknown** | No data for a location | "—" with an accessible name explaining why. Never `0`. |
-| **Reduced motion** | OS setting | Camera moves become cuts, the seismic ring becomes a static marker. Information is never motion-only. |
+| State                    | Trigger                          | Requirement                                                                                                                                |
+| ------------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Loading**              | DEM or catalogue fetching        | Skeleton matching the real HUD layout, delayed ~200ms so fast loads don't flash. Keep the canvas background visible — never a white flash. |
+| **Ready**                | Data loaded                      | Full HUD.                                                                                                                                  |
+| **Partial**              | Some sources failed, some loaded | Show what loaded, mark what didn't, offer retry for that part only.                                                                        |
+| **Error — recoverable**  | Fetch timeout, offline           | Say what happened and what to do; a retry control. Never a raw status code.                                                                |
+| **Error — WebGL absent** | No GPU context                   | Fall back to a static, informative panel. Say the 3D view needs WebGL and point at the data view.                                          |
+| **Empty / unknown**      | No data for a location           | "—" with an accessible name explaining why. Never `0`.                                                                                     |
+| **Reduced motion**       | OS setting                       | Camera moves become cuts, the seismic ring becomes a static marker. Information is never motion-only.                                      |
 
 ---
 
@@ -208,13 +208,13 @@ applies to every mode:
 Target: 60fps on a mid-range Android, which is the realistic device for the primary
 audience. Hard ceilings:
 
-| Budget | Value |
-| --- | --- |
-| First meaningful paint | < 3s on 4G |
-| JS bundle (initial) | < 300 KB gzipped |
-| DEM transfer | < 8 MB total; per-tile decodable |
-| Draw calls | < 120 |
-| Device pixel ratio | capped at 2; reduced to 1.5 below 768px |
+| Budget                 | Value                                   |
+| ---------------------- | --------------------------------------- |
+| First meaningful paint | < 3s on 4G                              |
+| JS bundle (initial)    | < 300 KB gzipped                        |
+| DEM transfer           | < 8 MB total; per-tile decodable        |
+| Draw calls             | < 120                                   |
+| Device pixel ratio     | capped at 2; reduced to 1.5 below 768px |
 
 Levers if the budget is missed, in the order to pull them:
 
@@ -231,13 +231,13 @@ a 60fps desktop is a flood we cannot test.
 
 ## 7. Testing strategy
 
-| Layer | Tool | What it covers | Needs a browser? |
-| --- | --- | --- | --- |
-| Simulation | Vitest | Flood step, erosion, channel migration, catalogue queries, unit conversion | No |
-| Shared | Vitest | Type guards, formatters, provenance handling | No |
-| Fonts | Vitest | Assamese glyph coverage in the shipped font file | No |
-| UI behaviour | Playwright | Rendering, keyboard operability, axe scan, language toggle | Yes |
-| Visual | Playwright | Screenshots at 1440px and 390px → `docs/screenshots/` | Yes |
+| Layer        | Tool       | What it covers                                                             | Needs a browser? |
+| ------------ | ---------- | -------------------------------------------------------------------------- | ---------------- |
+| Simulation   | Vitest     | Flood step, erosion, channel migration, catalogue queries, unit conversion | No               |
+| Shared       | Vitest     | Type guards, formatters, provenance handling                               | No               |
+| Fonts        | Vitest     | Assamese glyph coverage in the shipped font file                           | No               |
+| UI behaviour | Playwright | Rendering, keyboard operability, axe scan, language toggle                 | Yes              |
+| Visual       | Playwright | Screenshots at 1440px and 390px → `docs/screenshots/`                      | Yes              |
 
 Headless-testable simulation is the reason for §1. If a simulation cannot be unit-tested
 without a browser, it belongs in the wrong layer.

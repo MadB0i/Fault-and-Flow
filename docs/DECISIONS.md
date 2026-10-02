@@ -10,18 +10,18 @@ This file records decisions, not research. The evidence behind each one — lice
 computed ratios, HTTP responses — lives in `docs/DATA.md` and `DESIGN.md`, cross-referenced
 below.
 
-| # | Decision | Date | Status |
-| --- | --- | --- | --- |
-| 1 | Terrain and deep-water contrast: keep values, document exception | 2026-10-01 | Settled, re-check in phase 7 |
-| 2 | USGS ComCat: terms read by the owner; bundle event parameters only | 2026-10-01 | Settled, with a scope limit |
-| 3 | CWC discharge data: out of scope; FLOW uses user-controlled level | 2026-10-01 | Settled |
-| 4 | ASDMA: link only, never bundle | 2026-10-01 | Settled |
-| 5 | Assamese copy is DRAFT until owner review | 2026-10-01 | Open, blocks phase 7 |
-| 6 | Bird PB2002: not shipped | 2026-10-01 | Blocked, decide in phase 2 |
-| 7 | FLOW inputs are user-chosen scenarios, not observations | 2026-10-01 | Settled |
+| #   | Decision                                                           | Date       | Status                       |
+| --- | ------------------------------------------------------------------ | ---------- | ---------------------------- |
+| 1   | Terrain and deep-water contrast: keep values, document exception   | 2026-10-01 | Settled, re-check in phase 7 |
+| 2   | USGS ComCat: terms read by the owner; bundle event parameters only | 2026-10-01 | Settled, with a scope limit  |
+| 3   | CWC discharge data: out of scope; FLOW uses user-controlled level  | 2026-10-01 | Settled                      |
+| 4   | ASDMA: link only, never bundle                                     | 2026-10-01 | Settled                      |
+| 5   | Assamese copy is DRAFT until owner review                          | 2026-10-01 | Open, blocks phase 7         |
+| 6   | Bird PB2002: not shipped                                           | 2026-10-01 | Blocked, decide in phase 2   |
+| 7   | FLOW inputs are user-chosen scenarios, not observations            | 2026-10-01 | Settled                      |
 
 **On numbering.** Decision 3 is the narrower fact — CWC is out of scope. Decision 7 is the
-general rule that supersedes it: *no* FLOW input is an observation, whoever would have supplied
+general rule that supersedes it: _no_ FLOW input is an observation, whoever would have supplied
 it. Where 3 and 7 overlap, 7 governs.
 
 ---
@@ -55,8 +55,8 @@ on **2026-10-01** and reported what it says: **most USGS information is public d
 be used without restriction; USGS asks for credit; and some non-USGS images and graphics are
 used with permission.** That resolves the licence status to **`VERIFIED BY OWNER`** —
 deliberately a weaker label than `VERIFIED`, because what the repo holds is the owner's
-summary of a page rather than a transcription of it, and this file's own rule is *quote,
-never paraphrase*. Pasting the page's text verbatim into `docs/DATA.md` §3 remains the one
+summary of a page rather than a transcription of it, and this file's own rule is _quote,
+never paraphrase_. Pasting the page's text verbatim into `docs/DATA.md` §3 remains the one
 outstanding piece of paperwork.
 
 **The decision itself: bundle event parameters, never products.** ComCat merges records from
@@ -65,15 +65,15 @@ their own terms and can embed third-party material, so a public-domain finding a
 information does not travel to every byte a ComCat record points at. We therefore commit
 **time, epicentre latitude and longitude, depth, magnitude, and event ID** — and nothing
 else. No ShakeMap imagery, no product graphics, nothing fetched from a `products/` URL. The
-UI carries the credit line *"Earthquake catalog data courtesy of the U.S. Geological
-Survey"*, registered in `docs/DATA.md` §10, because the terms request credit and it costs us
+UI carries the credit line _"Earthquake catalog data courtesy of the U.S. Geological
+Survey"_, registered in `docs/DATA.md` §10, because the terms request credit and it costs us
 nothing. This clears the phase 2 earthquake-catalogue fetch and unblocks FAULT's real event
 data, which had been building against fixtures with no date to graduate on. **Reversed by:**
 the terms being found to restrict redistribution of the parameter fields, or a decision to
 ship product imagery once each product's own licence is read. See `docs/DATA.md` §3.
 
 **One boundary this decision does not move.** ComCat can be queried for recent events, and
-FAULT ships a *historical* subset. A live feed would be a different product with its own
+FAULT ships a _historical_ subset. A live feed would be a different product with its own
 honesty problems (`PRODUCT.md` §4.2), and nothing here authorises one.
 
 ## 3. CWC discharge data — out of scope; FLOW uses a user-controlled river level
@@ -83,7 +83,7 @@ for now.** FLOW will be driven by a **user-controlled river level** rather than 
 or modelled discharge. This removes a dependency the project cannot yet satisfy honestly:
 CWC is the correct authority for Brahmaputra river-stage data, its licence has never been
 verified, and inventing a plausible discharge figure is precisely the defect `PRODUCT.md` §4
-forbids. A user-chosen level is a *control input*, not a measurement, so labelling it
+forbids. A user-chosen level is a _control input_, not a measurement, so labelling it
 correctly costs nothing — where the water sits is something the user set, not something the
 project claims to know. This is a scope reduction, not a design change: it makes FLOW smaller
 and more honest, and it defers the CWC research rather than abandoning it. **Reversed by:**
@@ -111,8 +111,8 @@ and require review by the owner, a native speaker, before phase 7.** The existin
 was drafted from standard orthography by a non-native speaker and has been verified for
 **glyph coverage only** — that the shipped font actually contains ৰ (U+09F0), ৱ (U+09F1) and
 every other codepoint used, proven by parsing the shipped font binary in `tests/fonts.test.ts`.
-Glyph coverage proves the characters *render*; it says nothing about whether the words are
-*right*. Assamese is the primary language for this project's main audience, so shipping
+Glyph coverage proves the characters _render_; it says nothing about whether the words are
+_right_. Assamese is the primary language for this project's main audience, so shipping
 machine-drafted copy as if it were reviewed would be a form of the same dishonesty this
 project exists to avoid: an unmarked claim of authority the copy does not have. Native review
 is a gate, not a nice-to-have, and it is cheap because the string count is still small. The
@@ -151,7 +151,7 @@ dates, and any readout derived from a scenario inherits its label. This is also 
 `FlowParams.dischargeM3s` is now `scenarioInflowM3s` — the name shipped a claim the project
 could not support, and the type is where that claim would otherwise have lived permanently.
 **Reversed by:** a cited, licensed observational source being added to FLOW as an
-*additional* input alongside the scenario control, at which point the labelling rule extends
+_additional_ input alongside the scenario control, at which point the labelling rule extends
 to it. It may never replace the scenario control, because the scenario is what makes FLOW a
 sandbox rather than a readout. See `PRODUCT.md` §4.3 and `docs/DATA.md` §9.
 
@@ -159,14 +159,14 @@ sandbox rather than a readout. See `PRODUCT.md` §4.3 and `docs/DATA.md` §9.
 
 ## Superseded
 
-*(none yet — this is the first decisions record)*
+_(none yet — this is the first decisions record)_
 
 ## Related documents
 
-| Question | File |
-| --- | --- |
-| What must an agent not change? | `AGENTS.md` |
+| Question                                  | File                |
+| ----------------------------------------- | ------------------- |
+| What must an agent not change?            | `AGENTS.md`         |
 | Why are these decisions necessary at all? | `PRODUCT.md` §4, §6 |
-| Evidence behind decision 1 | `DESIGN.md` §4.3 |
-| Evidence behind decisions 2–4, 6–7 | `docs/DATA.md` |
-| Which phase acts on each decision | `docs/ROADMAP.md` |
+| Evidence behind decision 1                | `DESIGN.md` §4.3    |
+| Evidence behind decisions 2–4, 6–7        | `docs/DATA.md`      |
+| Which phase acts on each decision         | `docs/ROADMAP.md`   |

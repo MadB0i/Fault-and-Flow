@@ -21,20 +21,20 @@ prediction tool. Read `PRODUCT.md` before making product decisions.
 
 ## 2. Stack — do not substitute
 
-| Concern | Choice |
-| --- | --- |
-| Build tool | Vite |
-| Language | TypeScript, `strict: true` |
-| UI layer | React — **HUD only** (panels, rails, readouts) |
-| 3D layer | Three.js, imperative engine under `src/engine/` |
-| UI state | Zustand |
-| Styling | Tailwind + CSS-variable design tokens |
-| Animation | motion (Framer Motion) |
-| Unit tests | Vitest |
-| Browser tests | Playwright |
-| Lint / format | ESLint (flat config) + Prettier |
-| Package manager | npm only |
-| Runtime | Node 20+ |
+| Concern         | Choice                                          |
+| --------------- | ----------------------------------------------- |
+| Build tool      | Vite                                            |
+| Language        | TypeScript, `strict: true`                      |
+| UI layer        | React — **HUD only** (panels, rails, readouts)  |
+| 3D layer        | Three.js, imperative engine under `src/engine/` |
+| UI state        | Zustand                                         |
+| Styling         | Tailwind + CSS-variable design tokens           |
+| Animation       | motion (Framer Motion)                          |
+| Unit tests      | Vitest                                          |
+| Browser tests   | Playwright                                      |
+| Lint / format   | ESLint (flat config) + Prettier                 |
+| Package manager | npm only                                        |
+| Runtime         | Node 20+                                        |
 
 Self-host fonts via `@fontsource/*` packages. **Never load fonts from a CDN.**
 
@@ -155,7 +155,7 @@ defect, not a shortcut.
   (e.g. a GitHub shapefile-to-GeoJSON repo) carry their **own** license that may
   differ from the upstream data. Attribute each layer to the license that actually
   governs it.
-- Redistributing data is a separate question from *using* it. Check the terms for
+- Redistributing data is a separate question from _using_ it. Check the terms for
   redistribution and modification, not just access.
 
 ### Always cite sources

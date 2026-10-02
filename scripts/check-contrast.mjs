@@ -57,7 +57,12 @@ const PAIRS = [
   { fg: 'text', bg: 'surface-raised', kind: 'text', use: 'Body text on raised HUD' },
   { fg: 'text-muted', bg: 'bg', kind: 'text', use: 'Muted/meta text on background' },
   { fg: 'text-muted', bg: 'surface', kind: 'text', use: 'Muted/meta text on HUD panel' },
-  { fg: 'text-muted', bg: 'surface-raised', kind: 'text', use: 'Muted/meta text on raised HUD' },
+  {
+    fg: 'text-muted',
+    bg: 'surface-raised',
+    kind: 'text',
+    use: 'Muted/meta text on raised HUD',
+  },
 
   // Wordmark / display type.
   { fg: 'text', bg: 'surface', kind: 'large', use: 'Display title on HUD panel' },
@@ -68,7 +73,12 @@ const PAIRS = [
   { fg: 'water', bg: 'surface-raised', kind: 'text', use: 'Water label on raised HUD' },
   { fg: 'seismic-amber', bg: 'bg', kind: 'text', use: 'Seismic label / readout' },
   { fg: 'seismic-amber', bg: 'surface', kind: 'text', use: 'Seismic label on HUD panel' },
-  { fg: 'seismic-amber', bg: 'surface-raised', kind: 'text', use: 'Seismic label on raised HUD' },
+  {
+    fg: 'seismic-amber',
+    bg: 'surface-raised',
+    kind: 'text',
+    use: 'Seismic label on raised HUD',
+  },
   { fg: 'seismic-hot', bg: 'bg', kind: 'text', use: 'Hot-seismicity label' },
   { fg: 'seismic-hot', bg: 'surface', kind: 'text', use: 'Hot-seismicity label on HUD' },
 
@@ -78,10 +88,25 @@ const PAIRS = [
 
   // Non-text UI boundaries (WCAG 2.2 SC 1.4.11). A decorative divider carries
   // no information, so it is exempt; the meaningful boundaries below are not.
-  { fg: 'hairline', bg: 'bg', kind: 'decorative', use: 'Decorative divider on background' },
-  { fg: 'hairline', bg: 'surface', kind: 'decorative', use: 'Decorative divider on HUD panel' },
+  {
+    fg: 'hairline',
+    bg: 'bg',
+    kind: 'decorative',
+    use: 'Decorative divider on background',
+  },
+  {
+    fg: 'hairline',
+    bg: 'surface',
+    kind: 'decorative',
+    use: 'Decorative divider on HUD panel',
+  },
   { fg: 'plate-line', bg: 'bg', kind: 'non-text', use: 'Plate boundary line (3D scene)' },
-  { fg: 'plate-line', bg: 'surface', kind: 'non-text', use: 'Plate boundary line over HUD' },
+  {
+    fg: 'plate-line',
+    bg: 'surface',
+    kind: 'non-text',
+    use: 'Plate boundary line over HUD',
+  },
 
   // Terrain ramp — 3D fills, checked against the page only for legibility.
   { fg: 'terrain-4', bg: 'bg', kind: 'non-text', use: 'Terrain high-elevation vs bg' },
@@ -118,9 +143,7 @@ function parseHex(hex) {
  */
 function relativeLuminance(hex) {
   const [r, g, b] = parseHex(hex);
-  return (
-    0.2126 * linearise(r) + 0.7152 * linearise(g) + 0.0722 * linearise(b)
-  );
+  return 0.2126 * linearise(r) + 0.7152 * linearise(g) + 0.0722 * linearise(b);
 }
 
 /**
@@ -137,7 +160,11 @@ export function contrastRatio(fgHex, bgHex) {
 const toHex = ([r, g, b]) =>
   '#' +
   [r, g, b]
-    .map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'))
+    .map((v) =>
+      Math.max(0, Math.min(255, Math.round(v)))
+        .toString(16)
+        .padStart(2, '0'),
+    )
     .join('')
     .toUpperCase();
 
@@ -157,9 +184,7 @@ function smallestAdjustment(fgHex, bgHex, target) {
 
   for (let step = 1; step <= 255; step += 1) {
     const t = step / 255;
-    const candidate = toHex(
-      start.map((c, i) => c + (end[i] - c) * t),
-    );
+    const candidate = toHex(start.map((c, i) => c + (end[i] - c) * t));
     if (contrastRatio(candidate, bgHex) >= target) {
       return { hex: candidate, ratio: contrastRatio(candidate, bgHex) };
     }
@@ -184,9 +209,10 @@ function evaluate() {
       pass,
       // Only meaningful for informational failures — the palette is NOT
       // modified automatically. See DESIGN.md "Contrast".
-      fix: pass || required === DECORATIVE
-        ? null
-        : smallestAdjustment(TOKENS[fg], TOKENS[bg], required),
+      fix:
+        pass || required === DECORATIVE
+          ? null
+          : smallestAdjustment(TOKENS[fg], TOKENS[bg], required),
     };
   });
 }
@@ -197,9 +223,7 @@ const rpad = (s, n) => String(s).padStart(n);
 function printTable(results) {
   const console_ = console;
   console_.log('');
-  console_.log(
-    'WCAG 2.1 contrast — Fault & Flow palette (computed, not estimated)',
-  );
+  console_.log('WCAG 2.1 contrast — Fault & Flow palette (computed, not estimated)');
   console_.log(
     `Thresholds: text ${AA_TEXT}:1 | large text ${AA_LARGE}:1 | non-text ${AA_NON_TEXT}:1`,
   );
@@ -237,7 +261,7 @@ function printTable(results) {
       if (f.fix) {
         console_.log(
           `      smallest adjustment: ${f.fgHex} -> ${f.fix.hex} ` +
-            `(${(f.fix.ratio).toFixed(2)}:1, same hue)`,
+            `(${f.fix.ratio.toFixed(2)}:1, same hue)`,
         );
       }
     }

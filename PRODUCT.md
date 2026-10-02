@@ -13,11 +13,11 @@ the product. `AGENTS.md` is binding on any agent editing this repo.
 
 ## 1. Who this is for
 
-| Audience | What they arrive wanting | What we give them |
-| --- | --- | --- |
-| **Students in Assam** (ages ~14–22) | "Why does the Brahmaputra break its banks here? Why did the ground shake in 1950?" | A place they can *touch* the answer — move a slider, watch water cut a bank, scrub 100 years of quakes |
-| **Curious public** | "I've heard about the 1950 Assam earthquake. Show me." | A three-minute cinematic they can reach from a link, no install |
-| **Developers on GitHub** | "Is this real? What's the stack? Can I trust the numbers?" | Open source, MIT, reproducible data pipeline, honest citations |
+| Audience                            | What they arrive wanting                                                           | What we give them                                                                                      |
+| ----------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Students in Assam** (ages ~14–22) | "Why does the Brahmaputra break its banks here? Why did the ground shake in 1950?" | A place they can _touch_ the answer — move a slider, watch water cut a bank, scrub 100 years of quakes |
+| **Curious public**                  | "I've heard about the 1950 Assam earthquake. Show me."                             | A three-minute cinematic they can reach from a link, no install                                        |
+| **Developers on GitHub**            | "Is this real? What's the stack? Can I trust the numbers?"                         | Open source, MIT, reproducible data pipeline, honest citations                                         |
 
 The primary reader is a **student in Assam**. This is not a Western museum piece about a
 place that is not theirs — the interface ships in **Assamese and English** from the first
@@ -56,7 +56,7 @@ Stating these plainly saves us from a hundred feature arguments later.
 - **Not a surveillance or civic-control product.** No user accounts, no geolocation, no
   telemetry. We do not want to know who opened it.
 - **Not a 3D showpiece first.** A cinematic that cannot be trusted is worse than a plain
-  chart. Honesty outranks spectacle; the "one memorable moment" must be the *insight*,
+  chart. Honesty outranks spectacle; the "one memorable moment" must be the _insight_,
   not the rendering.
 - **Not India-wide.** Assam and the Brahmaputra valley. Expanding scope is a new product.
 - **No mobile app.** Web only, PWA at most. The constraint is what makes it shareable.
@@ -87,7 +87,7 @@ This is the single most important line in the product.
 
 > **Earthquakes cannot be predicted.** No one can tell you when or where the next one will
 > happen, or if it will happen tomorrow. Nobody — not us, not any government, not any
-  research group worldwide.
+> research group worldwide.
 
 - Never imply prediction. Never use future-tense language about an upcoming earthquake.
 - FAULT mode replays **recorded history**. It is a timelapse of the past.
@@ -122,13 +122,13 @@ This is the single most important line in the product.
 ### 4.5 Point at the authorities
 
 Every mode that touches real-world risk links the official sources, so a user who needs
-*actual* information leaves us and goes to the people who publish it:
+_actual_ information leaves us and goes to the people who publish it:
 
-| Body | URL | What they publish |
-| --- | --- | --- |
-| **ASDMA** — Assam State Disaster Management Authority | <https://asdma.assam.gov.in/> | Assam Flood Report, inundation mapping, DRR roadmap |
-| **NCS** — National Center for Seismology, Ministry of Earth Sciences | <https://seismo.gov.in/> | Earthquake catalogue, seismological bulletins, real-time portal |
-| **IMD** — India Meteorological Department | <https://mausam.imd.gov.in/> | Warnings, quantitative precipitation forecast, hydrology services |
+| Body                                                                 | URL                           | What they publish                                                 |
+| -------------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------- |
+| **ASDMA** — Assam State Disaster Management Authority                | <https://asdma.assam.gov.in/> | Assam Flood Report, inundation mapping, DRR roadmap               |
+| **NCS** — National Center for Seismology, Ministry of Earth Sciences | <https://seismo.gov.in/>      | Earthquake catalogue, seismological bulletins, real-time portal   |
+| **IMD** — India Meteorological Department                            | <https://mausam.imd.gov.in/>  | Warnings, quantitative precipitation forecast, hydrology services |
 
 > **Note on NCS's domain.** The National Center for Seismology is at `seismo.gov.in`.
 > `seismology.gov.in` does not resolve. Verified 2026-10-01. See `docs/DATA.md`.
@@ -150,22 +150,22 @@ persuasive than a table of numbers and so is more likely to be over-trusted.
 
 ### PLATES — the cinematic opener
 
-*From the collision to the valley.*
+_From the collision to the valley._
 
 The India–Eurasia collision rendered as it is understood: the Indian plate driving north
 at a few cm/yr, the Himalaya rising, the crust shortening. Then the camera **flies down**
 from the Himalaya along the Brahmaputra into Assam, arriving at the sandbox. ~30–45 seconds,
 skippable, and it re-plays on demand.
 
-- Purpose: establish *why* the landscape exists before asking anyone to play with it.
+- Purpose: establish _why_ the landscape exists before asking anyone to play with it.
 - Data: plate boundary geometry (see `docs/DATA.md` — licence **UNVERIFIED**, do not ship
   until resolved), qualitative convergence rate.
-- Honesty: convergence rates are from published geology, cited. The *motion* is a
+- Honesty: convergence rates are from published geology, cited. The _motion_ is a
   visualisation of a rate, not a geological reconstruction of a specific date.
 
 ### FAULT — the earthquake timelapse
 
-*A hundred years of the ground shaking.*
+_A hundred years of the ground shaking._
 
 North-east India sits in one of the most seismically active regions on Earth. Scrub a
 timeline from 1900 to the present and watch real earthquakes appear at their real
@@ -182,13 +182,13 @@ locations, sized by magnitude, at their real dates.
 
 ### FLOW — the flood sandbox
 
-*The river moves; the bank gives way.*
+_The river moves; the bank gives way._
 
 Real terrain of the Brahmaputra valley. You set a river level or an inflow scenario, water
 flows across the DEM, and where the flow meets a bank it erodes it — visibly, over time.
 Raise the scenario and watch where the channel migrates.
 
-- Purpose: teach the *mechanism* of bank erosion and channel migration by direct
+- Purpose: teach the _mechanism_ of bank erosion and channel migration by direct
   manipulation, which no map or chart can do.
 - Data: Copernicus DEM GLO-30 (licence **VERIFIED**, with mandatory DLR/Airbus
   attribution). **No hydrological data** — see §4.3.
@@ -223,7 +223,7 @@ Raise the scenario and watch where the channel migrates.
 - [ ] Usable and legible at 390px wide and at 1440px wide.
 - [ ] Full keyboard operability; visible focus everywhere; no keyboard trap.
 - [ ] Zero WCAG 2.2 AA violations from an automated axe scan of each mode.
-- [ ] A student who has never seen the project can reach a "oh, *that's* why" moment in
+- [ ] A student who has never seen the project can reach a "oh, _that's_ why" moment in
       under 3 minutes without instructions.
 
 ### Open-source health
@@ -238,25 +238,25 @@ Raise the scenario and watch where the channel migrates.
 
 ## 7. Known risks
 
-| Risk | Why it is real | Mitigation |
-| --- | --- | --- |
-| **A 3D flood looks like a forecast** | Fluids in motion read as prediction. This is the single most likely way to mislead. | Persistent "illustrative model" framing in FLOW; every input labelled as a scenario the user set; no date-bearing controls; never a "forecast for" label |
-| **A scenario value reads as a measurement** | A plausible number beside a plausible river invites the reader to treat it as a reading of it. | Inputs named as scenarios in the control, the readout and the legend; no gauge figures, no station names and no dates anywhere in FLOW (§4.3) |
-| **DEM size** | GLO-30 tiles are large; a naive commit would blow the repo past 5 MB | Tiles stay in `data/raw/` (gitignored); commit a small preprocessed extract or fetch at build time |
-| **Licence ambiguity** | USGS ComCat and Bird PB2002 licences could not be verified; NCS is explicitly restrictive | Do not ship unverified data. Link and cite instead. See `docs/DATA.md` |
-| **Assamese glyph coverage** | Assamese uses ৰ (U+09F0) and ৱ (U+09F1), which many Bengali-subset fonts lack | Test the shipped font file for the codepoints we actually use; do not assume |
-| **Mobile GPU limits** | A full-screen 3D scene can tank a mid-range Android | Cap DPR, reduce terrain resolution on small screens, keep the engine headless-testable |
-| **Scope creep into "wow"** | 3D invites spectacle over honesty | Every mode must pass §6 honesty criteria before visual polish is considered done |
+| Risk                                        | Why it is real                                                                                 | Mitigation                                                                                                                                               |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A 3D flood looks like a forecast**        | Fluids in motion read as prediction. This is the single most likely way to mislead.            | Persistent "illustrative model" framing in FLOW; every input labelled as a scenario the user set; no date-bearing controls; never a "forecast for" label |
+| **A scenario value reads as a measurement** | A plausible number beside a plausible river invites the reader to treat it as a reading of it. | Inputs named as scenarios in the control, the readout and the legend; no gauge figures, no station names and no dates anywhere in FLOW (§4.3)            |
+| **DEM size**                                | GLO-30 tiles are large; a naive commit would blow the repo past 5 MB                           | Tiles stay in `data/raw/` (gitignored); commit a small preprocessed extract or fetch at build time                                                       |
+| **Licence ambiguity**                       | USGS ComCat and Bird PB2002 licences could not be verified; NCS is explicitly restrictive      | Do not ship unverified data. Link and cite instead. See `docs/DATA.md`                                                                                   |
+| **Assamese glyph coverage**                 | Assamese uses ৰ (U+09F0) and ৱ (U+09F1), which many Bengali-subset fonts lack                  | Test the shipped font file for the codepoints we actually use; do not assume                                                                             |
+| **Mobile GPU limits**                       | A full-screen 3D scene can tank a mid-range Android                                            | Cap DPR, reduce terrain resolution on small screens, keep the engine headless-testable                                                                   |
+| **Scope creep into "wow"**                  | 3D invites spectacle over honesty                                                              | Every mode must pass §6 honesty criteria before visual polish is considered done                                                                         |
 
 ---
 
 ## 8. Where to look
 
-| Question | File |
-| --- | --- |
-| What may an agent change, and what is forbidden? | `AGENTS.md` |
-| How is the code split between engine and UI? | `docs/ARCHITECTURE.md` |
-| Where did each dataset come from, under what licence? | `docs/DATA.md` |
-| What are the colours, type, and motion values? | `DESIGN.md` |
-| What gets built next? | `docs/ROADMAP.md` |
+| Question                                                   | File                   |
+| ---------------------------------------------------------- | ---------------------- |
+| What may an agent change, and what is forbidden?           | `AGENTS.md`            |
+| How is the code split between engine and UI?               | `docs/ARCHITECTURE.md` |
+| Where did each dataset come from, under what licence?      | `docs/DATA.md`         |
+| What are the colours, type, and motion values?             | `DESIGN.md`            |
+| What gets built next?                                      | `docs/ROADMAP.md`      |
 | Why is FLOW a scenario sandbox rather than real hydrology? | `docs/DECISIONS.md` §3 |

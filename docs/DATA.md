@@ -16,35 +16,35 @@ Two distinctions that are easy to get wrong, and that this file keeps separate:
 - **Using data is not redistributing it.** Public access does not imply redistribution
   rights.
 - **A conversion inherits the converter's licence, not the upstream one.** A shapefile
-  someone converted to GeoJSON on GitHub is governed by *that repo's* licence unless the
+  someone converted to GeoJSON on GitHub is governed by _that repo's_ licence unless the
   converter says otherwise.
 
 Research was conducted **2026-10-01** by fetching each official page directly. Where a page
 could not be read by a plain HTTP client, the **owner read it in a real browser** and the
 entry is labelled accordingly. Status labels:
 
-| Label | Meaning |
-| --- | --- |
-| **VERIFIED** | Official licence text retrieved and quoted from the source |
+| Label                 | Meaning                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **VERIFIED**          | Official licence text retrieved and quoted from the source                                                                           |
 | **VERIFIED BY OWNER** | Terms read by the owner in a real browser on the stated date. Not yet transcribed verbatim — treat as weaker evidence than VERIFIED. |
-| **UNVERIFIED** | Could not confirm from an official source. **Not shipped.** |
-| **RESTRICTIVE** | Licence confirmed, and it forbids what this project needs |
+| **UNVERIFIED**        | Could not confirm from an official source. **Not shipped.**                                                                          |
+| **RESTRICTIVE**       | Licence confirmed, and it forbids what this project needs                                                                            |
 
 ---
 
 ## Status summary
 
-| Dataset | Purpose | Status | Ship it? |
-| --- | --- | --- | --- |
-| **Copernicus DEM GLO-30** | Terrain, all modes | **VERIFIED** | Yes, with mandatory attribution |
-| **Natural Earth** | Coastline, basemap fallback | **VERIFIED** (public domain) | Yes |
-| **USGS ANSS ComCat** | FAULT earthquake history | **VERIFIED BY OWNER** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2) |
-| **Bird PB2002** plate boundaries | PLATES mode | **UNVERIFIED** | **No** — no licence found anywhere (DECISIONS §6) |
-| **SRTM** | Terrain alternative | **UNVERIFIED** | Not yet |
-| **NCS (seismo.gov.in)** | Indian earthquake authority | **RESTRICTIVE** | Link and cite only |
-| **IMD** | Weather / hydrology | No licence asserted | Link only |
-| **ASDMA** | Flood authority, Assam | **UNVERIFIED** | **Link only — never bundle** (DECISIONS §4) |
-| **CWC** discharge / river stage | FLOW | Out of scope | Not used — FLOW uses a user-controlled level (DECISIONS §3) |
+| Dataset                          | Purpose                     | Status                                                  | Ship it?                                                           |
+| -------------------------------- | --------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Copernicus DEM GLO-30**        | Terrain, all modes          | **VERIFIED**                                            | Yes, with mandatory attribution                                    |
+| **Natural Earth**                | Coastline, basemap fallback | **VERIFIED** (public domain)                            | Yes                                                                |
+| **USGS ANSS ComCat**             | FAULT earthquake history    | **VERIFIED BY OWNER** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2) |
+| **Bird PB2002** plate boundaries | PLATES mode                 | **UNVERIFIED**                                          | **No** — no licence found anywhere (DECISIONS §6)                  |
+| **SRTM**                         | Terrain alternative         | **UNVERIFIED**                                          | Not yet                                                            |
+| **NCS (seismo.gov.in)**          | Indian earthquake authority | **RESTRICTIVE**                                         | Link and cite only                                                 |
+| **IMD**                          | Weather / hydrology         | No licence asserted                                     | Link only                                                          |
+| **ASDMA**                        | Flood authority, Assam      | **UNVERIFIED**                                          | **Link only — never bundle** (DECISIONS §4)                        |
+| **CWC** discharge / river stage  | FLOW                        | Out of scope                                            | Not used — FLOW uses a user-controlled level (DECISIONS §3)        |
 
 **Nothing from this table is committed to git in Phase 1.** These are research findings and
 a plan, recorded now so the data pipeline can be built against verified terms later.
@@ -59,12 +59,12 @@ notably §2 (ComCat), §3 (CWC), §4 (ASDMA) and §6 (PB2002). Where this file a
 
 Primary terrain source. 30m global surface elevation.
 
-| Field | Value |
-| --- | --- |
-| Licence PDF | <https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf> |
+| Field           | Value                                                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Licence PDF     | <https://documentation.dataspace.copernicus.eu/APIs/SentinelHub/Data/DEM/resources/license/License-COPDEM-30.pdf>                |
 | Collection page | <https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM> |
-| Retrieved | 2026-10-01 |
-| Status | **VERIFIED** — full text extracted from the official PDF |
+| Retrieved       | 2026-10-01                                                                                                                       |
+| Status          | **VERIFIED** — full text extracted from the official PDF                                                                         |
 
 **Licence name (verbatim):**
 
@@ -116,7 +116,7 @@ Primary terrain source. 30m global surface elevation.
 
 **Constraints this project must respect:**
 
-- This is a **dedicated GLO-30/GLO-90 licence**, *not* the generic Copernicus Data Licence
+- This is a **dedicated GLO-30/GLO-90 licence**, _not_ the generic Copernicus Data Licence
   (Regulation 1159/2013). Do not cite the wrong one.
 - The 10m EEA product is **expressly excluded**: "The higher resolution, Copernicus
   WorldDEM-10 is subject of a separate licence and distribution to the general public of
@@ -134,11 +134,11 @@ Primary terrain source. 30m global surface elevation.
 Coastline and base geometry. The safest asset in this file, and a good fallback when a
 higher-stakes dataset's licence is unresolved.
 
-| Field | Value |
-| --- | --- |
-| Terms | <https://www.naturalearthdata.com/about/terms-of-use/> |
-| Retrieved | 2026-10-01 |
-| Status | **VERIFIED** |
+| Field     | Value                                                  |
+| --------- | ------------------------------------------------------ |
+| Terms     | <https://www.naturalearthdata.com/about/terms-of-use/> |
+| Retrieved | 2026-10-01                                             |
+| Status    | **VERIFIED**                                           |
 
 **Licence name (verbatim):** `public domain`
 
@@ -182,14 +182,14 @@ Source for FAULT mode's earthquake history.
 > by the project owner in a real browser. **Event parameters may be bundled**; ComCat
 > product imagery may not.
 
-| Field | Value |
-| --- | --- |
-| Data page | <https://earthquake.usgs.gov/data/comcat/> — **HTTP 200** |
-| FDSN event API | <https://earthquake.usgs.gov/fdsnws/event/1/> — **HTTP 200** |
-| Terms page | <https://www.usgs.gov/information-policies-and-instructions/crediting-usgs> |
-| Retrieved | 2026-10-01 by automated fetch; **terms read 2026-10-01 by the owner in a browser** |
-| **Licence** | **Public domain**, per the USGS crediting page |
-| Attribution | **Credit requested, not required** — see the credit line below |
+| Field          | Value                                                                              |
+| -------------- | ---------------------------------------------------------------------------------- |
+| Data page      | <https://earthquake.usgs.gov/data/comcat/> — **HTTP 200**                          |
+| FDSN event API | <https://earthquake.usgs.gov/fdsnws/event/1/> — **HTTP 200**                       |
+| Terms page     | <https://www.usgs.gov/information-policies-and-instructions/crediting-usgs>        |
+| Retrieved      | 2026-10-01 by automated fetch; **terms read 2026-10-01 by the owner in a browser** |
+| **Licence**    | **Public domain**, per the USGS crediting page                                     |
+| Attribution    | **Credit requested, not required** — see the credit line below                     |
 
 **How this was verified.** The `usgs.gov` policy pages return an HTTP 202 JavaScript
 robot-check interstitial to a plain HTTP client, so an agent could never read them. The
@@ -227,13 +227,13 @@ public-domain finding covers USGS information, not every byte a ComCat record po
 
 **Therefore: bundle event parameters only.**
 
-| Bundled | Not bundled |
-| --- | --- |
-| Event time | ShakeMap and PAGER images |
-| Epicentre latitude and longitude | Any product graphic or thumbnail |
-| Depth | Contributor network logos or map tiles |
-| Magnitude and magnitude type | Station metadata, waveform files |
-| Event ID (for citation) | Anything fetched from a `products/` URL |
+| Bundled                          | Not bundled                             |
+| -------------------------------- | --------------------------------------- |
+| Event time                       | ShakeMap and PAGER images               |
+| Epicentre latitude and longitude | Any product graphic or thumbnail        |
+| Depth                            | Contributor network logos or map tiles  |
+| Magnitude and magnitude type     | Station metadata, waveform files        |
+| Event ID (for citation)          | Anything fetched from a `products/` URL |
 
 Bundling parameters rather than products is also what keeps the repository small enough to
 stay under the 5 MB ceiling, and it means the credit line in §10 is the full extent of what
@@ -243,7 +243,7 @@ a downstream user has to reproduce.
 
 - **Credit is requested, so we give it**, in the app footer and in `README.md`. It costs
   nothing and the terms ask for it.
-- **Redistribution is public domain**, but "public domain" covers the *data*, not our
+- **Redistribution is public domain**, but "public domain" covers the _data_, not our
   presentation of it. Do not imply USGS endorses this sandbox.
 - **A contributing network's record is not USGS's own measurement.** Where a magnitude's
   provenance matters, the UI shows the event ID and links the ComCat page rather than
@@ -268,12 +268,12 @@ Intended source for PLATES mode's boundary geometry.
 > be quoted verbatim, or our own tracing from cited published sources — is **decided in
 > phase 2**.
 
-| Field | Value |
-| --- | --- |
-| Author's directory | <http://peterbird.name/oldFTP/PB2002/> — **HTTP 200** |
-| README | <http://peterbird.name/oldFTP/PB2002/2001GC000252_readme.txt> — retrieved in full |
-| Retrieved | 2026-10-01 |
-| **Licence** | **`UNVERIFIED` — no licence statement found anywhere** |
+| Field              | Value                                                                             |
+| ------------------ | --------------------------------------------------------------------------------- |
+| Author's directory | <http://peterbird.name/oldFTP/PB2002/> — **HTTP 200**                             |
+| README             | <http://peterbird.name/oldFTP/PB2002/2001GC000252_readme.txt> — retrieved in full |
+| Retrieved          | 2026-10-01                                                                        |
+| **Licence**        | **`UNVERIFIED` — no licence statement found anywhere**                            |
 
 **Why UNVERIFIED.** The directory index and the complete README were searched for
 `licen`, `copyright`, `public domain`, `terms`, `permission`, and `attribut`. **Zero
@@ -321,12 +321,12 @@ one.
 
 Terrain alternative, and the historically obvious choice. Needs verification before use.
 
-| Field | Value |
-| --- | --- |
+| Field          | Value                                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | USGS EROS page | <https://www.usgs.gov/centers/eros/science/usgs-eros-archive-digital-elevation-shuttle-radar-topography-mission-srtm-non> |
-| Retrieved | 2026-10-01 |
-| **Licence** | **`UNVERIFIED`** |
-| DOI | `/10.5066/F7PR7TFT` (per snippet only — see below) |
+| Retrieved      | 2026-10-01                                                                                                                |
+| **Licence**    | **`UNVERIFIED`**                                                                                                          |
+| DOI            | `/10.5066/F7PR7TFT` (per snippet only — see below)                                                                        |
 
 **Why UNVERIFIED.** The USGS EROS page returned **HTTP 202 with a JavaScript robot-check
 interstitial.** The page was never read. Search snippets show a "Sources/Usage: Public
@@ -342,9 +342,9 @@ snippet as a licence.**
 > "SRTM = public domain" does not cover it.
 
 > **The commonly cited "Bimanak/Bihar border artifact" in SRTM could not be substantiated.**
-> Three targeted searches all returned results about the India–*Nepal* *political* border
+> Three targeted searches all returned results about the India–_Nepal_ _political_ border
 > dispute, which is unrelated to DEM artefacts. One peer-reviewed source
-> (*Scientific Reports*, PMC5296860) actually argues *against* systematic horizontal
+> (_Scientific Reports_, PMC5296860) actually argues _against_ systematic horizontal
 > displacement in C-band SRTM. **Do not publish that claim without an independent verified
 > source.** The well-documented SRTM problem in this region is **data voids and void-fill
 > interpolation error**, not a border shift — the USGS page itself notes "Some tiles may
@@ -362,18 +362,18 @@ terms have still never been read.
 The Indian seismic authority. Linked from the UI as an official source; **its data is not
 redistributed.**
 
-| Field | Value |
-| --- | --- |
-| Site | <https://seismo.gov.in/> — **HTTP 200** |
+| Field            | Value                                         |
+| ---------------- | --------------------------------------------- |
+| Site             | <https://seismo.gov.in/> — **HTTP 200**       |
 | Real-time portal | <https://riseq.seismo.gov.in/> — **HTTP 200** |
-| Retrieved | 2026-10-01 |
-| Status | **VERIFIED** text, **RESTRICTIVE** terms |
+| Retrieved        | 2026-10-01                                    |
+| Status           | **VERIFIED** text, **RESTRICTIVE** terms      |
 
 > **URL correction.** The National Center for Seismology is at **`seismo.gov.in`**.
 > **`seismology.gov.in` does not resolve — NXDOMAIN**, verified against
 > `seismology.gov.in`, `www.seismology.gov.in`, `ncs.gov.in`, `ncsindia.gov.in`,
 > `seismology.moes.gov.in`, and `ncs.moes.gov.in`. Separately, **`ncs.gov.in` is the
-> National *Career* Service**, an entirely unrelated organisation — a plausible-looking
+> National _Career_ Service**, an entirely unrelated organisation — a plausible-looking
 > wrong answer. This correction is recorded in `PRODUCT.md` too.
 
 **Terms (verbatim, from <https://seismo.gov.in/terms-use>):**
@@ -415,7 +415,7 @@ disclaimer reads (verbatim): "The contents of this website are for information p
 only, enabling the public at large to have quick and easy access to information and do not
 have any legal sanctity."
 
-So the project's line *"earthquakes cannot be predicted"* is **our own statement, not NCS's.**
+So the project's line _"earthquakes cannot be predicted"_ is **our own statement, not NCS's.**
 Do not attribute it to them. Quoting it as theirs would be a fabricated attribution —
 precisely the failure this file exists to prevent.
 
@@ -428,12 +428,12 @@ are **on request only**, and regional reports are provided "on payment basis".
 
 ## 7. India Meteorological Department (IMD) — no licence asserted, link only
 
-| Field | Value |
-| --- | --- |
-| Site | <https://mausam.imd.gov.in/> — **HTTP 200** |
+| Field      | Value                                                                |
+| ---------- | -------------------------------------------------------------------- |
+| Site       | <https://mausam.imd.gov.in/> — **HTTP 200**                          |
 | Disclaimer | <https://mausam.imd.gov.in/responsive/disclaimer.php> — **HTTP 200** |
-| Retrieved | 2026-10-01 |
-| Licence | **None asserted** |
+| Retrieved  | 2026-10-01                                                           |
+| Licence    | **None asserted**                                                    |
 
 **Disclaimer (verbatim) — quotable, and directly relevant to our own framing:**
 
@@ -471,11 +471,11 @@ The most locally relevant authority, and the one we most want to cite properly.
 > and cited; no ASDMA map, inundation layer, report or document is redistributed through this
 > repository.
 
-| Field | Value |
-| --- | --- |
-| Site | <https://asdma.assam.gov.in/> — **HTTP 200** |
-| Retrieved | 2026-10-01 |
-| **Licence / map disclaimer** | **`UNVERIFIED`** |
+| Field                        | Value                                        |
+| ---------------------------- | -------------------------------------------- |
+| Site                         | <https://asdma.assam.gov.in/> — **HTTP 200** |
+| Retrieved                    | 2026-10-01                                   |
+| **Licence / map disclaimer** | **`UNVERIFIED`**                             |
 
 **Confirmed live.** The site confirms ASDMA publishes an "Assam Flood Report",
 "Inundation Mapping - NRSC", "Reports on Assam Flood/Storm/Earthquake/Landslide etc.", the
@@ -531,7 +531,7 @@ CWC figure appears anywhere in the UI. `FlowParams.scenarioInflowM3s` in
 `src/shared/types.ts` carries that contract in its own name and doc comment: a user-chosen
 scenario value in m³/s, **not** an observed discharge. It was renamed from `dischargeM3s`,
 which implied an instrument reading, because a field name is documentation that ships. The
-related `TerrainSample.dischargeM3s` is a *scenario-derived* flux at a location and can never
+related `TerrainSample.dischargeM3s` is a _scenario-derived_ flux at a location and can never
 carry `measured` provenance.
 
 The same principle is generalised beyond CWC as a standing product rule — **every FLOW input
@@ -551,13 +551,13 @@ Every credit line the running app must display, in the words the source uses. Th
 only exists in a commit message is not an attribution. Rendered in the app footer and the
 about panel, in both English and Assamese, and mirrored in `README.md`.
 
-| Source | Credit line to display | Basis | Required? |
-| --- | --- | --- | --- |
-| **Copernicus DEM GLO-30** | `produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved` | Licence Article 6(b), §1 | **Yes** — mandatory for adapted use, and we resample and clamp |
-| **USGS ANSS ComCat** | `Earthquake catalog data courtesy of the U.S. Geological Survey` | USGS crediting page template, §3 | Requested, not required — we give it |
-| **Natural Earth** | `Made with Natural Earth` | §2 | Optional — we give it |
-| **Bird PB2002** | — | §4 | **Not shipped.** Nothing to credit. |
-| **NCS, IMD, ASDMA, CWC** | — | §6–§9 | **Linked and cited, never bundled.** Nothing to credit, but each must be linked where its subject matter appears |
+| Source                    | Credit line to display                                                                                                                                                                  | Basis                            | Required?                                                                                                        |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Copernicus DEM GLO-30** | `produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved` | Licence Article 6(b), §1         | **Yes** — mandatory for adapted use, and we resample and clamp                                                   |
+| **USGS ANSS ComCat**      | `Earthquake catalog data courtesy of the U.S. Geological Survey`                                                                                                                        | USGS crediting page template, §3 | Requested, not required — we give it                                                                             |
+| **Natural Earth**         | `Made with Natural Earth`                                                                                                                                                               | §2                               | Optional — we give it                                                                                            |
+| **Bird PB2002**           | —                                                                                                                                                                                       | §4                               | **Not shipped.** Nothing to credit.                                                                              |
+| **NCS, IMD, ASDMA, CWC**  | —                                                                                                                                                                                       | §6–§9                            | **Linked and cited, never bundled.** Nothing to credit, but each must be linked where its subject matter appears |
 
 **Rules for this list:**
 

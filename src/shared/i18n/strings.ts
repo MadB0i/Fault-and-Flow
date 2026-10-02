@@ -91,8 +91,7 @@ export const EN: Strings = {
   languageEnglish: 'English',
   languageAssamese: 'অসমীয়া',
 
-  disclaimerShort:
-    'An educational sandbox. Not a forecast and not a hazard map.',
+  disclaimerShort: 'An educational sandbox. Not a forecast and not a hazard map.',
   earthquakesCannotBePredicted:
     'Earthquakes cannot be predicted. No one can tell you when or where the ' +
     'next one will happen.',
