@@ -111,12 +111,13 @@ export function framingDistance(
   const h = Math.max(heightM, 1);
   const fov = (fovDeg * Math.PI) / 180;
   const polar = (polarDeg * Math.PI) / 180;
-  // Tilted away from plan view, the area's depth foreshortens by cos(polar),
-  // so the same distance has to cover more ground to keep it on screen.
-  const tilt = Math.max(Math.cos(polar), 0.25);
-  const depthNeeded = h / 2 / Math.max(Math.sin(fov / 2), 1e-3) / tilt;
+  // Project the near corners: tilt foreshortens the vertical extent, while
+  // perspective moves the near edge toward the camera by h/2 * sin(polar).
+  const nearOffset = (h / 2) * Math.sin(polar);
+  const depthNeeded =
+    ((h / 2) * Math.cos(polar)) / Math.max(Math.tan(fov / 2), 1e-3) + nearOffset;
   const hfov = 2 * Math.atan(Math.tan(fov / 2) * Math.max(aspect, 0.2));
-  const widthNeeded = w / 2 / Math.max(Math.tan(hfov / 2), 1e-3);
+  const widthNeeded = w / 2 / Math.max(Math.tan(hfov / 2), 1e-3) + nearOffset;
   return Math.max(depthNeeded, widthNeeded) * Math.max(margin, 1);
 }
 

@@ -1,0 +1,2903 @@
+{
+  "retrieved": "2026-10-02",
+  "cutoff": "2026-10-01",
+  "start": "1900-01-01",
+  "minMagnitude": 5,
+  "bbox": [89.5, 24, 96.5, 28.5],
+  "source": {
+    "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-01&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc",
+    "sha256": "6e084a85265543b0f81527f7b0c1be1c0d9a2c8f8f0922b20de7de00d90a00ac"
+  },
+  "events": [
+    {
+      "id": "iscgem610548640",
+      "time": "1906-05-12T05:48:44.320Z",
+      "latitude": 26.228,
+      "longitude": 94.522,
+      "depthKm": 35,
+      "magnitude": 6.51,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem610548640"
+    },
+    {
+      "id": "iscgem913976",
+      "time": "1914-03-28T10:44:47.030Z",
+      "latitude": 25.438,
+      "longitude": 96.356,
+      "depthKm": 15,
+      "magnitude": 6.47,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem913976"
+    },
+    {
+      "id": "iscgem913954",
+      "time": "1915-12-03T02:39:23.440Z",
+      "latitude": 27.844,
+      "longitude": 91.752,
+      "depthKm": 15,
+      "magnitude": 6.56,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem913954"
+    },
+    {
+      "id": "iscgem913446",
+      "time": "1917-04-12T02:55:25.640Z",
+      "latitude": 24.435,
+      "longitude": 94.19,
+      "depthKm": 35,
+      "magnitude": 6.21,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem913446"
+    },
+    {
+      "id": "iscgem913196",
+      "time": "1918-07-08T10:22:08.490Z",
+      "latitude": 24.656,
+      "longitude": 90.801,
+      "depthKm": 15,
+      "magnitude": 7.14,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem913196"
+    },
+    {
+      "id": "iscgem911634",
+      "time": "1923-09-09T22:03:46.730Z",
+      "latitude": 24.969,
+      "longitude": 90.752,
+      "depthKm": 15,
+      "magnitude": 6.92,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem911634"
+    },
+    {
+      "id": "iscgem909833",
+      "time": "1926-05-10T08:19:01.790Z",
+      "latitude": 26.561,
+      "longitude": 96.428,
+      "depthKm": 15,
+      "magnitude": 5.72,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem909833"
+    },
+    {
+      "id": "iscgem910066",
+      "time": "1926-08-18T23:58:55.340Z",
+      "latitude": 24.765,
+      "longitude": 94.282,
+      "depthKm": 35,
+      "magnitude": 5.59,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem910066"
+    },
+    {
+      "id": "iscgem910185",
+      "time": "1926-10-23T14:30:26.850Z",
+      "latitude": 24.366,
+      "longitude": 92.822,
+      "depthKm": 15,
+      "magnitude": 5.67,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem910185"
+    },
+    {
+      "id": "iscgem909089",
+      "time": "1927-02-13T03:33:32.510Z",
+      "latitude": 24.843,
+      "longitude": 93.834,
+      "depthKm": 35,
+      "magnitude": 5.54,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem909089"
+    },
+    {
+      "id": "iscgem909145",
+      "time": "1927-03-15T16:56:31.560Z",
+      "latitude": 24.219,
+      "longitude": 94.676,
+      "depthKm": 35,
+      "magnitude": 5.9,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem909145"
+    },
+    {
+      "id": "iscgem908779",
+      "time": "1928-07-09T15:47:56.300Z",
+      "latitude": 26.692,
+      "longitude": 95.096,
+      "depthKm": 25,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem908779"
+    },
+    {
+      "id": "iscgem908870",
+      "time": "1928-08-30T12:12:27.400Z",
+      "latitude": 26.564,
+      "longitude": 95.866,
+      "depthKm": 15,
+      "magnitude": 5.51,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem908870"
+    },
+    {
+      "id": "iscgem907472",
+      "time": "1930-07-02T21:03:43.070Z",
+      "latitude": 25.807,
+      "longitude": 90.168,
+      "depthKm": 15,
+      "magnitude": 6.96,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem907472"
+    },
+    {
+      "id": "iscgem907473",
+      "time": "1930-07-03T00:18:58.420Z",
+      "latitude": 25.536,
+      "longitude": 90.035,
+      "depthKm": 15,
+      "magnitude": 5.78,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem907473"
+    },
+    {
+      "id": "iscgemsup907486",
+      "time": "1930-07-08T09:42:52.200Z",
+      "latitude": 25.531,
+      "longitude": 90.278,
+      "depthKm": 15,
+      "magnitude": 5.42,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgemsup907486"
+    },
+    {
+      "id": "iscgem907494",
+      "time": "1930-07-13T14:00:12.410Z",
+      "latitude": 26.697,
+      "longitude": 90.481,
+      "depthKm": 15,
+      "magnitude": 5.49,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem907494"
+    },
+    {
+      "id": "iscgem907603",
+      "time": "1930-09-22T14:19:12.090Z",
+      "latitude": 24.908,
+      "longitude": 93.862,
+      "depthKm": 35,
+      "magnitude": 6.18,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem907603"
+    },
+    {
+      "id": "iscgem906614",
+      "time": "1931-02-07T15:03:14.180Z",
+      "latitude": 24.409,
+      "longitude": 90.609,
+      "depthKm": 15,
+      "magnitude": 5.53,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem906614"
+    },
+    {
+      "id": "iscgem906014",
+      "time": "1932-02-05T13:43:31.530Z",
+      "latitude": 25.539,
+      "longitude": 96.118,
+      "depthKm": 15,
+      "magnitude": 5.65,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem906014"
+    },
+    {
+      "id": "iscgem906052",
+      "time": "1932-03-06T00:18:00.870Z",
+      "latitude": 25.474,
+      "longitude": 92.542,
+      "depthKm": 15,
+      "magnitude": 5.73,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem906052"
+    },
+    {
+      "id": "iscgem906084",
+      "time": "1932-03-27T08:44:35.490Z",
+      "latitude": 24.064,
+      "longitude": 91.887,
+      "depthKm": 15,
+      "magnitude": 5.68,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem906084"
+    },
+    {
+      "id": "iscgem906449",
+      "time": "1932-11-09T18:30:11.710Z",
+      "latitude": 26.449,
+      "longitude": 91.649,
+      "depthKm": 15,
+      "magnitude": 5.84,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem906449"
+    },
+    {
+      "id": "iscgem905449",
+      "time": "1933-03-06T13:05:33.670Z",
+      "latitude": 25.651,
+      "longitude": 90.365,
+      "depthKm": 15,
+      "magnitude": 5.93,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem905449"
+    },
+    {
+      "id": "iscgem904959",
+      "time": "1934-06-02T05:54:25.080Z",
+      "latitude": 25.173,
+      "longitude": 94.922,
+      "depthKm": 35,
+      "magnitude": 5.84,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem904959"
+    },
+    {
+      "id": "iscgemsup904166",
+      "time": "1935-03-21T00:03:56.910Z",
+      "latitude": 24.261,
+      "longitude": 89.647,
+      "depthKm": 15,
+      "magnitude": 5.82,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgemsup904166"
+    },
+    {
+      "id": "iscgem904245",
+      "time": "1935-04-23T16:45:36.170Z",
+      "latitude": 24.175,
+      "longitude": 94.376,
+      "depthKm": 35,
+      "magnitude": 5.77,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem904245"
+    },
+    {
+      "id": "iscgem903689",
+      "time": "1936-06-18T14:56:23.700Z",
+      "latitude": 26.454,
+      "longitude": 90.103,
+      "depthKm": 15,
+      "magnitude": 5.51,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem903689"
+    },
+    {
+      "id": "iscgem902990",
+      "time": "1937-03-09T20:19:27.190Z",
+      "latitude": 28.386,
+      "longitude": 91.947,
+      "depthKm": 15,
+      "magnitude": 5.52,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem902990"
+    },
+    {
+      "id": "iscgem903002",
+      "time": "1937-03-21T16:12:08.470Z",
+      "latitude": 26.057,
+      "longitude": 93.461,
+      "depthKm": 25,
+      "magnitude": 5.84,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem903002"
+    },
+    {
+      "id": "iscgem903245",
+      "time": "1937-09-09T23:37:38.690Z",
+      "latitude": 25.209,
+      "longitude": 94.324,
+      "depthKm": 55,
+      "magnitude": 5.65,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem903245"
+    },
+    {
+      "id": "iscgem902385",
+      "time": "1938-02-26T12:10:45.580Z",
+      "latitude": 27.999,
+      "longitude": 91.203,
+      "depthKm": 15,
+      "magnitude": 5.62,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem902385"
+    },
+    {
+      "id": "iscgem902472",
+      "time": "1938-05-06T03:41:11.880Z",
+      "latitude": 24.213,
+      "longitude": 94.242,
+      "depthKm": 35,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem902472"
+    },
+    {
+      "id": "iscgem901993",
+      "time": "1939-05-27T03:45:46.140Z",
+      "latitude": 24.414,
+      "longitude": 94.051,
+      "depthKm": 65.7,
+      "magnitude": 6.15,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem901993"
+    },
+    {
+      "id": "iscgem900628",
+      "time": "1941-01-21T12:41:45.600Z",
+      "latitude": 27.169,
+      "longitude": 91.794,
+      "depthKm": 15,
+      "magnitude": 6.43,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem900628"
+    },
+    {
+      "id": "iscgem900633",
+      "time": "1941-01-27T02:30:06.960Z",
+      "latitude": 26.699,
+      "longitude": 91.875,
+      "depthKm": 15,
+      "magnitude": 6.04,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem900633"
+    },
+    {
+      "id": "iscgem900819",
+      "time": "1941-05-22T01:00:26.890Z",
+      "latitude": 26.681,
+      "longitude": 93.087,
+      "depthKm": 15,
+      "magnitude": 5.53,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem900819"
+    },
+    {
+      "id": "iscgem900983",
+      "time": "1941-09-06T03:17:50.470Z",
+      "latitude": 27.114,
+      "longitude": 91.984,
+      "depthKm": 15,
+      "magnitude": 5.45,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem900983"
+    },
+    {
+      "id": "iscgem899716",
+      "time": "1943-02-08T21:05:30.210Z",
+      "latitude": 27.187,
+      "longitude": 91.403,
+      "depthKm": 15,
+      "magnitude": 5.82,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem899716"
+    },
+    {
+      "id": "iscgem900054",
+      "time": "1943-10-23T17:23:21.220Z",
+      "latitude": 26.705,
+      "longitude": 93.829,
+      "depthKm": 15,
+      "magnitude": 7.18,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem900054"
+    },
+    {
+      "id": "iscgem899674",
+      "time": "1944-12-24T14:46:41.050Z",
+      "latitude": 24.731,
+      "longitude": 92.583,
+      "depthKm": 15,
+      "magnitude": 6.33,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem899674"
+    },
+    {
+      "id": "iscgem898926",
+      "time": "1945-05-19T05:02:55.280Z",
+      "latitude": 24.712,
+      "longitude": 91.349,
+      "depthKm": 35,
+      "magnitude": 5.75,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem898926"
+    },
+    {
+      "id": "iscgemsup898579",
+      "time": "1946-09-12T15:17:24.240Z",
+      "latitude": 24.104,
+      "longitude": 95.575,
+      "depthKm": 15,
+      "magnitude": 7.07,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgemsup898579"
+    },
+    {
+      "id": "iscgemsup898708",
+      "time": "1946-12-21T21:59:20.430Z",
+      "latitude": 24.159,
+      "longitude": 96.393,
+      "depthKm": 15,
+      "magnitude": 6.06,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgemsup898708"
+    },
+    {
+      "id": "iscgem897970",
+      "time": "1947-07-29T13:43:24.160Z",
+      "latitude": 28.484,
+      "longitude": 93.628,
+      "depthKm": 20,
+      "magnitude": 7.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem897970"
+    },
+    {
+      "id": "iscgem897653",
+      "time": "1948-11-28T21:43:09.330Z",
+      "latitude": 26.308,
+      "longitude": 94.856,
+      "depthKm": 50,
+      "magnitude": 5.88,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem897653"
+    },
+    {
+      "id": "iscgem895260",
+      "time": "1950-02-26T03:35:46.870Z",
+      "latitude": 27.223,
+      "longitude": 90.817,
+      "depthKm": 15,
+      "magnitude": 5.65,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895260"
+    },
+    {
+      "id": "official19500815140934_30",
+      "time": "1950-08-15T14:09:34.000Z",
+      "latitude": 28.363,
+      "longitude": 96.445,
+      "depthKm": 15,
+      "magnitude": 8.6,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/official19500815140934_30"
+    },
+    {
+      "id": "iscgem895689",
+      "time": "1950-08-15T21:42:22.020Z",
+      "latitude": 25.343,
+      "longitude": 92.944,
+      "depthKm": 25,
+      "magnitude": 6.01,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895689"
+    },
+    {
+      "id": "iscgem895691",
+      "time": "1950-08-15T23:44:45.540Z",
+      "latitude": 28.498,
+      "longitude": 95.131,
+      "depthKm": 25,
+      "magnitude": 5.8,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895691"
+    },
+    {
+      "id": "iscgem895693",
+      "time": "1950-08-16T06:42:05.220Z",
+      "latitude": 28.38,
+      "longitude": 95.894,
+      "depthKm": 25,
+      "magnitude": 6.23,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895693"
+    },
+    {
+      "id": "iscgem895698",
+      "time": "1950-08-16T16:36:01.870Z",
+      "latitude": 28.18,
+      "longitude": 94.968,
+      "depthKm": 25,
+      "magnitude": 5.66,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895698"
+    },
+    {
+      "id": "iscgem895699",
+      "time": "1950-08-16T17:51:34.820Z",
+      "latitude": 27.492,
+      "longitude": 92.802,
+      "depthKm": 15,
+      "magnitude": 5.96,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895699"
+    },
+    {
+      "id": "iscgem895706",
+      "time": "1950-08-17T01:54:17.890Z",
+      "latitude": 28.427,
+      "longitude": 94.844,
+      "depthKm": 25,
+      "magnitude": 6.14,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895706"
+    },
+    {
+      "id": "iscgem895756",
+      "time": "1950-08-26T06:33:12.520Z",
+      "latitude": 27.233,
+      "longitude": 94.965,
+      "depthKm": 25,
+      "magnitude": 6.19,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895756"
+    },
+    {
+      "id": "iscgem895825",
+      "time": "1950-09-13T11:07:41.110Z",
+      "latitude": 27.605,
+      "longitude": 95.133,
+      "depthKm": 25,
+      "magnitude": 6.22,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895825"
+    },
+    {
+      "id": "iscgem895938",
+      "time": "1950-10-16T15:42:35.950Z",
+      "latitude": 28.22,
+      "longitude": 95.457,
+      "depthKm": 25,
+      "magnitude": 5.53,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem895938"
+    },
+    {
+      "id": "iscgem896000",
+      "time": "1950-10-29T06:02:32.590Z",
+      "latitude": 27.419,
+      "longitude": 95.354,
+      "depthKm": 25,
+      "magnitude": 5.96,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem896000"
+    },
+    {
+      "id": "iscgem896062",
+      "time": "1950-11-12T21:30:32.270Z",
+      "latitude": 27.233,
+      "longitude": 94.807,
+      "depthKm": 25,
+      "magnitude": 5.51,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem896062"
+    },
+    {
+      "id": "iscgem894174",
+      "time": "1951-03-12T14:52:21.860Z",
+      "latitude": 27.99,
+      "longitude": 94.668,
+      "depthKm": 25,
+      "magnitude": 5.98,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem894174"
+    },
+    {
+      "id": "iscgem894243",
+      "time": "1951-04-07T20:29:15.660Z",
+      "latitude": 25.949,
+      "longitude": 90.575,
+      "depthKm": 15,
+      "magnitude": 5.77,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem894243"
+    },
+    {
+      "id": "iscgem894263",
+      "time": "1951-04-14T23:40:56.830Z",
+      "latitude": 28.28,
+      "longitude": 93.861,
+      "depthKm": 15,
+      "magnitude": 6.4,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem894263"
+    },
+    {
+      "id": "iscgem892846",
+      "time": "1952-04-30T01:49:12.370Z",
+      "latitude": 26.621,
+      "longitude": 95.068,
+      "depthKm": 35,
+      "magnitude": 5.45,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem892846"
+    },
+    {
+      "id": "iscgem892952",
+      "time": "1952-05-26T02:46:36.600Z",
+      "latitude": 28.4,
+      "longitude": 94.488,
+      "depthKm": 20,
+      "magnitude": 5.96,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem892952"
+    },
+    {
+      "id": "iscgem893318",
+      "time": "1952-08-25T01:44:53.690Z",
+      "latitude": 28.138,
+      "longitude": 93.905,
+      "depthKm": 15,
+      "magnitude": 5.63,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem893318"
+    },
+    {
+      "id": "iscgem890383",
+      "time": "1954-02-23T06:40:35.900Z",
+      "latitude": 27.672,
+      "longitude": 91.605,
+      "depthKm": 15,
+      "magnitude": 6.16,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem890383"
+    },
+    {
+      "id": "iscgem888361",
+      "time": "1956-06-12T03:12:30.370Z",
+      "latitude": 25.03,
+      "longitude": 90.853,
+      "depthKm": 15,
+      "magnitude": 5.54,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem888361"
+    },
+    {
+      "id": "iscgem888616",
+      "time": "1956-08-22T19:40:18.200Z",
+      "latitude": 27.974,
+      "longitude": 95.211,
+      "depthKm": 15,
+      "magnitude": 5.58,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem888616"
+    },
+    {
+      "id": "iscgem889026",
+      "time": "1956-12-21T03:27:44.700Z",
+      "latitude": 26.611,
+      "longitude": 96.208,
+      "depthKm": 15,
+      "magnitude": 5.75,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem889026"
+    },
+    {
+      "id": "iscgem886778",
+      "time": "1957-07-01T19:30:24.440Z",
+      "latitude": 24.31,
+      "longitude": 93.894,
+      "depthKm": 65,
+      "magnitude": 6.2,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem886778"
+    },
+    {
+      "id": "iscgem885331",
+      "time": "1958-10-28T05:22:52.890Z",
+      "latitude": 25.22,
+      "longitude": 96.194,
+      "depthKm": 35,
+      "magnitude": 5.53,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem885331"
+    },
+    {
+      "id": "iscgem881401",
+      "time": "1959-02-14T22:25:52.280Z",
+      "latitude": 27.604,
+      "longitude": 96.459,
+      "depthKm": 15,
+      "magnitude": 5.69,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem881401"
+    },
+    {
+      "id": "iscgemsup882083",
+      "time": "1959-05-24T11:28:22.140Z",
+      "latitude": 26.147,
+      "longitude": 90.19,
+      "depthKm": 20,
+      "magnitude": 5.42,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgemsup882083"
+    },
+    {
+      "id": "iscgem882745",
+      "time": "1959-08-27T23:53:17.910Z",
+      "latitude": 25.086,
+      "longitude": 96.127,
+      "depthKm": 35,
+      "magnitude": 5.71,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem882745"
+    },
+    {
+      "id": "iscgem879928",
+      "time": "1960-07-29T10:42:47.590Z",
+      "latitude": 26.488,
+      "longitude": 90.297,
+      "depthKm": 15,
+      "magnitude": 5.64,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem879928"
+    },
+    {
+      "id": "iscgem872543",
+      "time": "1963-06-19T10:47:26.050Z",
+      "latitude": 25,
+      "longitude": 92.031,
+      "depthKm": 45,
+      "magnitude": 5.63,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem872543"
+    },
+    {
+      "id": "iscgem872557",
+      "time": "1963-06-21T15:26:30.920Z",
+      "latitude": 24.905,
+      "longitude": 92.167,
+      "depthKm": 51.1,
+      "magnitude": 5.7,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem872557"
+    },
+    {
+      "id": "iscgem868694",
+      "time": "1964-04-13T03:20:01.600Z",
+      "latitude": 27.592,
+      "longitude": 90.08,
+      "depthKm": 15,
+      "magnitude": 5.53,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem868694"
+    },
+    {
+      "id": "iscgem866515",
+      "time": "1964-06-03T02:49:18.730Z",
+      "latitude": 26,
+      "longitude": 95.689,
+      "depthKm": 116.6,
+      "magnitude": 5.6,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem866515"
+    },
+    {
+      "id": "iscgem865993",
+      "time": "1964-07-12T20:16:00.090Z",
+      "latitude": 24.798,
+      "longitude": 95.182,
+      "depthKm": 150.7,
+      "magnitude": 5.59,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem865993"
+    },
+    {
+      "id": "iscgem864048",
+      "time": "1964-09-01T13:22:35.720Z",
+      "latitude": 27.009,
+      "longitude": 92.232,
+      "depthKm": 10,
+      "magnitude": 5.7,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem864048"
+    },
+    {
+      "id": "iscgem863756",
+      "time": "1964-10-21T23:09:19.220Z",
+      "latitude": 28.077,
+      "longitude": 93.815,
+      "depthKm": 25,
+      "magnitude": 6.63,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem863756"
+    },
+    {
+      "id": "iscgem860307",
+      "time": "1965-02-18T04:26:37.620Z",
+      "latitude": 25.011,
+      "longitude": 94.186,
+      "depthKm": 55,
+      "magnitude": 5.61,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem860307"
+    },
+    {
+      "id": "iscgem857678",
+      "time": "1965-04-11T22:33:03.730Z",
+      "latitude": 26.73,
+      "longitude": 92.4,
+      "depthKm": 30,
+      "magnitude": 5.32,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem857678"
+    },
+    {
+      "id": "iscgem857273",
+      "time": "1965-05-30T08:48:18.920Z",
+      "latitude": 25.9,
+      "longitude": 95.835,
+      "depthKm": 80,
+      "magnitude": 5.79,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem857273"
+    },
+    {
+      "id": "iscgem856232",
+      "time": "1965-06-18T08:17:39.650Z",
+      "latitude": 24.974,
+      "longitude": 93.689,
+      "depthKm": 45,
+      "magnitude": 5.45,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem856232"
+    },
+    {
+      "id": "iscgem851622",
+      "time": "1965-12-09T20:26:04.570Z",
+      "latitude": 27.317,
+      "longitude": 92.503,
+      "depthKm": 15,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem851622"
+    },
+    {
+      "id": "iscgem850440",
+      "time": "1966-02-24T00:16:39.280Z",
+      "latitude": 26.281,
+      "longitude": 91.474,
+      "depthKm": 22.5,
+      "magnitude": 5.19,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem850440"
+    },
+    {
+      "id": "iscgem843331",
+      "time": "1966-09-11T15:55:19.780Z",
+      "latitude": 27.021,
+      "longitude": 95.69,
+      "depthKm": 17.5,
+      "magnitude": 5.26,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem843331"
+    },
+    {
+      "id": "iscgem843878",
+      "time": "1966-09-26T05:10:57.250Z",
+      "latitude": 27.451,
+      "longitude": 92.566,
+      "depthKm": 15.5,
+      "magnitude": 5.44,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem843878"
+    },
+    {
+      "id": "iscgem840292",
+      "time": "1967-01-30T21:05:30.120Z",
+      "latitude": 26.107,
+      "longitude": 96.115,
+      "depthKm": 25,
+      "magnitude": 5.62,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem840292"
+    },
+    {
+      "id": "iscgem837726",
+      "time": "1967-03-11T16:56:52.240Z",
+      "latitude": 28.445,
+      "longitude": 94.321,
+      "depthKm": 13,
+      "magnitude": 5.4,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem837726"
+    },
+    {
+      "id": "iscgem837822",
+      "time": "1967-03-14T06:58:06.340Z",
+      "latitude": 28.435,
+      "longitude": 94.24,
+      "depthKm": 20.7,
+      "magnitude": 5.7,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem837822"
+    },
+    {
+      "id": "iscgem837876",
+      "time": "1967-03-16T12:13:23.260Z",
+      "latitude": 26.959,
+      "longitude": 96.403,
+      "depthKm": 15,
+      "magnitude": 5.21,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem837876"
+    },
+    {
+      "id": "iscgem833089",
+      "time": "1967-07-07T22:56:30.880Z",
+      "latitude": 27.854,
+      "longitude": 92.028,
+      "depthKm": 15,
+      "magnitude": 5.19,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem833089"
+    },
+    {
+      "id": "iscgem830959",
+      "time": "1967-09-06T01:43:35.610Z",
+      "latitude": 24.06,
+      "longitude": 91.62,
+      "depthKm": 31,
+      "magnitude": 5.13,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem830959"
+    },
+    {
+      "id": "iscgem831281",
+      "time": "1967-09-15T10:32:44.310Z",
+      "latitude": 27.338,
+      "longitude": 91.91,
+      "depthKm": 13.7,
+      "magnitude": 5.79,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem831281"
+    },
+    {
+      "id": "iscgem829232",
+      "time": "1967-11-10T06:04:06.410Z",
+      "latitude": 25.441,
+      "longitude": 91.759,
+      "depthKm": 20,
+      "magnitude": 5.15,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem829232"
+    },
+    {
+      "id": "iscgem829352",
+      "time": "1967-11-14T00:04:18.500Z",
+      "latitude": 24.088,
+      "longitude": 91.624,
+      "depthKm": 25,
+      "magnitude": 5.25,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem829352"
+    },
+    {
+      "id": "iscgem821490",
+      "time": "1968-05-02T00:26:01.640Z",
+      "latitude": 26.293,
+      "longitude": 92.301,
+      "depthKm": 27.5,
+      "magnitude": 5.13,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem821490"
+    },
+    {
+      "id": "iscgem820192",
+      "time": "1968-06-12T04:29:22.130Z",
+      "latitude": 24.844,
+      "longitude": 91.886,
+      "depthKm": 30,
+      "magnitude": 5.48,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem820192"
+    },
+    {
+      "id": "iscgem818129",
+      "time": "1968-08-18T14:18:59.770Z",
+      "latitude": 26.431,
+      "longitude": 90.559,
+      "depthKm": 20,
+      "magnitude": 5.37,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem818129"
+    },
+    {
+      "id": "iscgem814541",
+      "time": "1968-12-27T14:38:13.810Z",
+      "latitude": 24.118,
+      "longitude": 91.6,
+      "depthKm": 29.4,
+      "magnitude": 5.37,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem814541"
+    },
+    {
+      "id": "iscgem807620",
+      "time": "1969-06-01T08:35:23.640Z",
+      "latitude": 25.716,
+      "longitude": 91.687,
+      "depthKm": 17,
+      "magnitude": 5.16,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem807620"
+    },
+    {
+      "id": "iscgem808464",
+      "time": "1969-06-30T08:51:54.670Z",
+      "latitude": 26.826,
+      "longitude": 92.632,
+      "depthKm": 32.5,
+      "magnitude": 5.25,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem808464"
+    },
+    {
+      "id": "iscgem806502",
+      "time": "1969-08-29T10:02:52.700Z",
+      "latitude": 26.303,
+      "longitude": 95.957,
+      "depthKm": 85,
+      "magnitude": 5.52,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem806502"
+    },
+    {
+      "id": "iscgem801922",
+      "time": "1969-11-05T20:25:15.690Z",
+      "latitude": 27.631,
+      "longitude": 90.195,
+      "depthKm": 15,
+      "magnitude": 5.29,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem801922"
+    },
+    {
+      "id": "iscgem799239",
+      "time": "1970-02-19T07:10:02.360Z",
+      "latitude": 27.461,
+      "longitude": 93.951,
+      "depthKm": 10,
+      "magnitude": 5.4,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem799239"
+    },
+    {
+      "id": "iscgem796100",
+      "time": "1970-05-29T10:33:59.490Z",
+      "latitude": 24.041,
+      "longitude": 94.011,
+      "depthKm": 40.2,
+      "magnitude": 5.31,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem796100"
+    },
+    {
+      "id": "iscgem794100",
+      "time": "1970-07-29T10:16:22.030Z",
+      "latitude": 25.997,
+      "longitude": 95.367,
+      "depthKm": 70.9,
+      "magnitude": 7,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem794100"
+    },
+    {
+      "id": "iscgem793251",
+      "time": "1970-08-28T01:24:08.240Z",
+      "latitude": 24.9,
+      "longitude": 91.659,
+      "depthKm": 27.5,
+      "magnitude": 5.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem793251"
+    },
+    {
+      "id": "iscgem785143",
+      "time": "1971-05-30T11:55:58.490Z",
+      "latitude": 25.278,
+      "longitude": 96.349,
+      "depthKm": 10,
+      "magnitude": 5.55,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem785143"
+    },
+    {
+      "id": "iscgem785149",
+      "time": "1971-05-30T15:44:17.190Z",
+      "latitude": 25.272,
+      "longitude": 96.391,
+      "depthKm": 10,
+      "magnitude": 6.18,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem785149"
+    },
+    {
+      "id": "iscgem785158",
+      "time": "1971-05-30T21:39:00.140Z",
+      "latitude": 25.211,
+      "longitude": 96.187,
+      "depthKm": 15,
+      "magnitude": 5.15,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem785158"
+    },
+    {
+      "id": "iscgem783810",
+      "time": "1971-06-26T02:16:38.960Z",
+      "latitude": 24.645,
+      "longitude": 94.629,
+      "depthKm": 75,
+      "magnitude": 5.31,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem783810"
+    },
+    {
+      "id": "iscgem782391",
+      "time": "1971-07-17T15:00:56.080Z",
+      "latitude": 26.451,
+      "longitude": 93.169,
+      "depthKm": 41.5,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem782391"
+    },
+    {
+      "id": "iscgem778161",
+      "time": "1971-12-29T22:27:07.380Z",
+      "latitude": 25.214,
+      "longitude": 94.684,
+      "depthKm": 65.3,
+      "magnitude": 5.63,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem778161"
+    },
+    {
+      "id": "iscgem772157",
+      "time": "1972-06-02T20:32:57.280Z",
+      "latitude": 28.414,
+      "longitude": 95.847,
+      "depthKm": 35,
+      "magnitude": 5.07,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem772157"
+    },
+    {
+      "id": "iscgem771496",
+      "time": "1972-07-11T20:46:16.940Z",
+      "latitude": 24.37,
+      "longitude": 94.42,
+      "depthKm": 72,
+      "magnitude": 5.04,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem771496"
+    },
+    {
+      "id": "iscgem766905",
+      "time": "1972-11-01T21:53:47.950Z",
+      "latitude": 26.378,
+      "longitude": 96.244,
+      "depthKm": 103.3,
+      "magnitude": 5.37,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/iscgem766905"
+    },
+    {
+      "id": "usp00001zx",
+      "time": "1973-05-31T23:39:56.700Z",
+      "latitude": 24.281,
+      "longitude": 93.548,
+      "depthKm": 30,
+      "magnitude": 5.9,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00001zx"
+    },
+    {
+      "id": "usp00002hz",
+      "time": "1973-07-04T16:44:11.400Z",
+      "latitude": 27.24,
+      "longitude": 92.474,
+      "depthKm": 26,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00002hz"
+    },
+    {
+      "id": "usp0000a3q",
+      "time": "1975-03-03T19:24:23.100Z",
+      "latitude": 24.135,
+      "longitude": 93.548,
+      "depthKm": 42,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0000a3q"
+    },
+    {
+      "id": "usp0000bdk",
+      "time": "1975-06-10T11:50:09.100Z",
+      "latitude": 28.231,
+      "longitude": 95.9,
+      "depthKm": 26,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0000bdk"
+    },
+    {
+      "id": "usp0000c4u",
+      "time": "1975-07-23T03:03:11.600Z",
+      "latitude": 26.509,
+      "longitude": 96.387,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0000c4u"
+    },
+    {
+      "id": "usp0000rfw",
+      "time": "1977-11-13T21:02:29.300Z",
+      "latitude": 26.471,
+      "longitude": 93.114,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0000rfw"
+    },
+    {
+      "id": "usp0000sde",
+      "time": "1978-01-08T06:32:58.700Z",
+      "latitude": 24.759,
+      "longitude": 95.172,
+      "depthKm": 100,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0000sde"
+    },
+    {
+      "id": "usp00010z7",
+      "time": "1979-05-29T00:39:52.100Z",
+      "latitude": 24.497,
+      "longitude": 94.724,
+      "depthKm": 83,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00010z7"
+    },
+    {
+      "id": "usp00012c5",
+      "time": "1979-08-11T20:32:07.900Z",
+      "latitude": 24.204,
+      "longitude": 94.939,
+      "depthKm": 110,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00012c5"
+    },
+    {
+      "id": "usp000146d",
+      "time": "1979-11-25T02:40:49.800Z",
+      "latitude": 25.236,
+      "longitude": 96.289,
+      "depthKm": 50,
+      "magnitude": 5.1,
+      "magnitudeType": "ms",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000146d"
+    },
+    {
+      "id": "usp00019ca",
+      "time": "1980-08-12T16:44:01.500Z",
+      "latitude": 24.784,
+      "longitude": 94.587,
+      "depthKm": 50,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00019ca"
+    },
+    {
+      "id": "usp0001c3c",
+      "time": "1981-02-09T15:49:22.910Z",
+      "latitude": 27.038,
+      "longitude": 89.752,
+      "depthKm": 33,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001c3c"
+    },
+    {
+      "id": "usp0001dbp",
+      "time": "1981-04-25T11:32:23.140Z",
+      "latitude": 24.941,
+      "longitude": 95.384,
+      "depthKm": 147.6,
+      "magnitude": 5.7,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001dbp"
+    },
+    {
+      "id": "usp0001ff2",
+      "time": "1981-08-23T15:56:13.880Z",
+      "latitude": 26.693,
+      "longitude": 96.064,
+      "depthKm": 79.6,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001ff2"
+    },
+    {
+      "id": "usp0001na3",
+      "time": "1982-07-06T06:13:35.550Z",
+      "latitude": 25.91,
+      "longitude": 90.315,
+      "depthKm": 33,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001na3"
+    },
+    {
+      "id": "usp0001pbn",
+      "time": "1982-08-31T10:42:45.310Z",
+      "latitude": 25.381,
+      "longitude": 91.472,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001pbn"
+    },
+    {
+      "id": "usp0001r48",
+      "time": "1982-11-26T13:26:29.280Z",
+      "latitude": 27.761,
+      "longitude": 94.919,
+      "depthKm": 33,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001r48"
+    },
+    {
+      "id": "usp0001rvy",
+      "time": "1982-12-30T08:37:14.390Z",
+      "latitude": 26.159,
+      "longitude": 91.641,
+      "depthKm": 40.6,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001rvy"
+    },
+    {
+      "id": "usp0001rz4",
+      "time": "1983-01-03T11:28:14.060Z",
+      "latitude": 24.232,
+      "longitude": 94.432,
+      "depthKm": 75.9,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001rz4"
+    },
+    {
+      "id": "usp0001stg",
+      "time": "1983-02-02T20:44:05.500Z",
+      "latitude": 26.894,
+      "longitude": 92.893,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001stg"
+    },
+    {
+      "id": "usp0001xw6",
+      "time": "1983-08-23T12:12:17.010Z",
+      "latitude": 24.554,
+      "longitude": 95.128,
+      "depthKm": 125.2,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001xw6"
+    },
+    {
+      "id": "usp0001y1y",
+      "time": "1983-08-30T10:39:27.360Z",
+      "latitude": 25.092,
+      "longitude": 94.711,
+      "depthKm": 62.8,
+      "magnitude": 5.6,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001y1y"
+    },
+    {
+      "id": "usp0001ym0",
+      "time": "1983-09-23T20:18:01.810Z",
+      "latitude": 25.478,
+      "longitude": 95.709,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001ym0"
+    },
+    {
+      "id": "usp0001zva",
+      "time": "1983-11-16T00:54:11.790Z",
+      "latitude": 26.174,
+      "longitude": 96.099,
+      "depthKm": 139.3,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0001zva"
+    },
+    {
+      "id": "usp00022f8",
+      "time": "1984-03-05T21:26:42.520Z",
+      "latitude": 24.543,
+      "longitude": 94.661,
+      "depthKm": 68.9,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00022f8"
+    },
+    {
+      "id": "usp0002467",
+      "time": "1984-05-06T15:19:11.420Z",
+      "latitude": 24.257,
+      "longitude": 93.545,
+      "depthKm": 33,
+      "magnitude": 6,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002467"
+    },
+    {
+      "id": "usp00027kq",
+      "time": "1984-09-22T09:10:30.160Z",
+      "latitude": 26.524,
+      "longitude": 92.188,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00027kq"
+    },
+    {
+      "id": "usp00027tv",
+      "time": "1984-09-30T21:35:23.760Z",
+      "latitude": 25.363,
+      "longitude": 91.468,
+      "depthKm": 33,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00027tv"
+    },
+    {
+      "id": "usp0002ajx",
+      "time": "1984-12-30T23:33:37.720Z",
+      "latitude": 24.641,
+      "longitude": 92.891,
+      "depthKm": 22.6,
+      "magnitude": 6,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002ajx"
+    },
+    {
+      "id": "usp0002au5",
+      "time": "1985-01-07T16:13:05.190Z",
+      "latitude": 27.152,
+      "longitude": 91.986,
+      "depthKm": 11.8,
+      "magnitude": 5.6,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002au5"
+    },
+    {
+      "id": "usp0002b8e",
+      "time": "1985-01-21T12:57:15.280Z",
+      "latitude": 24.765,
+      "longitude": 94.454,
+      "depthKm": 72.6,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002b8e"
+    },
+    {
+      "id": "usp0002c3a",
+      "time": "1985-02-21T12:40:02.570Z",
+      "latitude": 28.323,
+      "longitude": 96.036,
+      "depthKm": 33,
+      "magnitude": 5.4,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002c3a"
+    },
+    {
+      "id": "usp0002e3n",
+      "time": "1985-04-24T06:47:42.820Z",
+      "latitude": 26.218,
+      "longitude": 96.013,
+      "depthKm": 27.6,
+      "magnitude": 5.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002e3n"
+    },
+    {
+      "id": "usp0002kqy",
+      "time": "1985-10-12T18:22:35.880Z",
+      "latitude": 27.133,
+      "longitude": 92.537,
+      "depthKm": 9.1,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002kqy"
+    },
+    {
+      "id": "usp0002pev",
+      "time": "1985-12-26T18:04:26.730Z",
+      "latitude": 27.13,
+      "longitude": 92.071,
+      "depthKm": 12.7,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002pev"
+    },
+    {
+      "id": "usp0002r4g",
+      "time": "1986-02-19T17:34:24.770Z",
+      "latitude": 25.136,
+      "longitude": 91.184,
+      "depthKm": 17.5,
+      "magnitude": 5.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002r4g"
+    },
+    {
+      "id": "usp0002szj",
+      "time": "1986-04-17T13:15:57.000Z",
+      "latitude": 24.46,
+      "longitude": 94.807,
+      "depthKm": 85.2,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002szj"
+    },
+    {
+      "id": "usp0002wdm",
+      "time": "1986-07-23T05:18:33.980Z",
+      "latitude": 26.866,
+      "longitude": 95.035,
+      "depthKm": 33,
+      "magnitude": 5.4,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002wdm"
+    },
+    {
+      "id": "usp0002xyr",
+      "time": "1986-09-10T07:50:25.570Z",
+      "latitude": 25.385,
+      "longitude": 92.077,
+      "depthKm": 43.1,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002xyr"
+    },
+    {
+      "id": "usp0002zjh",
+      "time": "1986-11-01T05:02:42.490Z",
+      "latitude": 26.902,
+      "longitude": 96.425,
+      "depthKm": 26.4,
+      "magnitude": 5.2,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0002zjh"
+    },
+    {
+      "id": "usp00034ju",
+      "time": "1987-04-29T05:15:34.270Z",
+      "latitude": 24.124,
+      "longitude": 94.655,
+      "depthKm": 103.9,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00034ju"
+    },
+    {
+      "id": "usp0003533",
+      "time": "1987-05-18T01:53:51.040Z",
+      "latitude": 25.271,
+      "longitude": 94.202,
+      "depthKm": 49.5,
+      "magnitude": 6.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003533"
+    },
+    {
+      "id": "usp000385k",
+      "time": "1987-09-06T23:38:52.400Z",
+      "latitude": 26.689,
+      "longitude": 93.414,
+      "depthKm": 43.8,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000385k"
+    },
+    {
+      "id": "usp0003ct7",
+      "time": "1988-02-06T14:50:45.290Z",
+      "latitude": 24.688,
+      "longitude": 91.57,
+      "depthKm": 33,
+      "magnitude": 5.9,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003ct7"
+    },
+    {
+      "id": "usp0003jpw",
+      "time": "1988-08-06T00:36:24.650Z",
+      "latitude": 25.149,
+      "longitude": 95.127,
+      "depthKm": 90.5,
+      "magnitude": 7.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003jpw"
+    },
+    {
+      "id": "usp0003jyn",
+      "time": "1988-08-13T19:59:51.100Z",
+      "latitude": 25.32,
+      "longitude": 95.156,
+      "depthKm": 92,
+      "magnitude": 5.1,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003jyn"
+    },
+    {
+      "id": "usp0003k7u",
+      "time": "1988-08-21T13:16:28.950Z",
+      "latitude": 25.303,
+      "longitude": 95.099,
+      "depthKm": 80.8,
+      "magnitude": 5.2,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003k7u"
+    },
+    {
+      "id": "usp0003q07",
+      "time": "1988-12-20T09:45:43.690Z",
+      "latitude": 27.624,
+      "longitude": 91.154,
+      "depthKm": 33.5,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003q07"
+    },
+    {
+      "id": "usp0003srt",
+      "time": "1989-03-08T20:02:03.850Z",
+      "latitude": 26.987,
+      "longitude": 92.751,
+      "depthKm": 33,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003srt"
+    },
+    {
+      "id": "usp0003tkg",
+      "time": "1989-04-03T19:39:32.280Z",
+      "latitude": 25.17,
+      "longitude": 94.652,
+      "depthKm": 66.5,
+      "magnitude": 5.6,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003tkg"
+    },
+    {
+      "id": "usp0003tx3",
+      "time": "1989-04-13T07:25:36.700Z",
+      "latitude": 24.472,
+      "longitude": 92.505,
+      "depthKm": 33,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003tx3"
+    },
+    {
+      "id": "usp0003y9r",
+      "time": "1989-08-09T16:01:25.430Z",
+      "latitude": 24.559,
+      "longitude": 94.707,
+      "depthKm": 85.7,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0003y9r"
+    },
+    {
+      "id": "usp0004421",
+      "time": "1990-01-09T18:51:29.210Z",
+      "latitude": 24.753,
+      "longitude": 95.241,
+      "depthKm": 119.2,
+      "magnitude": 6.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004421"
+    },
+    {
+      "id": "usp000442q",
+      "time": "1990-01-10T06:37:54.820Z",
+      "latitude": 24.516,
+      "longitude": 94.682,
+      "depthKm": 86.5,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000442q"
+    },
+    {
+      "id": "usp00045t0",
+      "time": "1990-02-22T22:07:00.150Z",
+      "latitude": 24.946,
+      "longitude": 93.104,
+      "depthKm": 52.2,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00045t0"
+    },
+    {
+      "id": "usp00048na",
+      "time": "1990-04-30T01:55:57.570Z",
+      "latitude": 26.437,
+      "longitude": 93.318,
+      "depthKm": 33,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00048na"
+    },
+    {
+      "id": "usp0004e6x",
+      "time": "1990-09-02T06:29:24.830Z",
+      "latitude": 26.645,
+      "longitude": 92.673,
+      "depthKm": 45.9,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004e6x"
+    },
+    {
+      "id": "usp0004hj7",
+      "time": "1990-11-29T10:20:32.790Z",
+      "latitude": 24.308,
+      "longitude": 94.488,
+      "depthKm": 90.5,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004hj7"
+    },
+    {
+      "id": "usp0004jyc",
+      "time": "1990-12-29T19:24:12.150Z",
+      "latitude": 26.619,
+      "longitude": 92.579,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004jyc"
+    },
+    {
+      "id": "usp0004k8m",
+      "time": "1991-01-05T16:04:14.100Z",
+      "latitude": 24.012,
+      "longitude": 95.978,
+      "depthKm": 31.9,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004k8m"
+    },
+    {
+      "id": "usp0004m23",
+      "time": "1991-01-23T06:07:08.270Z",
+      "latitude": 24.733,
+      "longitude": 95.232,
+      "depthKm": 115.2,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004m23"
+    },
+    {
+      "id": "usp0004m9u",
+      "time": "1991-01-28T22:24:46.690Z",
+      "latitude": 26.029,
+      "longitude": 95.292,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004m9u"
+    },
+    {
+      "id": "usp0004rg2",
+      "time": "1991-05-11T02:15:24.000Z",
+      "latitude": 24.249,
+      "longitude": 93.705,
+      "depthKm": 62.7,
+      "magnitude": 5.4,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004rg2"
+    },
+    {
+      "id": "usp0004tab",
+      "time": "1991-06-23T10:04:00.330Z",
+      "latitude": 26.637,
+      "longitude": 93.187,
+      "depthKm": 33.2,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0004tab"
+    },
+    {
+      "id": "usp000500b",
+      "time": "1991-12-04T03:27:24.260Z",
+      "latitude": 24.015,
+      "longitude": 93.986,
+      "depthKm": 72.1,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000500b"
+    },
+    {
+      "id": "usp0005050",
+      "time": "1991-12-07T13:57:40.610Z",
+      "latitude": 24.059,
+      "longitude": 93.913,
+      "depthKm": 69,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0005050"
+    },
+    {
+      "id": "usp00050pq",
+      "time": "1991-12-20T02:06:05.300Z",
+      "latitude": 24.72,
+      "longitude": 93.103,
+      "depthKm": 40.7,
+      "magnitude": 5.4,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00050pq"
+    },
+    {
+      "id": "usp00053fk",
+      "time": "1992-02-25T01:57:25.870Z",
+      "latitude": 25.195,
+      "longitude": 92.225,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00053fk"
+    },
+    {
+      "id": "usp00054ud",
+      "time": "1992-03-25T22:32:34.850Z",
+      "latitude": 24.874,
+      "longitude": 95.231,
+      "depthKm": 106,
+      "magnitude": 5.2,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00054ud"
+    },
+    {
+      "id": "usp00055tv",
+      "time": "1992-04-15T01:32:09.900Z",
+      "latitude": 24.315,
+      "longitude": 94.898,
+      "depthKm": 116.1,
+      "magnitude": 5.7,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00055tv"
+    },
+    {
+      "id": "usp000594q",
+      "time": "1992-06-15T02:48:56.250Z",
+      "latitude": 24.027,
+      "longitude": 95.932,
+      "depthKm": 17.3,
+      "magnitude": 6.3,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000594q"
+    },
+    {
+      "id": "usp0005j69",
+      "time": "1992-12-12T14:20:56.740Z",
+      "latitude": 25.473,
+      "longitude": 91.414,
+      "depthKm": 40.7,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0005j69"
+    },
+    {
+      "id": "usp0005q75",
+      "time": "1993-03-27T09:42:59.110Z",
+      "latitude": 24.68,
+      "longitude": 95.1,
+      "depthKm": 114.7,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0005q75"
+    },
+    {
+      "id": "usp0006avq",
+      "time": "1994-04-09T11:19:30.400Z",
+      "latitude": 24.639,
+      "longitude": 94.788,
+      "depthKm": 90.3,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006avq"
+    },
+    {
+      "id": "usp0006b3e",
+      "time": "1994-04-14T17:32:43.580Z",
+      "latitude": 24.978,
+      "longitude": 95.539,
+      "depthKm": 182.9,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006b3e"
+    },
+    {
+      "id": "usp0006c4k",
+      "time": "1994-05-05T10:43:02.460Z",
+      "latitude": 24.802,
+      "longitude": 94.548,
+      "depthKm": 76.3,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006c4k"
+    },
+    {
+      "id": "usp0006gqk",
+      "time": "1994-08-08T21:08:31.660Z",
+      "latitude": 24.721,
+      "longitude": 95.2,
+      "depthKm": 121.7,
+      "magnitude": 6.1,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006gqk"
+    },
+    {
+      "id": "usp0006t34",
+      "time": "1995-02-17T02:44:25.050Z",
+      "latitude": 27.635,
+      "longitude": 92.371,
+      "depthKm": 39.3,
+      "magnitude": 5.5,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006t34"
+    },
+    {
+      "id": "usp0006wyk",
+      "time": "1995-05-06T01:59:07.130Z",
+      "latitude": 24.987,
+      "longitude": 95.294,
+      "depthKm": 117.5,
+      "magnitude": 6.4,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006wyk"
+    },
+    {
+      "id": "usp0006x4b",
+      "time": "1995-05-09T09:54:20.190Z",
+      "latitude": 25.29,
+      "longitude": 95.155,
+      "depthKm": 91.8,
+      "magnitude": 5.2,
+      "magnitudeType": "mw",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0006x4b"
+    },
+    {
+      "id": "usp00078v5",
+      "time": "1995-12-12T05:42:32.260Z",
+      "latitude": 26.852,
+      "longitude": 96.059,
+      "depthKm": 33,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00078v5"
+    },
+    {
+      "id": "usp0007jcg",
+      "time": "1996-06-09T23:25:18.500Z",
+      "latitude": 28.325,
+      "longitude": 92.201,
+      "depthKm": 83.2,
+      "magnitude": 5.2,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0007jcg"
+    },
+    {
+      "id": "usp0007mmq",
+      "time": "1996-07-26T13:09:05.490Z",
+      "latitude": 25.169,
+      "longitude": 96.253,
+      "depthKm": 33,
+      "magnitude": 5.4,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0007mmq"
+    },
+    {
+      "id": "usp0007t74",
+      "time": "1996-11-19T00:12:18.680Z",
+      "latitude": 24.498,
+      "longitude": 92.641,
+      "depthKm": 49.7,
+      "magnitude": 5.4,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0007t74"
+    },
+    {
+      "id": "usp00081x0",
+      "time": "1997-05-08T02:53:14.730Z",
+      "latitude": 24.894,
+      "longitude": 92.25,
+      "depthKm": 34.9,
+      "magnitude": 6,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00081x0"
+    },
+    {
+      "id": "usp000850y",
+      "time": "1997-07-18T19:39:23.420Z",
+      "latitude": 26.811,
+      "longitude": 91.793,
+      "depthKm": 46.9,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000850y"
+    },
+    {
+      "id": "usp0008maa",
+      "time": "1998-05-02T08:36:50.180Z",
+      "latitude": 24.932,
+      "longitude": 95.311,
+      "depthKm": 121.5,
+      "magnitude": 5.5,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0008maa"
+    },
+    {
+      "id": "usp0008r54",
+      "time": "1998-07-08T03:44:59.330Z",
+      "latitude": 27.325,
+      "longitude": 91.027,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0008r54"
+    },
+    {
+      "id": "usp0008tek",
+      "time": "1998-08-18T04:10:20.690Z",
+      "latitude": 27.555,
+      "longitude": 90.977,
+      "depthKm": 22.3,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0008tek"
+    },
+    {
+      "id": "usp0008vje",
+      "time": "1998-09-26T18:27:05.470Z",
+      "latitude": 27.77,
+      "longitude": 92.812,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0008vje"
+    },
+    {
+      "id": "usp0008z2e",
+      "time": "1998-12-02T13:25:04.240Z",
+      "latitude": 26.345,
+      "longitude": 93.499,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0008z2e"
+    },
+    {
+      "id": "usp00095uy",
+      "time": "1999-04-05T22:32:56.510Z",
+      "latitude": 24.908,
+      "longitude": 93.678,
+      "depthKm": 66.4,
+      "magnitude": 5.6,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp00095uy"
+    },
+    {
+      "id": "usp0009fg3",
+      "time": "1999-10-05T17:04:44.890Z",
+      "latitude": 26.26,
+      "longitude": 91.926,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0009fg3"
+    },
+    {
+      "id": "usp0009kn5",
+      "time": "2000-01-02T10:23:58.980Z",
+      "latitude": 27.559,
+      "longitude": 92.498,
+      "depthKm": 33,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0009kn5"
+    },
+    {
+      "id": "usp0009mnc",
+      "time": "2000-01-25T16:43:22.950Z",
+      "latitude": 27.663,
+      "longitude": 92.631,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0009mnc"
+    },
+    {
+      "id": "usp0009vk3",
+      "time": "2000-07-02T04:27:56.990Z",
+      "latitude": 24.51,
+      "longitude": 94.686,
+      "depthKm": 82.5,
+      "magnitude": 5.2,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp0009vk3"
+    },
+    {
+      "id": "usp000aczq",
+      "time": "2001-04-10T22:08:15.540Z",
+      "latitude": 24.627,
+      "longitude": 95.042,
+      "depthKm": 113.4,
+      "magnitude": 5.3,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000aczq"
+    },
+    {
+      "id": "usp000am9h",
+      "time": "2001-08-12T01:57:59.740Z",
+      "latitude": 24.432,
+      "longitude": 94.992,
+      "depthKm": 121.4,
+      "magnitude": 5.1,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000am9h"
+    },
+    {
+      "id": "usp000asbg",
+      "time": "2001-11-06T14:09:25.390Z",
+      "latitude": 27.268,
+      "longitude": 91.919,
+      "depthKm": 33,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000asbg"
+    },
+    {
+      "id": "usp000dabz",
+      "time": "2004-12-09T08:49:00.240Z",
+      "latitude": 24.757,
+      "longitude": 92.539,
+      "depthKm": 34.7,
+      "magnitude": 5.4,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000dabz"
+    },
+    {
+      "id": "usp000dg6k",
+      "time": "2005-02-15T11:15:11.700Z",
+      "latitude": 24.55,
+      "longitude": 92.524,
+      "depthKm": 35.2,
+      "magnitude": 5,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000dg6k"
+    },
+    {
+      "id": "usp000dg6x",
+      "time": "2005-02-15T13:05:49.840Z",
+      "latitude": 24.428,
+      "longitude": 94.537,
+      "depthKm": 69.7,
+      "magnitude": 5.2,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000dg6x"
+    },
+    {
+      "id": "usp000dk17",
+      "time": "2005-03-25T13:34:40.020Z",
+      "latitude": 25.477,
+      "longitude": 94.842,
+      "depthKm": 67.2,
+      "magnitude": 5.2,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000dk17"
+    },
+    {
+      "id": "usp000dznh",
+      "time": "2005-09-18T07:25:59.460Z",
+      "latitude": 24.561,
+      "longitude": 94.781,
+      "depthKm": 84,
+      "magnitude": 5.7,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000dznh"
+    },
+    {
+      "id": "usp000e2hs",
+      "time": "2005-10-22T13:45:20.400Z",
+      "latitude": 25.568,
+      "longitude": 96.05,
+      "depthKm": 102.8,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000e2hs"
+    },
+    {
+      "id": "usp000e751",
+      "time": "2005-12-29T07:20:55.730Z",
+      "latitude": 25.01,
+      "longitude": 96.197,
+      "depthKm": 12,
+      "magnitude": 5.1,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000e751"
+    },
+    {
+      "id": "usp000eaq0",
+      "time": "2006-02-23T20:04:53.550Z",
+      "latitude": 26.912,
+      "longitude": 91.705,
+      "depthKm": 10,
+      "magnitude": 5.8,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000eaq0"
+    },
+    {
+      "id": "usp000eaq1",
+      "time": "2006-02-23T20:07:26.170Z",
+      "latitude": 26.863,
+      "longitude": 91.632,
+      "depthKm": 10,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000eaq1"
+    },
+    {
+      "id": "usp000eqtx",
+      "time": "2006-08-12T20:46:11.300Z",
+      "latitude": 24.662,
+      "longitude": 92.71,
+      "depthKm": 42.8,
+      "magnitude": 5,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000eqtx"
+    },
+    {
+      "id": "usp000h07g",
+      "time": "2009-08-11T21:43:47.590Z",
+      "latitude": 24.323,
+      "longitude": 94.793,
+      "depthKm": 99,
+      "magnitude": 5.5,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h07g"
+    },
+    {
+      "id": "usp000h0n0",
+      "time": "2009-08-19T10:45:13.870Z",
+      "latitude": 26.556,
+      "longitude": 92.47,
+      "depthKm": 10,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h0n0"
+    },
+    {
+      "id": "usp000h12d",
+      "time": "2009-08-30T19:27:48.840Z",
+      "latitude": 25.28,
+      "longitude": 95.101,
+      "depthKm": 82.2,
+      "magnitude": 5.3,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h12d"
+    },
+    {
+      "id": "usp000h16n",
+      "time": "2009-09-03T19:51:06.960Z",
+      "latitude": 24.332,
+      "longitude": 94.669,
+      "depthKm": 95,
+      "magnitude": 5.9,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h16n"
+    },
+    {
+      "id": "usp000h1r4",
+      "time": "2009-09-21T08:53:05.910Z",
+      "latitude": 27.332,
+      "longitude": 91.437,
+      "depthKm": 14,
+      "magnitude": 6.1,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h1r4"
+    },
+    {
+      "id": "usp000h3j5",
+      "time": "2009-10-29T17:00:38.600Z",
+      "latitude": 27.262,
+      "longitude": 91.417,
+      "depthKm": 26,
+      "magnitude": 5.1,
+      "magnitudeType": "mwc",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h3j5"
+    },
+    {
+      "id": "usp000h5f4",
+      "time": "2009-12-29T09:01:55.310Z",
+      "latitude": 24.357,
+      "longitude": 94.807,
+      "depthKm": 124.8,
+      "magnitude": 5.6,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h5f4"
+    },
+    {
+      "id": "usp000h5j5",
+      "time": "2009-12-31T09:57:29.720Z",
+      "latitude": 27.319,
+      "longitude": 91.51,
+      "depthKm": 10,
+      "magnitude": 5.5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000h5j5"
+    },
+    {
+      "id": "usp000hu2t",
+      "time": "2011-02-04T13:53:46.260Z",
+      "latitude": 24.618,
+      "longitude": 94.68,
+      "depthKm": 85,
+      "magnitude": 6.2,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000hu2t"
+    },
+    {
+      "id": "usp000jb6k",
+      "time": "2011-11-21T03:15:41.560Z",
+      "latitude": 24.96,
+      "longitude": 95.232,
+      "depthKm": 107,
+      "magnitude": 5.7,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jb6k"
+    },
+    {
+      "id": "usp000jka9",
+      "time": "2012-05-11T12:41:35.300Z",
+      "latitude": 26.175,
+      "longitude": 92.889,
+      "depthKm": 43.3,
+      "magnitude": 5.4,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jka9"
+    },
+    {
+      "id": "usp000jnev",
+      "time": "2012-07-01T04:13:52.090Z",
+      "latitude": 25.592,
+      "longitude": 94.696,
+      "depthKm": 58,
+      "magnitude": 5.6,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jnev"
+    },
+    {
+      "id": "usp000jp0s",
+      "time": "2012-07-14T19:55:17.950Z",
+      "latitude": 25.424,
+      "longitude": 94.48,
+      "depthKm": 52.1,
+      "magnitude": 5.2,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jp0s"
+    },
+    {
+      "id": "usp000jpa0",
+      "time": "2012-07-22T02:11:12.210Z",
+      "latitude": 24.998,
+      "longitude": 96.427,
+      "depthKm": 22.6,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jpa0"
+    },
+    {
+      "id": "usp000jpsz",
+      "time": "2012-08-02T19:06:12.700Z",
+      "latitude": 26.103,
+      "longitude": 96.324,
+      "depthKm": 55.6,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jpsz"
+    },
+    {
+      "id": "usp000jte2",
+      "time": "2012-10-02T18:37:38.700Z",
+      "latitude": 26.879,
+      "longitude": 92.818,
+      "depthKm": 36.8,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jte2"
+    },
+    {
+      "id": "usp000jy3c",
+      "time": "2013-01-09T01:41:53.260Z",
+      "latitude": 25.329,
+      "longitude": 95.048,
+      "depthKm": 93,
+      "magnitude": 5.8,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usp000jy3c"
+    },
+    {
+      "id": "usc000ff4h",
+      "time": "2013-03-02T01:30:38.630Z",
+      "latitude": 24.677,
+      "longitude": 92.222,
+      "depthKm": 38.7,
+      "magnitude": 5.2,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usc000ff4h"
+    },
+    {
+      "id": "usb000ktbm",
+      "time": "2013-11-06T04:16:16.060Z",
+      "latitude": 26.4118,
+      "longitude": 93.6451,
+      "depthKm": 34.32,
+      "magnitude": 5.4,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usb000ktbm"
+    },
+    {
+      "id": "usb000s3dx",
+      "time": "2014-08-16T16:39:55.170Z",
+      "latitude": 24.593,
+      "longitude": 94.5693,
+      "depthKm": 91.24,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usb000s3dx"
+    },
+    {
+      "id": "usc000t8ua",
+      "time": "2014-12-21T05:37:39.090Z",
+      "latitude": 24.2001,
+      "longitude": 94.6939,
+      "depthKm": 99.66,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/usc000t8ua"
+    },
+    {
+      "id": "us10002m67",
+      "time": "2015-06-28T01:05:28.560Z",
+      "latitude": 26.6384,
+      "longitude": 90.41,
+      "depthKm": 26,
+      "magnitude": 5.1,
+      "magnitudeType": "mwb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us10002m67"
+    },
+    {
+      "id": "us10004b2n",
+      "time": "2016-01-03T23:05:22.270Z",
+      "latitude": 24.8036,
+      "longitude": 93.6505,
+      "depthKm": 55,
+      "magnitude": 6.7,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us10004b2n"
+    },
+    {
+      "id": "us20005fj8",
+      "time": "2016-04-05T07:42:24.390Z",
+      "latitude": 25.7595,
+      "longitude": 90.5452,
+      "depthKm": 10,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us20005fj8"
+    },
+    {
+      "id": "us10007pfk",
+      "time": "2017-01-03T09:09:02.080Z",
+      "latitude": 24.0151,
+      "longitude": 92.0177,
+      "depthKm": 32,
+      "magnitude": 5.7,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us10007pfk"
+    },
+    {
+      "id": "us20008m0e",
+      "time": "2017-02-24T12:02:50.650Z",
+      "latitude": 24.0437,
+      "longitude": 93.4825,
+      "depthKm": 59.8,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us20008m0e"
+    },
+    {
+      "id": "us100086x4",
+      "time": "2017-03-04T02:11:53.820Z",
+      "latitude": 25.1865,
+      "longitude": 94.6658,
+      "depthKm": 74.07,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us100086x4"
+    },
+    {
+      "id": "us2000a3r9",
+      "time": "2017-08-02T18:18:08.620Z",
+      "latitude": 24.3214,
+      "longitude": 93.6199,
+      "depthKm": 53.23,
+      "magnitude": 5.1,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us2000a3r9"
+    },
+    {
+      "id": "us1000c1my",
+      "time": "2018-01-07T06:47:15.780Z",
+      "latitude": 24.7382,
+      "longitude": 94.9055,
+      "depthKm": 33,
+      "magnitude": 5.6,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us1000c1my"
+    },
+    {
+      "id": "us2000hd8v",
+      "time": "2018-09-12T04:50:46.570Z",
+      "latitude": 26.3711,
+      "longitude": 90.1611,
+      "depthKm": 10,
+      "magnitude": 5.3,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us2000hd8v"
+    },
+    {
+      "id": "us2000jfur",
+      "time": "2019-02-10T03:22:05.370Z",
+      "latitude": 27.3345,
+      "longitude": 96.3645,
+      "depthKm": 10,
+      "magnitude": 5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us2000jfur"
+    },
+    {
+      "id": "us2000ka3r",
+      "time": "2019-04-04T07:45:30.378Z",
+      "latitude": 25.4467,
+      "longitude": 94.4235,
+      "depthKm": 61.78,
+      "magnitude": 5.1,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us2000ka3r"
+    },
+    {
+      "id": "us70003axc",
+      "time": "2019-04-23T20:15:50.777Z",
+      "latitude": 28.4073,
+      "longitude": 94.5605,
+      "depthKm": 14,
+      "magnitude": 5.9,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us70003axc"
+    },
+    {
+      "id": "us70003gm1",
+      "time": "2019-05-04T11:04:01.133Z",
+      "latitude": 26.2288,
+      "longitude": 95.7216,
+      "depthKm": 85.93,
+      "magnitude": 5.2,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us70003gm1"
+    },
+    {
+      "id": "us70004nrn",
+      "time": "2019-07-19T09:22:15.514Z",
+      "latitude": 27.7188,
+      "longitude": 92.8302,
+      "depthKm": 15,
+      "magnitude": 5.5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us70004nrn"
+    },
+    {
+      "id": "us600056lz",
+      "time": "2019-08-18T06:28:34.730Z",
+      "latitude": 24.0196,
+      "longitude": 93.858,
+      "depthKm": 63.38,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us600056lz"
+    },
+    {
+      "id": "us70007li1",
+      "time": "2020-02-08T12:47:01.887Z",
+      "latitude": 26.3386,
+      "longitude": 90.7847,
+      "depthKm": 10,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us70007li1"
+    },
+    {
+      "id": "us70009q28",
+      "time": "2020-05-25T14:42:17.395Z",
+      "latitude": 24.3856,
+      "longitude": 93.9197,
+      "depthKm": 57.89,
+      "magnitude": 5.1,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us70009q28"
+    },
+    {
+      "id": "us6000c7ce",
+      "time": "2020-10-10T17:38:00.765Z",
+      "latitude": 24.6661,
+      "longitude": 93.4997,
+      "depthKm": 53,
+      "magnitude": 5.5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000c7ce"
+    },
+    {
+      "id": "us6000dwue",
+      "time": "2021-03-26T19:02:07.885Z",
+      "latitude": 27.6289,
+      "longitude": 92.6692,
+      "depthKm": 29.81,
+      "magnitude": 5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000dwue"
+    },
+    {
+      "id": "us7000dy3b",
+      "time": "2021-04-28T02:21:26.212Z",
+      "latitude": 26.7813,
+      "longitude": 92.4565,
+      "depthKm": 34,
+      "magnitude": 6,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000dy3b"
+    },
+    {
+      "id": "us7000dy3r",
+      "time": "2021-04-28T02:33:01.489Z",
+      "latitude": 26.7489,
+      "longitude": 92.5136,
+      "depthKm": 35,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000dy3r"
+    },
+    {
+      "id": "us7000ej9c",
+      "time": "2021-07-07T03:15:24.246Z",
+      "latitude": 25.9603,
+      "longitude": 90.3499,
+      "depthKm": 10,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ej9c"
+    },
+    {
+      "id": "us7000fcq5",
+      "time": "2021-09-19T19:24:04.697Z",
+      "latitude": 25.2256,
+      "longitude": 94.8803,
+      "depthKm": 80.05,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000fcq5"
+    },
+    {
+      "id": "us7000inqd",
+      "time": "2022-11-10T05:01:05.611Z",
+      "latitude": 28.3835,
+      "longitude": 94.4118,
+      "depthKm": 15,
+      "magnitude": 5.5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000inqd"
+    },
+    {
+      "id": "us7000j6c8",
+      "time": "2023-01-23T13:42:02.771Z",
+      "latitude": 24.8836,
+      "longitude": 93.079,
+      "depthKm": 10,
+      "magnitude": 5.1,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000j6c8"
+    },
+    {
+      "id": "us7000k58h",
+      "time": "2023-05-31T11:20:14.013Z",
+      "latitude": 25.1051,
+      "longitude": 96.2315,
+      "depthKm": 10,
+      "magnitude": 5.9,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000k58h"
+    },
+    {
+      "id": "us7000k8uw",
+      "time": "2023-06-16T04:46:11.360Z",
+      "latitude": 24.7339,
+      "longitude": 92.0224,
+      "depthKm": 10,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000k8uw"
+    },
+    {
+      "id": "us6000kzvl",
+      "time": "2023-08-14T14:49:48.667Z",
+      "latitude": 24.9796,
+      "longitude": 92.2481,
+      "depthKm": 36.648,
+      "magnitude": 5.3,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000kzvl"
+    },
+    {
+      "id": "us7000kv42",
+      "time": "2023-09-11T17:32:00.809Z",
+      "latitude": 24.3645,
+      "longitude": 94.8511,
+      "depthKm": 110.242,
+      "magnitude": 5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000kv42"
+    },
+    {
+      "id": "us6000phdf",
+      "time": "2025-01-03T04:32:38.138Z",
+      "latitude": 24.9577,
+      "longitude": 95.5118,
+      "depthKm": 154.635,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000phdf"
+    },
+    {
+      "id": "us6000plwf",
+      "time": "2025-01-23T19:23:36.273Z",
+      "latitude": 24.6223,
+      "longitude": 95.093,
+      "depthKm": 117.542,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000plwf"
+    },
+    {
+      "id": "us6000pvpc",
+      "time": "2025-02-26T20:55:36.821Z",
+      "latitude": 26.3002,
+      "longitude": 92.3408,
+      "depthKm": 10,
+      "magnitude": 5.3,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000pvpc"
+    },
+    {
+      "id": "us6000pwz6",
+      "time": "2025-03-05T05:36:35.568Z",
+      "latitude": 24.5491,
+      "longitude": 94.6954,
+      "depthKm": 88.157,
+      "magnitude": 5.4,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000pwz6"
+    },
+    {
+      "id": "us6000pzix",
+      "time": "2025-03-18T07:49:00.454Z",
+      "latitude": 24.3088,
+      "longitude": 94.8302,
+      "depthKm": 118.337,
+      "magnitude": 5.1,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000pzix"
+    },
+    {
+      "id": "us6000qg9r",
+      "time": "2025-05-27T20:24:28.119Z",
+      "latitude": 24.4467,
+      "longitude": 93.8427,
+      "depthKm": 49.996,
+      "magnitude": 5.1,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000qg9r"
+    },
+    {
+      "id": "us7000qw56",
+      "time": "2025-09-14T11:11:51.373Z",
+      "latitude": 26.7097,
+      "longitude": 92.2103,
+      "depthKm": 29,
+      "magnitude": 5.5,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000qw56"
+    },
+    {
+      "id": "us7000rmhd",
+      "time": "2026-01-04T22:47:39.427Z",
+      "latitude": 26.3621,
+      "longitude": 92.3991,
+      "depthKm": 41.098,
+      "magnitude": 5.2,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000rmhd"
+    },
+    {
+      "id": "us6000srqj",
+      "time": "2026-04-21T00:29:35.307Z",
+      "latitude": 24.6319,
+      "longitude": 94.6985,
+      "depthKm": 95.116,
+      "magnitude": 5,
+      "magnitudeType": "mb",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000srqj"
+    },
+    {
+      "id": "us7000sr9j",
+      "time": "2026-06-07T17:36:43.343Z",
+      "latitude": 27.556,
+      "longitude": 89.7511,
+      "depthKm": 34,
+      "magnitude": 5.6,
+      "magnitudeType": "mww",
+      "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000sr9j"
+    }
+  ]
+}

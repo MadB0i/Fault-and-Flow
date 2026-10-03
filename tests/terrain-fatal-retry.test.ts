@@ -41,6 +41,9 @@ vi.mock('@engine/terrain', () => {
       setVerticalExaggeration: () => undefined,
       setContours: () => undefined,
       probe: () => null,
+      setAtlas: () => undefined,
+      captureImage: () => null,
+      setWaterLevel: () => undefined,
       getState: () => ({
         status: { phase: 'loading', areaId: 'majuli' },
         verticalExaggeration: 6,
@@ -122,7 +125,7 @@ describe('fatal retry rebuilds the view', () => {
       getControls().retry();
     });
     expect(mockEngine.createCalls).toBe(2);
-    expect(mockEngine.loadArea).toHaveBeenCalledWith('majuli');
+    expect(mockEngine.loadArea).toHaveBeenCalledWith('assam-overview');
     expect(getControls().fatal).toBeNull();
 
     act(() => {

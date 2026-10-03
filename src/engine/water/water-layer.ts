@@ -35,7 +35,7 @@ export const DEFAULT_WATER_SPEED = 60;
 export const MIN_DISCHARGE_M3S = 0;
 export const MAX_DISCHARGE_M3S = 20000;
 export const DISCHARGE_STEP_M3S = 250;
-export const DEFAULT_DISCHARGE_M3S = 4000;
+export const DEFAULT_DISCHARGE_M3S = 0;
 
 /** Depth above which a cell counts as wet for the area readout. */
 export const WET_THRESHOLD_M = 0.02;
@@ -59,12 +59,21 @@ const SURFACE_SEGMENTS = 256;
 const LIGHT_DIRECTION = new THREE.Vector3(-1, 0.55, -1).normalize();
 
 export interface WaterStats {
-  readonly wetAreaKm2: number;
-  readonly maxDepthM: number;
+  readonly wetAreaKm2: number | null;
+  readonly maxDepthM: number | null;
   readonly simTimeS: number;
 }
 
 export interface WaterLayerOptions {
+  /** Visible DEM texture, borrowed and never disposed here. */
+  readonly displayTerrain?: {
+    texture: THREE.Texture;
+    width: number;
+    height: number;
+    segments: number;
+  };
+  /** Optional user-chosen starting depth. Omitting this starts dry. */
+  readonly initialDepth?: Float32Array;
   readonly renderer: THREE.WebGLRenderer;
   readonly scene: THREE.Scene;
   readonly sim: SimGrid;
@@ -182,7 +191,7 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
   const initialData = new Float32Array(sim.width * sim.height * 4);
   for (let i = 0; i < sim.width * sim.height; i += 1) {
     initialData[i * 4] = sim.heights[i] ?? Number.NaN;
-    initialData[i * 4 + 1] = 0;
+    initialData[i * 4 + 1] = options.initialDepth?.[i] ?? 0;
   }
   const initialTex = new THREE.DataTexture(
     initialData,
@@ -261,7 +270,12 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
   initMat.uniforms['uZero']!.value = 0;
 
   // --- Visible surface ----------------------------------------------------
-  const surfaceGeo = new THREE.PlaneGeometry(1, 1, SURFACE_SEGMENTS, SURFACE_SEGMENTS);
+  const surfaceGeo = new THREE.PlaneGeometry(
+    1,
+    1,
+    options.displayTerrain?.segments ?? SURFACE_SEGMENTS,
+    options.displayTerrain?.segments ?? SURFACE_SEGMENTS,
+  );
   surfaceGeo.rotateX(-Math.PI / 2);
   const surfaceMat = new THREE.ShaderMaterial({
     vertexShader: WATER_SURFACE_VERTEX,
@@ -270,7 +284,14 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
       uState: { value: stateRead.texture },
       uFlux: { value: fluxRead.texture },
       uTexSize: { value: texSize },
-      uWorldSizeM: { value: new THREE.Vector2(options.extentWM, options.extentHM) },
+      uWorldSize: { value: new THREE.Vector2(options.extentWM, options.extentHM) },
+      uGround: { value: options.displayTerrain?.texture ?? initialTex },
+      uGroundSize: {
+        value: new THREE.Vector2(
+          options.displayTerrain?.width ?? sim.width,
+          options.displayTerrain?.height ?? sim.height,
+        ),
+      },
       uExaggeration: { value: options.exaggeration },
       uShallow: { value: new THREE.Color(options.shallowColor) },
       uDeep: { value: new THREE.Color(options.deepColor) },
@@ -300,25 +321,36 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
   let disposed = false;
   /** True when the depth field is not physically plausible; see refreshStats. */
   let diverged = false;
-  const stats: { wetAreaKm2: number; maxDepthM: number; simTimeS: number } = {
-    wetAreaKm2: 0,
-    maxDepthM: 0,
-    simTimeS: 0,
-  };
+  const stats: { wetAreaKm2: number | null; maxDepthM: number | null; simTimeS: number } =
+    {
+      wetAreaKm2: 0,
+      maxDepthM: 0,
+      simTimeS: 0,
+    };
   const readback = new Float32Array(sim.width * sim.height * 4);
 
   function refreshStats(): void {
     try {
       renderer.readRenderTargetPixels(stateRead, 0, 0, sim.width, sim.height, readback);
     } catch {
-      return; // keep the last known stats rather than blanking the readout
+      stats.wetAreaKm2 = null;
+      stats.maxDepthM = null;
+      diverged = true;
+      playing = false;
+      version += 1;
+      return;
     }
     let wet = 0;
     let max = 0;
     let suspect = 0;
     for (let i = 0; i < sim.width * sim.height; i += 1) {
       const d = readback[i * 4 + 1] ?? 0;
-      if (!Number.isFinite(d) || d < WET_THRESHOLD_M) continue;
+      if (sim.noData[i]) continue;
+      if (!Number.isFinite(d) || d < 0) {
+        suspect += 1;
+        continue;
+      }
+      if (d < WET_THRESHOLD_M) continue;
       // A depth past a few tens of metres means the sim diverged or the
       // readback came back garbage. Report it as unknown rather than printing
       // 5e19 m as if it were a measurement.
@@ -332,10 +364,11 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     if (suspect > 0) {
       // Diverged or unreadable: say so rather than print a number. A readout
       // of 5e19 m is worse than no readout, because it looks like a measurement.
-      stats.wetAreaKm2 = 0;
-      stats.maxDepthM = 0;
+      stats.wetAreaKm2 = null;
+      stats.maxDepthM = null;
       stats.simTimeS = simTime;
       diverged = true;
+      playing = false;
       version += 1;
       return;
     }
@@ -376,6 +409,7 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     outletCell: channel.outlet,
 
     setPlaying(p: boolean): void {
+      if (p && diverged) return;
       playing = p;
       if (p) acc = 0; // never repay wall-clock debt earned while paused
     },
@@ -392,16 +426,21 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     reset(): void {
       runPass(initMat, stateRead);
       runPass(initMat, stateWrite);
-      renderer.setRenderTarget(fluxRead);
-      renderer.clear();
-      renderer.setRenderTarget(fluxWrite);
-      renderer.clear();
-      renderer.setRenderTarget(null);
+      // Use a numerical zero pass, not the scene's non-zero clear colour.
+      initMat.uniforms['uZero']!.value = 1;
+      runPass(initMat, fluxRead);
+      runPass(initMat, fluxWrite);
+      initMat.uniforms['uZero']!.value = 0;
       simTime = 0;
       acc = 0;
       stats.wetAreaKm2 = 0;
       stats.maxDepthM = 0;
       stats.simTimeS = 0;
+      diverged = false;
+      refreshStats();
+      surfaceMat.uniforms['uState']!.value = stateRead.texture;
+      surfaceMat.uniforms['uFlux']!.value = fluxRead.texture;
+      surfaceMat.uniforms['uSimTime']!.value = 0;
       version += 1;
     },
     stepFrame(realDtS: number): void {
@@ -454,5 +493,6 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
     },
   };
 
+  refreshStats();
   return layer;
 }

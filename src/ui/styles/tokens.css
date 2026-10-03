@@ -83,6 +83,16 @@
   --dur-slow: 600ms;
   --dur-pulse: 1.2s;
 
+  /* ---- ATLAS LAYOUT -------------------------------------------------- */
+  --control-size: 2.75rem;
+  --atlas-min-height: 48rem;
+  --atlas-header-height: 5rem;
+  --atlas-title-width: 22rem;
+  --atlas-mobile-title: 18rem;
+  --atlas-layer-width: 13rem;
+  --atlas-dialog-width: 38rem;
+  --atlas-mobile-map: 32rem;
+
   /* A sentinel the glyph-coverage test checks against, so that a weight can
      never be added to the UI without the test being told about it. */
   --font-assamese-weight: 400;

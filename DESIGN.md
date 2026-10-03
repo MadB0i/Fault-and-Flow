@@ -113,6 +113,16 @@ copied from there verbatim.
   --dur: 300ms;
   --dur-slow: 600ms;
   --dur-pulse: 1.2s; /* seismic expanding ring, ease-out */
+
+  /* ---- ATLAS LAYOUT -------------------------------------------------- */
+  --control-size: 2.75rem;
+  --atlas-min-height: 48rem;
+  --atlas-header-height: 5rem;
+  --atlas-title-width: 22rem;
+  --atlas-mobile-title: 18rem;
+  --atlas-layer-width: 13rem;
+  --atlas-dialog-width: 38rem;
+  --atlas-mobile-map: 32rem;
 }
 ```
 

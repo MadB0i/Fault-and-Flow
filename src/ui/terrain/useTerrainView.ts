@@ -29,7 +29,7 @@ import {
 } from '@engine/terrain';
 
 import { AREA_SOURCES, prefersReducedMotion, readDocumentPalette } from './assets.js';
-import { setFlowMode } from '../state/setFlowMode.js';
+import type { AtlasPresentation } from '../../shared/atlas.js';
 
 const IDLE: TerrainViewState = {
   status: { phase: 'idle' },
@@ -42,6 +42,9 @@ const IDLE: TerrainViewState = {
 };
 
 export type TerrainViewController = {
+  captureImage: () => string | null;
+  setAtlas: (presentation: AtlasPresentation) => void;
+  setWaterLevel: (depthM: number) => void;
   /** Attach the canvas. The view is created on the first non-null canvas. */
   attachCanvas: (canvas: HTMLCanvasElement | null) => void;
   state: TerrainViewState;
@@ -89,9 +92,9 @@ export function useTerrainView(): TerrainViewController {
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const [state, setState] = useState<TerrainViewState>(IDLE);
-  const [areaId, setAreaId] = useState<AreaId>('majuli');
+  const [areaId, setAreaId] = useState<AreaId>('assam-overview');
   const [exaggeration, setExaggerationState] = useState<number>(
-    areaDefinitionOrFirst('majuli').defaultVerticalExaggeration,
+    areaDefinitionOrFirst('assam-overview').defaultVerticalExaggeration,
   );
   const [contours, setContoursState] = useState(false);
   const [fatal, setFatal] = useState<TerrainViewError | null>(null);
@@ -116,7 +119,7 @@ export function useTerrainView(): TerrainViewController {
         palette: readDocumentPalette(),
         sources: AREA_SOURCES,
         reducedMotion: prefersReducedMotion(),
-        initialArea: 'majuli',
+        initialArea: 'assam-overview',
       });
     } catch (error) {
       // A device that cannot run the renderer at all. Recorded as state so the
@@ -194,9 +197,6 @@ export function useTerrainView(): TerrainViewController {
 
   const setWaterOn = useCallback((on: boolean) => {
     setWaterOnState(on);
-    // The rail's FLOW channel and this checkbox are the same switch: showing
-    // the flood panel is what "Flow" means today, so they cannot disagree.
-    setFlowMode();
     const view = viewRef.current;
     if (!view) return;
     if (on) {
@@ -222,6 +222,13 @@ export function useTerrainView(): TerrainViewController {
   const resetWater = useCallback(() => {
     viewRef.current?.resetWater();
   }, []);
+  const setAtlas = useCallback((presentation: AtlasPresentation) => {
+    viewRef.current?.setAtlas(presentation);
+  }, []);
+  const captureImage = useCallback(() => viewRef.current?.captureImage() ?? null, []);
+  const setWaterLevel = useCallback((depthM: number) => {
+    viewRef.current?.setWaterLevel(depthM);
+  }, []);
 
   /**
    * The keyboard equivalent of the pointer readout.
@@ -244,8 +251,15 @@ export function useTerrainView(): TerrainViewController {
     setTargetProbe(view.probe({ kind: 'lonlat', lon, lat }));
   }, [state.status]);
 
+  useEffect(() => {
+    refreshCameraTarget();
+  }, [refreshCameraTarget]);
+
   const controls = useMemo<TerrainViewController>(
     () => ({
+      captureImage,
+      setAtlas,
+      setWaterLevel,
       attachCanvas,
       state,
       areaId,
@@ -268,6 +282,9 @@ export function useTerrainView(): TerrainViewController {
       resetWater,
     }),
     [
+      captureImage,
+      setAtlas,
+      setWaterLevel,
       attachCanvas,
       state,
       areaId,

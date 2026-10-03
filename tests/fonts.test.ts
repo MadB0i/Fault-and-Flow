@@ -17,6 +17,7 @@ import { dirname, resolve } from 'node:path';
 
 import { codePointsInFontFile, codePointsInString } from './helpers/woff2.js';
 import { ASSAMESE_STRINGS, ASSAMESE_COPY_STATUS } from '@shared/i18n/strings.js';
+import { ATLAS_COPY } from '@shared/i18n/atlas.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fontRoot = resolve(here, '../node_modules/@fontsource/noto-sans-bengali/files');
@@ -77,7 +78,10 @@ describe('Noto Sans Bengali — shipped font files', () => {
       const covered = shippedCoverage(weight);
       const missing: string[] = [];
 
-      for (const [key, value] of Object.entries(ASSAMESE_STRINGS)) {
+      for (const [key, value] of Object.entries({
+        ...ASSAMESE_STRINGS,
+        ...ATLAS_COPY.as,
+      })) {
         for (const codePoint of codePointsInString(value)) {
           if (!covered.has(codePoint)) {
             const glyph = String.fromCodePoint(codePoint);

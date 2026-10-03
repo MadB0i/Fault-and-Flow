@@ -97,7 +97,14 @@ export default function TerrainLegend({
   };
   // 46px is the narrowest gap four mono digits plus a decimal point need at
   // --step--2, so this is what stops neighbouring tick labels colliding.
-  const ticks = rampTicks(axis, rampTickStepFor(axis, 320, 46));
+  const candidates = rampTicks(axis, rampTickStepFor(axis, 240, 60));
+  const ticks = candidates.filter(
+    (v, i) =>
+      i === 0 ||
+      i === candidates.length - 1 ||
+      (v - axis.min > (axis.max - axis.min) * 0.18 &&
+        axis.max - v > (axis.max - axis.min) * 0.18),
+  );
   const span = axis.max - axis.min || 1;
   const positionOf = (value: number): number => ((value - axis.min) / span) * 100;
 
@@ -136,7 +143,7 @@ export default function TerrainLegend({
         className="mt-[var(--space-2xs)] h-[var(--space-xs)] w-full rounded-[2px] border-[length:1px]
                    border-[color:var(--hairline)]"
         style={{
-          backgroundImage: `linear-gradient(to top, ${RAMP_STOPS.join(', ')})`,
+          backgroundImage: `linear-gradient(to right, ${RAMP_STOPS.join(', ')})`,
         }}
       />
 

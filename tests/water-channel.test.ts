@@ -18,7 +18,7 @@ import {
   type TerrainGridMeta,
 } from '@engine/terrain/decode-terrain.js';
 import { gridToLonLat } from '@engine/terrain/metrics.js';
-import { burnChannel, buildSimGrid, deriveChannel } from '@engine/water/channel.js';
+import { buildSimGrid, deriveChannel } from '@engine/water/channel.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const processed = (name: string): string =>
@@ -69,55 +69,6 @@ describe('deriveChannel on a synthetic valley', () => {
     const a = deriveChannel(heights, noData, 24, 12);
     const b = deriveChannel(heights, noData, 24, 12);
     expect([...b.path]).toEqual([...a.path]);
-  });
-
-  it('burnChannel cuts a trough only along the route, and only downward', () => {
-    const w = 24;
-    const h = 12;
-    const { heights, noData } = valleyGrid(w, h);
-    const sim = { width: w, height: h, dxM: 100, dyM: 100, heights, noData };
-    const before = new Float32Array(heights);
-    const c = deriveChannel(heights, noData, w, h);
-    burnChannel(sim, c, 2);
-
-    const onRoute = new Set(c.path);
-    let loweredOnRoute = 0;
-    let loweredOffRoute = 0;
-    let raised = 0;
-    for (let i = 0; i < before.length; i += 1) {
-      const delta = (sim.heights[i] ?? 0) - (before[i] ?? 0);
-      if (delta > 1e-6) raised += 1;
-      if (delta < -1e-6) {
-        if (onRoute.has(i)) loweredOnRoute += 1;
-        else loweredOffRoute += 1;
-      }
-    }
-    // The trough exists, it never raises ground, and it stays local: the cells
-    // it touches are the route plus a rim, not the whole grid.
-    expect(loweredOnRoute).toBeGreaterThan(0);
-    expect(raised).toBe(0);
-    expect(loweredOnRoute + loweredOffRoute).toBeLessThan(before.length / 2);
-    // Route cells end up below their original height by a real margin.
-    for (const cell of c.path) {
-      expect(sim.heights[cell]).toBeLessThan(before[cell] ?? 0);
-    }
-  });
-
-  it('burnChannel is a no-op for a zero-width request and skips no-data', () => {
-    const w = 16;
-    const h = 8;
-    const { heights, noData } = valleyGrid(w, h);
-    const sim = { width: w, height: h, dxM: 100, dyM: 100, heights, noData };
-    const c = deriveChannel(heights, noData, w, h);
-    const before = new Float32Array(heights);
-    burnChannel(sim, c, 0);
-    expect([...sim.heights]).toEqual([...before]);
-
-    // Every no-data cell keeps its NaN rather than being filled in.
-    noData[5] = 1;
-    heights[5] = Number.NaN;
-    burnChannel(sim, c, 3);
-    expect(Number.isNaN(sim.heights[5] ?? 0)).toBe(true);
   });
 
   it('throws rather than inventing a route through a full wall', () => {

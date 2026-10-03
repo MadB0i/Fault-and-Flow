@@ -310,6 +310,34 @@ measurement rather than a formality.
 
 ---
 
+## 11. Owner-requested interactive atlas prototype
+
+**Date:** 2026-10-03. The owner asked to build the visually distinctive Assam
+flood/earthquake/plate experience, expanding the foundation scope.
+
+Use Natural Earth author-maintained GeoJSON for small cartographic extracts and
+ComCat event parameters for recorded history. Licences and source hashes are in
+`DATA.md` §14. USGS policy text is now transcribed directly in §3, resolving the
+older transcription gap in decision 2.
+
+Plate motion remains an explicitly schematic teaching diagram; no PB2002 data,
+unsourced boundary tracing, rate or geological date ships. This delivers the
+mechanism while the measured geographic opener remains open. Historical NASA
+flood reports are linked and never treated as simulation inputs or inundation maps.
+
+FLOW starts with a depth selected by the user near mapped centrelines on the
+unchanged DEM. Optional scenario inflow defaults to zero. Remove the artificial
+channel-burning routine: repeatedly overlapping cuts produced fictitious canyons,
+while the renderer still displayed the original terrain. The display now drapes
+simulated depth over the same terrain mesh without modifying measured heights.
+This is an illustrative starting condition, not riverbed bathymetry or an observed
+river level. Conservation is checked against the headless CPU equations.
+
+Assamese additions remain a review draft; glyph coverage and bilingual browser
+rendering are verified independently of linguistic approval.
+
+---
+
 ## Superseded
 
 _(none yet — this is the first decisions record)_

@@ -117,10 +117,12 @@ void main() {
   vec4 f = texture2D(uFluxNew, vUv);
   float outSum = f.x + f.y + f.z + f.w;
   float inSum = 0.0;
-  inSum += texture2D(uFluxNew, vUv + vec2(texel.x, 0.0)).x;
-  inSum += texture2D(uFluxNew, vUv + vec2(-texel.x, 0.0)).y;
-  inSum += texture2D(uFluxNew, vUv + vec2(0.0, texel.y)).z;
-  inSum += texture2D(uFluxNew, vUv + vec2(0.0, -texel.y)).w;
+  // Outside neighbours supply no water. Clamp-to-edge texture sampling alone
+  // would import this edge cell's own outgoing pipe and manufacture water.
+  if (fcoord.x < uTexSize.x - 1.0) inSum += texture2D(uFluxNew, vUv + vec2(texel.x, 0.0)).x;
+  if (fcoord.x > 0.0) inSum += texture2D(uFluxNew, vUv + vec2(-texel.x, 0.0)).y;
+  if (fcoord.y < uTexSize.y - 1.0) inSum += texture2D(uFluxNew, vUv + vec2(0.0, texel.y)).z;
+  if (fcoord.y > 0.0) inSum += texture2D(uFluxNew, vUv + vec2(0.0, -texel.y)).w;
   // No clamp here: the flux pass already limited every exporter to what it
   // held, so inSum is bounded by construction. Clamping again would silently
   // delete water.
@@ -160,6 +162,8 @@ varying vec3 vWorld;
 uniform sampler2D uState;
 uniform vec2 uTexSize;
 uniform vec2 uWorldSize;
+uniform highp sampler2D uGround;
+uniform vec2 uGroundSize;
 uniform float uExaggeration;
 float sampleDepth(vec2 uv, out float terrain) {
   vec2 g = uv * uTexSize - 0.5;
@@ -183,13 +187,24 @@ float sampleDepth(vec2 uv, out float terrain) {
   return mix(dtop, dbot, fr.y);
 }
 void main() {
-  vUv = uv;
+  vec2 grid = vec2(uv.x, 1.0 - uv.y);
+  vUv = grid;
   float terrain = 0.0;
-  float depth = sampleDepth(uv, terrain);
+  float depth = sampleDepth(grid, terrain);
+  // Display on the same DEM as the terrain, without changing the solver.
+  vec2 g = grid * uGroundSize - .5;
+  vec2 p = floor(g); vec2 f = fract(g);
+  vec2 a = clamp(p, vec2(0), uGroundSize-1.0);
+  vec2 b = clamp(p+1.0, vec2(0), uGroundSize-1.0);
+  float h00 = texture2D(uGround,(a+.5)/uGroundSize).r;
+  float h10 = texture2D(uGround,(vec2(b.x,a.y)+.5)/uGroundSize).r;
+  float h01 = texture2D(uGround,(vec2(a.x,b.y)+.5)/uGroundSize).r;
+  float h11 = texture2D(uGround,(b+.5)/uGroundSize).r;
+  terrain = mix(mix(h00,h10,f.x),mix(h01,h11,f.x),f.y);
   vNoData = terrain != terrain ? 1.0 : 0.0;
   vDepth = depth;
-  float y = (terrain + depth) * uExaggeration;
-  vec3 world = vec3((uv.x - 0.5) * uWorldSize.x, y, (uv.y - 0.5) * uWorldSize.y);
+  float y = (terrain + depth + .02) * uExaggeration;
+  vec3 world = vec3((grid.x - 0.5) * uWorldSize.x, y, (grid.y - 0.5) * uWorldSize.y);
   vWorld = world;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(world, 1.0);
 }
@@ -243,5 +258,6 @@ void main() {
   // the channel visible at all; deeper water gets more opaque on top of it.
   float alpha = max(uMinOpacity, mix(0.6, uOpacity, depthMix)) * shore;
   gl_FragColor = vec4(colour, alpha);
+  #include <colorspace_fragment>
 }
 `;

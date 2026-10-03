@@ -25,7 +25,6 @@ export {
 } from './step.js';
 
 export {
-  burnChannel,
   buildSimGrid,
   deriveChannel,
   gridIndex,

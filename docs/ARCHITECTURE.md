@@ -467,3 +467,31 @@ Cheap to check, expensive to lose. Each should have a lint rule or a test.
 8. Every shipped string present in both `en` and `as`.
 9. Every `--space-*` value a multiple of the 8px grid; no raw px spacing.
 10. No `outline: none` without a `:focus-visible` replacement.
+
+## Current atlas adapter — 2026-10-03
+
+The earlier `EngineApi` block is a planned facade, not a shipped interface. The
+implemented browser seam is `TerrainView` in `src/engine/terrain/terrain-view.ts`,
+exported from the terrain index, with `useTerrainView` as its React binding.
+`src/shared/atlas.ts` supplies serialisable `AtlasPresentation` (mode, layer flags,
+locale, catalogue year, selected event, schematic collision progress).
+
+This release extends that seam with `setAtlas`, `setWaterLevel` and `captureImage`;
+water-stat fields are nullable when unsupported or unreliable. This is a breaking
+API change. React receives no Three.js object. Atlas controls live in Zustand;
+modal/focus/playback UI lifetimes remain in the HUD.
+
+`atlas-layer.ts` renders sourced geography and earthquake parameters and original
+synthetic plate geometry. `seedRiverScenario` is pure and headlessly tested. It
+leaves DEM heights unchanged and seeds a local initial condition within two cells
+of mapped centrelines. No bathymetry, infiltration, friction calibration or bank
+erosion is held. The virtual-pipes solver runs on a coarser grid; display depth is
+draped on the visible DEM with the same sampling and mesh resolution. Both use
+north-first row order. Widths and rings are labelled visual/cartographic styling.
+
+The GPU checks compare real render-target depth to the independent CPU step,
+including open-edge loss and numerical reset. PNG capture renders synchronously
+before reading the canvas, so it does not rely on preserved drawing buffers.
+The HUD appends framing, scenario context and the sidecar's required credit to the
+export. Browser checks use native Python Playwright, with the npm Playwright
+runner providing the dev server and installed Chromium executable.

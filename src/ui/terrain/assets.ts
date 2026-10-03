@@ -53,6 +53,8 @@ export function readPalette(element: Element): TerrainPalette {
   const token = (name: string): string => style.getPropertyValue(name).trim();
 
   return {
+    amber: token('--seismic-amber'),
+    text: token('--text'),
     bg: token('--bg'),
     terrain1: token('--terrain-1'),
     terrain2: token('--terrain-2'),

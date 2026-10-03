@@ -32,6 +32,10 @@
  */
 
 import * as THREE from 'three';
+import { INITIAL_ATLAS, type AtlasPresentation } from '../../shared/atlas.js';
+import geography from '../../data/geography.json';
+import { createAtlasLayer } from './atlas-layer.js';
+import { seedRiverScenario } from '../water/scenario.js';
 
 import {
   AREA_IDS,
@@ -66,7 +70,6 @@ import { decodeTerrainRgba, NO_DATA_HEIGHT } from './decode-terrain.js';
 import { TERRAIN_FRAGMENT_SHADER, TERRAIN_VERTEX_SHADER } from './shaders.js';
 import {
   buildSimGrid,
-  burnChannel,
   deriveChannel,
   createWaterLayer,
   DEFAULT_WATER_SPEED,
@@ -81,6 +84,8 @@ export const MAX_MESH_SEGMENTS = 512;
 export const MAX_PIXEL_RATIO = 1.5;
 
 export type TerrainPalette = {
+  readonly amber?: string;
+  readonly text?: string;
   readonly bg: string;
   readonly terrain1: string;
   readonly terrain2: string;
@@ -158,8 +163,8 @@ export type WaterLayerState = {
   readonly playing: boolean;
   readonly speed: number;
   readonly dischargeM3s: number;
-  readonly wetAreaKm2: number;
-  readonly maxDepthM: number;
+  readonly wetAreaKm2: number | null;
+  readonly maxDepthM: number | null;
   readonly inflowLon: number;
   readonly inflowLat: number;
   readonly outletLon: number;
@@ -192,6 +197,9 @@ export type TerrainViewOptions = {
 };
 
 export type TerrainView = {
+  captureImage(): string | null;
+  setAtlas(presentation: AtlasPresentation): void;
+  setWaterLevel(depthM: number): void;
   loadArea(id: AreaId): Promise<void>;
   setVerticalExaggeration(x: number): void;
   setContours(on: boolean): void;
@@ -268,6 +276,8 @@ export function createTerrainView(
   let waterState: WaterLayerState | null = null;
   let waterSpeed = DEFAULT_WATER_SPEED;
   let waterDischarge = DEFAULT_DISCHARGE_M3S;
+  let waterLevel = 2;
+  let atlasPresentation = { ...INITIAL_ATLAS };
   let channelMarkers: {
     group: THREE.Group;
     inflowMesh: THREE.Mesh;
@@ -394,6 +404,20 @@ export function createTerrainView(
   scene.add(mesh);
 
   scene.background = skyLow.clone();
+  const atlasLayer = createAtlasLayer(
+    scene,
+    doc,
+    {
+      water: options.palette.waterShallow,
+      text: options.palette.text ?? options.palette.terrain4,
+      amber: options.palette.amber ?? options.palette.terrain3,
+      muted: options.palette.contour,
+      ground: options.palette.terrain2,
+      high: options.palette.terrain4,
+      surface: options.palette.bg,
+    },
+    reducedMotion,
+  );
 
   // --- Camera state -------------------------------------------------------
   const current: MutableSpherical = { polarDeg: 40, azimuthDeg: 0, distanceM: 1e5 };
@@ -443,8 +467,9 @@ export function createTerrainView(
       if (waterLayer.statsVersion() !== before) refreshWaterSnapshot();
     }
 
+    const atlasRunning = atlasLayer.step(deltaSeconds);
     render();
-    if (!settled || waterRunning) scheduleFrame();
+    if (!settled || waterRunning || atlasRunning) scheduleFrame();
   }
 
   function invalidateCamera(): void {
@@ -454,8 +479,10 @@ export function createTerrainView(
 
   function render(): void {
     const pos = sphericalToCartesian(current);
-    camera.position.set(pos.x, pos.y, pos.z);
+    camera.position.set(pos.x + atlasLayer.motionOffset(), pos.y, pos.z);
     camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld();
+    atlasLayer.layout(camera, canvas.clientWidth, canvas.clientHeight);
     renderer.render(scene, camera);
   }
 
@@ -627,6 +654,7 @@ export function createTerrainView(
 
   function onResize(): void {
     applySize();
+    resetCamera();
     scheduleFrame();
   }
 
@@ -872,6 +900,9 @@ export function createTerrainView(
 
     resetCamera();
     lastProbe = null;
+    atlasLayer.rebuild(next, exaggeration);
+    atlasLayer.update(atlasPresentation);
+    mesh.visible = atlasPresentation.mode !== 'plates';
 
     // A new DEM means a new river: rebuild the same model on this area's own
     // grid when water is wanted, so the reaches read as zoomed views of the
@@ -886,8 +917,10 @@ export function createTerrainView(
     }
     const def = areaDefinitionOrFirst(loaded.sidecar.area);
     const extent = extentMeters(loaded.sidecar);
-    target.polarDeg = clampPolar(def.defaultPolarDeg);
-    target.azimuthDeg = wrapAzimuth(def.defaultAzimuthDeg);
+    target.polarDeg =
+      atlasPresentation.mode === 'plates' ? 62 : clampPolar(def.defaultPolarDeg);
+    target.azimuthDeg =
+      atlasPresentation.mode === 'plates' ? 22 : wrapAzimuth(def.defaultAzimuthDeg);
     // Fit the area to the viewport rather than guessing from its diagonal, so
     // the whole area is visible and centred at any aspect ratio. Reset returns
     // here because this is the opening view.
@@ -899,6 +932,7 @@ export function createTerrainView(
         CAMERA_FOV_DEG,
         aspect,
         target.polarDeg,
+        atlasPresentation.mode === 'plates' ? 1.55 : 1.25,
       ),
       minDistanceM,
       maxDistanceM,
@@ -919,6 +953,7 @@ export function createTerrainView(
     exaggeration = next;
     material.uniforms['uExaggeration']!.value = next;
     waterLayer?.setExaggeration(next);
+    if (loaded) atlasLayer.rebuild(loaded, exaggeration);
     emit();
     // No geometry to rebuild, but the hillshade depends on the exaggeration, so
     // the pixels are stale until the next frame.
@@ -939,8 +974,8 @@ export function createTerrainView(
       playing: false,
       speed: waterSpeed,
       dischargeM3s: waterDischarge,
-      wetAreaKm2: 0,
-      maxDepthM: 0,
+      wetAreaKm2: null,
+      maxDepthM: null,
       inflowLon: 0,
       inflowLat: 0,
       outletLon: 0,
@@ -1015,6 +1050,8 @@ export function createTerrainView(
       ...waterState,
       wetAreaKm2: stats.wetAreaKm2,
       maxDepthM: stats.maxDepthM,
+      playing: waterLayer.isPlaying(),
+      reason: waterLayer.hasDiverged() ? 'unstable' : null,
     };
     emit();
   }
@@ -1045,10 +1082,8 @@ export function createTerrainView(
         currentSimWidth,
       );
       channel = deriveChannel(sim.heights, sim.noData, sim.width, sim.height);
-      // GLO-30 has no riverbed, so the route is at local water level and water
-      // ponds instead of running. Cut a trough into the SIM copy only; the
-      // displayed terrain is untouched and the UI states this is an assumption.
-      burnChannel(sim, channel, 2);
+      // Keep the measured terrain unchanged. Starting water is an explicit
+      // user-chosen depth near mapped river centrelines, not a fabricated bed.
     } catch {
       return unsupportedWater('channel-failed');
     }
@@ -1058,6 +1093,22 @@ export function createTerrainView(
       scene,
       sim,
       channel,
+      initialDepth: seedRiverScenario(
+        sim,
+        loaded.sidecar.bbox,
+        geography.rivers,
+        waterLevel,
+      ),
+      ...(heightTexture
+        ? {
+            displayTerrain: {
+              texture: heightTexture,
+              width: loaded.sidecar.width,
+              height: loaded.sidecar.height,
+              segments: MAX_MESH_SEGMENTS,
+            },
+          }
+        : {}),
       extentWM: extent.widthM,
       extentHM: extent.heightM,
       exaggeration,
@@ -1095,12 +1146,14 @@ export function createTerrainView(
       simHeight: sim.height,
     };
     placeChannelMarkers(sim, channel, extent);
+    refreshWaterSnapshot();
     emit();
     scheduleFrame();
     return true;
   }
 
   function enableWater(opts?: { simWidth?: number }): boolean {
+    if (waterWanted && waterLayer && opts?.simWidth === undefined) return true;
     waterWanted = true;
     return refreshWaterLayer(opts?.simWidth);
   }
@@ -1112,12 +1165,31 @@ export function createTerrainView(
     removeChannelMarkers();
     waterState = null;
     emit();
+    scheduleFrame();
+  }
+
+  function setWaterLevel(depthM: number): void {
+    if (!Number.isFinite(depthM)) return;
+    waterLevel = Math.min(8, Math.max(0, depthM));
+    if (waterWanted) refreshWaterLayer();
+  }
+
+  function setAtlas(next: AtlasPresentation): void {
+    const changed = next.mode !== atlasPresentation.mode;
+    atlasPresentation = { ...next };
+    atlasLayer.update(next);
+    mesh.visible = next.mode !== 'plates';
+    if (next.mode !== 'flow') {
+      disableWater();
+    }
+    if (changed) resetCamera();
+    scheduleFrame();
   }
 
   function setWaterPlaying(playing: boolean): void {
     waterLayer?.setPlaying(playing);
     if (waterState?.supported) {
-      waterState = { ...waterState, playing };
+      waterState = { ...waterState, playing: waterLayer?.isPlaying() ?? false };
       emit();
     }
     // Kicks the render loop while playing; silence resumes when paused.
@@ -1213,6 +1285,7 @@ export function createTerrainView(
     waterLayer?.dispose();
     waterLayer = null;
     removeChannelMarkers();
+    atlasLayer.dispose();
     geometry.dispose();
     material.dispose();
     renderer.dispose();
@@ -1226,6 +1299,13 @@ export function createTerrainView(
   });
 
   return {
+    captureImage() {
+      if (!loaded || disposed) return null;
+      render();
+      return canvas.toDataURL('image/png');
+    },
+    setAtlas,
+    setWaterLevel,
     loadArea,
     setVerticalExaggeration,
     setContours,

@@ -255,7 +255,6 @@ void main() {
   // Fills the space under a tilted view with one flat tone instead of the page
   // background, so the area reads as a slab sitting in a scene rather than as
   // a shape floating in a void. Never near-black: it is behind the terrain.
-  vec3 under = mix(skyColour(), uNoDataColour, 0.55);
 
   // --- Subtle depth haze --------------------------------------------------
   float viewDistance = length(vViewPosition);
@@ -263,5 +262,6 @@ void main() {
   colour = mix(colour, skyColour(), fog * uFogStrength);
 
   gl_FragColor = vec4(colour, 1.0);
+  #include <colorspace_fragment>
 }
 `;
