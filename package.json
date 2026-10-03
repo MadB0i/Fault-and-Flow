@@ -1,6 +1,6 @@
 {
   "name": "fault-and-flow",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Interactive 3D sandbox of Assam's earth and water, running entirely in the browser.",
   "license": "MIT",

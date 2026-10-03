@@ -2,6 +2,9 @@
 
 ### Explore Assam's earth and water.
 
+**v0.2.0** · [Explore the live atlas](https://madb0i.github.io/Fault-and-Flow/) ·
+[Releases](https://github.com/MadB0i/Fault-and-Flow/releases)
+
 An interactive 3D educational atlas of the Brahmaputra valley. Choose a water
 scenario, explore recorded earthquakes, and find your district in real terrain.
 Browser only, with English and Assamese controls, self-hosted fonts and local
@@ -113,12 +116,11 @@ npm run data:quakes:refresh
 ```
 
 The Pages workflow refreshes earthquake history before its checked build,
-including a daily scheduled run at **06:47 IST**. It becomes active when the
-workflow is on the default branch and Actions/Pages are enabled. Schedules can
+including a daily scheduled run at **06:47 IST**. The workflow runs on `main`
+with GitHub Actions and Pages. Schedules can
 be delayed or disabled after inactivity; failed validation stops the new
 deployment. Existing tabs keep their snapshot until reloaded. This does not
 create a live warning service. See [Data updates](docs/DATA_UPDATES.md).
-No public deployment has been performed.
 
 ## Architecture
 

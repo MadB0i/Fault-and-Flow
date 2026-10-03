@@ -89,7 +89,8 @@ bottom dock. No colour token, font dependency or icon set was changed.
 
 Fresh USGS retrieval succeeded for 2026-10-03 UTC. Failed, empty and invalid
 responses retain the exact last good catalogue bytes in offline unit checks.
-Automated remote updates are prepared, not activated or deployed from this branch.
+At the time of this local review, automated remote updates were prepared but
+had not been deployed. Publication setup is documented in [Data updates](DATA_UPDATES.md).
 Physical-device performance and native-speaker translation review remain pending.
 
 ## Map-first exploration and portrait sharing — 2026-10-03

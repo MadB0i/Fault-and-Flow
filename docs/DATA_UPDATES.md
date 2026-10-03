@@ -21,10 +21,9 @@ into the site without committing a new data snapshot to the repository.
 The deployed snapshot's source metadata appears in the UI. For a new committed
 baseline, run the updater and review the JSON diff and this document's provenance.
 
-This automation is prepared in the current branch. It requires the workflow on
-the repository's default branch, Actions enabled, and Pages using Actions with
-its existing environment permissions. No remote settings or deployment were
-changed here. GitHub can delay scheduled runs; public repositories' schedules can
+The v0.2.0 publication puts this workflow on `main`, using the repository's
+GitHub Actions Pages configuration. GitHub can delay scheduled runs;
+public repositories' schedules can
 be disabled after 60 days without repository activity. Manual dispatch or a main
 push also refreshes. See [GitHub schedule documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
 
