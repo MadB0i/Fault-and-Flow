@@ -55,6 +55,7 @@ export function createAtlasLayer(
   const labelMetrics = new WeakMap<THREE.Sprite, { height: number; ratio: number }>();
   const riverOpacity = new WeakMap<THREE.MeshBasicMaterial, number>();
   const districtAnchors = new WeakMap<THREE.Sprite, THREE.Vector3>();
+  const plateAnchors = new WeakMap<THREE.Sprite, THREE.Vector3>();
   const leaders = new WeakMap<THREE.Sprite, THREE.Line>();
   let layoutKey = '';
   const positionFor = (lon: number, lat: number, lift = 0): THREE.Vector3 | null => {
@@ -184,6 +185,7 @@ export function createAtlasLayer(
     );
     const labelHeight = width / span > 0.15 ? 0.032 : 0.034;
     sprite.position.copy(position);
+    if (parent === plates) plateAnchors.set(sprite, position.clone());
     sprite.scale.set((labelHeight * canvas.width) / 96, labelHeight, 1);
     labelMetrics.set(sprite, { height: labelHeight, ratio: canvas.width / 96 });
     sprite.renderOrder = 5;
@@ -365,7 +367,7 @@ export function createAtlasLayer(
           new THREE.LineDashedMaterial({
             color: boundary.name === 'Assam' ? palette.text : palette.muted,
             transparent: true,
-            opacity: boundary.name === 'Assam' ? 0.55 : 0.22,
+            opacity: boundary.name === 'Assam' ? 0.85 : 0.16,
             dashSize: span * 0.006,
             gapSize: span * 0.003,
           }),
@@ -563,7 +565,7 @@ export function createAtlasLayer(
             Number(b.userData['districtId'] === presentation.selectedDistrict) -
             Number(a.userData['districtId'] === presentation.selectedDistrict),
         )) {
-          if (!parent.visible) continue;
+          if (!parent.visible || (parent !== plates && !map.visible)) continue;
           if (!(object instanceof THREE.Sprite)) continue;
           const metric = labelMetrics.get(object as THREE.Sprite);
           if (!metric) continue;
@@ -576,14 +578,44 @@ export function createAtlasLayer(
                 (camera.projectionMatrix.elements[5] * height)
               : metric.height;
           object.scale.set(size * metric.ratio, size, 1);
-          if (parent === plates) continue;
-          const anchor = districtAnchors.get(object as THREE.Sprite);
+          const anchor = (parent === plates ? plateAnchors : districtAnchors).get(
+            object as THREE.Sprite,
+          );
           const p = (anchor ?? object.position).clone().project(camera);
           const x = ((p.x + 1) * width) / 2;
           const y = ((1 - p.y) * height) / 2;
           const w =
             (size * metric.ratio * camera.projectionMatrix.elements[0] * width) / 2;
           const h = (size * camera.projectionMatrix.elements[5] * height) / 2;
+          if (parent === plates) {
+            const sx = Math.max(w / 2 + 8, Math.min(width - w / 2 - 8, x));
+            let sy = y;
+            // The small diagram must retain all three names. Separate nearby
+            // labels in screen space without accumulating offsets across frames.
+            for (let attempt = 0; attempt < 8; attempt++) {
+              if (
+                !rectangles.some(
+                  (r) =>
+                    sx - w / 2 < r.right &&
+                    sx + w / 2 > r.left &&
+                    sy - h / 2 < r.bottom &&
+                    sy + h / 2 > r.top,
+                )
+              )
+                break;
+              sy -= h + 8;
+            }
+            object.position
+              .set((sx / width) * 2 - 1, 1 - (sy / height) * 2, p.z)
+              .unproject(camera);
+            rectangles.push({
+              left: sx - w / 2 - 4,
+              right: sx + w / 2 + 4,
+              top: sy - h / 2 - 4,
+              bottom: sy + h / 2 + 4,
+            });
+            continue;
+          }
           let rect = {
             left: x - w / 2 - 4,
             right: x + w / 2 + 4,
@@ -601,9 +633,11 @@ export function createAtlasLayer(
                 r.bottom > other.top,
             );
           const underHud = (r: typeof rect) =>
-            width >= 600 &&
-            ((r.left < width * 0.27 && r.top < height * 0.65) ||
-              (r.right > width * 0.82 && r.top < height * 0.8));
+            r.top < (width < 600 ? 140 : 115) ||
+            r.bottom > height - 80 ||
+            (width < 600
+              ? r.right > width - 88 && r.bottom > height - 300 && r.top < height - 65
+              : r.right > width - 300 && r.bottom > height - 120);
           if (
             district &&
             width >= 600 &&
@@ -612,9 +646,11 @@ export function createAtlasLayer(
             p.z <= 1
           ) {
             const offsets: { dx: number; dy: number }[] = [];
-            for (let row = -7; row <= 7; row++)
-              for (let column = -3; column <= 3; column++)
-                offsets.push({ dx: column * 40, dy: row * 28 });
+            // Short leaders preserve local context. Other names appear as the
+            // visitor zooms, and every district remains in the search directory.
+            for (let row = -1; row <= 1; row++)
+              for (let column = -1; column <= 1; column++)
+                offsets.push({ dx: column * 24, dy: row * 24 });
             offsets.sort((a, b) => Math.hypot(a.dx, a.dy) - Math.hypot(b.dx, b.dy));
             for (const { dx, dy } of offsets) {
               const candidate = {
@@ -645,11 +681,8 @@ export function createAtlasLayer(
             x <= width &&
             y >= 0 &&
             y <= height &&
-            (!district ||
-              width >= 600 ||
-              (rect.top >= height * 0.35 &&
-                rect.bottom <= height - 90 &&
-                (rect.bottom < height - 280 || rect.right < width - 120))) &&
+            rect.left >= 8 &&
+            rect.right <= width - 8 &&
             (!district || !underHud(rect)) &&
             !overlaps(rect);
           if (anchor) {

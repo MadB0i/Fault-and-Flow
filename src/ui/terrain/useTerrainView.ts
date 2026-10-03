@@ -88,15 +88,18 @@ function simWidthOverride(): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-export function useTerrainView(): TerrainViewController {
+export function useTerrainView(
+  initialArea: AreaId = 'assam-overview',
+): TerrainViewController {
+  const initialAreaRef = useRef(initialArea);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewRef = useRef<TerrainView | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const [state, setState] = useState<TerrainViewState>(IDLE);
-  const [areaId, setAreaId] = useState<AreaId>('assam-overview');
+  const [areaId, setAreaId] = useState<AreaId>(initialArea);
   const [exaggeration, setExaggerationState] = useState<number>(
-    areaDefinitionOrFirst('assam-overview').defaultVerticalExaggeration,
+    areaDefinitionOrFirst(initialArea).defaultVerticalExaggeration,
   );
   const [contours, setContoursState] = useState(false);
   const [fatal, setFatal] = useState<TerrainViewError | null>(null);
@@ -121,7 +124,7 @@ export function useTerrainView(): TerrainViewController {
         palette: readDocumentPalette(),
         sources: AREA_SOURCES,
         reducedMotion: prefersReducedMotion(),
-        initialArea: 'assam-overview',
+        initialArea: initialAreaRef.current,
       });
     } catch (error) {
       // A device that cannot run the renderer at all. Recorded as state so the

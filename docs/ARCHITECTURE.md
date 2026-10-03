@@ -542,3 +542,33 @@ retains a selectable native text field. The build-time USGS updater atomically
 replaces validated data, and the UI's timeline bounds derive from the snapshot
 cutoff rather than a hard-coded year. See `docs/DATA_UPDATES.md` for activation
 conditions and the distinction between historical refresh and live warnings.
+
+### Map-first layout and share composition — 2026-10-03
+
+The HUD starts with a compact dock and moves geographical layer switches into the
+native modal at both widths. Essential Play and range inputs stay in the document
+and visible while secondary controls collapse. Desktop expansion has a bounded,
+scrollable height; phone expansion remains in normal document flow.
+
+Portrait overview framing uses a 90-degree azimuth and swaps the terrain extents
+passed to the existing pure framing calculation. The orbit API is unchanged.
+District displacements are bounded to nearby candidates (24 screen pixels per
+axis), so decluttering no longer draws long leaders over neighbouring terrain.
+
+`SharedScenario` is a framework-free URL value object, separate from the engine
+contract. Parsing validates the region, finite input ranges and slider increments.
+FAULT/PLATES and district views always resolve to the Assam overview. The React
+binding accepts an initial area to load the shared region directly. Chosen depth
+and inflow live in the HUD and are applied when the visitor presses Run. Shared
+URLs do not restore camera movement, elapsed solver time or automatically enable
+water. Browser history applies the same validation.
+
+`createAtlasStory` composes the engine's capture into a static 1080 × 1920 PNG.
+The portrait uses a labelled central crop, with a preview before local download;
+the original full-viewport export remains separately available. Export credits
+are wrapped, fonts are the already loaded self-hosted faces, and all colours are
+read from CSS tokens. Capture temporarily increases pixel ratio (capped at 3),
+then restores both renderer resolution and the screen-height shader uniform in a
+finally block. The scene camera and simulation state are unchanged. Drawing-buffer
+errors leave the link-sharing path usable. No scientific input, dependency or
+engine API was added.

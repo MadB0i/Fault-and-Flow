@@ -18,7 +18,16 @@ Assamese controls, no backend, accounts or telemetry.
 - Open source, risk and historical flood-report panels; save an attributed map PNG.
 - Explore all 35 district names, search a district and focus its sourced
   administration centre. Zoom with wheel, pinch or buttons; Shift-drag pans.
-  Share links restore the district, language and historical earthquake selection.
+  Share links restore the district, language, historical earthquake selection,
+  FLOW region and chosen starting depth/inflow. They never auto-start water.
+- A compact dock keeps Play and the main slider on the first phone screen;
+  Explore more reveals depth layers, the cross-section and detailed records.
+  Portrait phone framing follows the valley vertically. District labels use short
+  leaders and declutter with zoom; all names remain searchable.
+- Share opens a preview of a 1080 × 1920 portrait story with a labelled central
+  map crop, district/region title, chosen context and wrapped source credits.
+  Download the story or the original full-view map PNG. These are static images,
+  not video exports; camera position and elapsed solver time are not in links.
 
 **Educational sandbox, not a forecast, hazard map or prediction tool.** Earthquakes
 cannot be predicted. Flood inputs are values you choose. Seismic rings and plate

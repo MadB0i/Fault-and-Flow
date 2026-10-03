@@ -1,5 +1,21 @@
 /** English and Assamese atlas copy. Assamese remains an owner-review draft. */
 const en = {
+  shareShort: 'Share',
+  districtInvitation: 'Your district, in a landscape shaped by earth and water.',
+  flowPrompt: 'Choose a depth. Watch the water find its way.',
+  faultPrompt: 'Move through recorded history. Explore an event.',
+  platesPrompt: 'Move the plates. Explore the collision.',
+  moreControls: 'Explore more',
+  lessControls: 'Collapse',
+  saveStory: 'Save portrait story',
+  storyAlt:
+    'Portrait atlas story with the captured map, chosen context and source credits.',
+  storyPreparing: 'Preparing your story…',
+  storySaved: 'Portrait story saved. Ready to share.',
+  storyKicker: 'A PLACE TO UNDERSTAND',
+  storyExplore: 'Explore your own corner of Assam.',
+  storyCrop: 'Map detail · portrait crop',
+  scenarioNotRun: 'Chosen settings · scenario not started',
   districts: 'District names',
   districtExplore: 'Find your district',
   districtSearch: 'Search districts',
@@ -11,7 +27,7 @@ const en = {
   zoomOut: 'Zoom out',
   share: 'Share this view',
   shareNote:
-    'Send someone this district or earthquake timeline. The link restores the chosen view; it does not forecast a flood or earthquake.',
+    'Share the chosen district, region, timeline and starting water settings. Links open with water stopped; camera movements and elapsed simulation time are not saved.',
   viewLink: 'Link to this view',
   copyLink: 'Copy link',
   linkCopied: 'Link copied. Your view is ready to share.',
@@ -164,6 +180,21 @@ const en = {
 };
 type Copy = { [K in keyof typeof en]: string };
 const as: Copy = {
+  shareShort: 'ভাগ কৰক',
+  districtInvitation: 'পৃথিৱী আৰু পানীয়ে গঢ়া ভূদৃশ্যত আপোনাৰ জিলা।',
+  flowPrompt: 'গভীৰতা বাছক। পানী কেনেকৈ আগবাঢ়ে চাওক।',
+  faultPrompt: 'নথিভুক্ত ইতিহাস চাওক। এটা ঘটনা অন্বেষণ কৰক।',
+  platesPrompt: 'ফলক আগবঢ়াওক। সংঘৰ্ষ অন্বেষণ কৰক।',
+  moreControls: 'অধিক অন্বেষণ',
+  lessControls: 'সংকুচিত কৰক',
+  saveStory: 'উলম্ব ছবি সংৰক্ষণ কৰক',
+  storyAlt: 'মানচিত্ৰ, বাছনি কৰা প্ৰসংগ আৰু উৎসসহ উলম্ব ছবি।',
+  storyPreparing: 'আপোনাৰ ছবি প্ৰস্তুত কৰা হৈছে…',
+  storySaved: 'উলম্ব ছবি সংৰক্ষণ কৰা হ’ল। ভাগ কৰিবলৈ সাজু।',
+  storyKicker: 'এখন ঠাই বুজি চাওঁ আহক',
+  storyExplore: 'অসমৰ নিজৰ অঞ্চল অন্বেষণ কৰক।',
+  storyCrop: 'মানচিত্ৰৰ অংশ · উলম্ব কাট',
+  scenarioNotRun: 'বাছনি কৰা ছেটিং · দৃষ্টান্ত আৰম্ভ হোৱা নাই',
   districts: 'জিলাৰ নাম',
   districtExplore: 'নিজৰ জিলা বিচাৰক',
   districtSearch: 'জিলা সন্ধান কৰক',
@@ -175,7 +206,7 @@ const as: Copy = {
   zoomOut: 'জুম কমাওক',
   share: 'এই দৃশ্য ভাগ কৰক',
   shareNote:
-    'এই জিলা বা ভূমিকম্পৰ সময়ৰেখাৰ লিংক ভাগ কৰক। লিংকে বাছনি কৰা দৃশ্য খোলে; বান বা ভূমিকম্পৰ পূৰ্বাভাস নহয়।',
+    'বাছনি কৰা জিলা, অঞ্চল, সময়ৰেখা আৰু পানীৰ আৰম্ভণিৰ মান ভাগ কৰক। লিংক খুলিলে পানী বন্ধ থাকে; কেমেৰাৰ গতি আৰু দৃষ্টান্তৰ পাৰ হোৱা সময় সংৰক্ষণ কৰা নহয়।',
   viewLink: 'এই দৃশ্যৰ লিংক',
   copyLink: 'লিংক কপি কৰক',
   linkCopied: 'লিংক কপি হ’ল। দৃশ্য ভাগ কৰিবলৈ সাজু।',

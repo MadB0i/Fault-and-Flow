@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import struct
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 
@@ -55,6 +56,10 @@ with sync_playwright() as p:
         ready(page)
         expect(page.get_by_role("heading",level=1)).to_have_count(1)
         expect(page.get_by_role("main")).to_have_count(1)
+        play_box = page.get_by_test_id("scenario-play").bounding_box()
+        assert play_box["y"] + play_box["height"] <= height, "Primary play action is below the first viewport"
+        expect(page.get_by_role("button",name="Explore more",exact=True)).to_have_attribute("aria-expanded","false")
+        record(name+" primary action visible without scrolling")
         for mode in ["flow","fault","plates"]:
             page.get_by_test_id("mode-"+mode).click()
             page.wait_for_timeout(800)
@@ -68,6 +73,28 @@ with sync_playwright() as p:
                             animations="disabled", caret="hide", full_page=True)
             page.get_by_role("radio",name="ইংৰাজী").check()
         if args.shots:
+            # The portrait is a user-reviewable crop, in both shipping languages.
+            page.get_by_test_id("mode-flow").click()
+            ready(page)
+            page.get_by_role("button",name="Find your district",exact=True).click()
+            page.get_by_label("Search districts",exact=True).fill("Dibrugarh")
+            page.locator(".district-grid button").click()
+            page.wait_for_timeout(500)
+            for lang in ["en","as"]:
+                if lang=="as": page.get_by_role("radio",name="অসমীয়া").check()
+                page.locator(".share-launch").click()
+                portrait_button=page.get_by_role("button",name="Save portrait story" if lang=="en" else "উলম্ব ছবি সংৰক্ষণ কৰক",exact=True)
+                expect(portrait_button).to_be_enabled(timeout=15000)
+                with page.expect_download() as portrait:
+                    portrait_button.click()
+                story_target=OUT/("portrait-"+name+"-"+lang+".png")
+                portrait.value.save_as(str(story_target))
+                assert struct.unpack(">II",story_target.read_bytes()[16:24]) == (1080,1920)
+                scan(page,name+" portrait "+lang)
+                page.screenshot(path=str(OUT/("share-"+name+"-"+lang+".png")),full_page=True)
+                page.keyboard.press("Escape")
+            page.get_by_role("radio",name="ইংৰাজী").check()
+            page.get_by_role("button",name="Explore more",exact=True).click()
             page.get_by_test_id("mode-flow").click()
             ready(page)
             page.get_by_test_id("region-majuli").click()
@@ -91,6 +118,7 @@ with sync_playwright() as p:
             assert not errors, errors
             context.close()
             continue
+        page.get_by_role("button",name="Explore more",exact=True).click()
         # Collision respects reduced motion and reaches its final illustrative state.
         page.get_by_role("button",name="Play collision",exact=True).click()
         expect(page.locator("#collision")).to_have_value("1")
@@ -132,19 +160,37 @@ with sync_playwright() as p:
         assert before!=canvas.screenshot(), "wheel over the middle did not zoom"
         record(name+" all districts, district focus, zoom buttons and centre wheel")
         # Link keeps sourced district and timeline choices, with a usable copy fallback.
+        live_resolution=canvas.evaluate("c=>[c.width,c.height]")
+        # Compare terrain pixels without including HUD hover/focus changes.
+        r=canvas.bounding_box()
+        map_clip={"x":r["x"]+r["width"]*.2,"y":r["y"]+r["height"]*.4,"width":r["width"]*.6,"height":r["height"]*.3}
+        live_paint=page.screenshot(clip=map_clip)
         page.get_by_role("button",name="Share this view",exact=True).click()
         link=page.get_by_label("Link to this view",exact=True).input_value()
         assert "district=2026441" in link and "mode=flow" in link
         page.get_by_role("button",name="Copy link",exact=True).click()
         expect(page.get_by_role("dialog")).to_contain_text("cop")
+        expect(page.get_by_role("button",name="Save portrait story",exact=True)).to_be_enabled(timeout=15000)
+        with page.expect_download() as portrait:
+            page.get_by_role("button",name="Save portrait story",exact=True).click()
+        story_target=OUT/("story-"+name+".png")
+        portrait.value.save_as(str(story_target))
+        assert struct.unpack(">II",story_target.read_bytes()[16:24]) == (1080,1920)
+        expect(page.get_by_role("dialog")).to_contain_text("Ready to share")
         scan(page,name+" share dialog")
+        page.screenshot(path=str(OUT/("share-"+name+".png")),full_page=True)
         page.keyboard.press("Escape")
+        expect(page.get_by_role("button",name="Share this view",exact=True)).to_be_focused()
+        assert canvas.evaluate("c=>[c.width,c.height]")==live_resolution, "Export changed live canvas resolution"
+        assert page.screenshot(clip=map_clip)==live_paint, "Export changed the camera or scene"
+        record(name+" portrait export, resolution restoration and share focus return")
         page.goto(link);page.wait_for_load_state("networkidle");ready(page)
         assert page.evaluate("document.querySelector('.region-selector button').getAttribute('aria-pressed')") == "true"
         page.get_by_role("button",name="Reset view",exact=True).click()
         record(name+" share link restores district")
         page.get_by_test_id("region-majuli").click()
         ready(page)
+        page.get_by_role("button",name="Explore more",exact=True).click()
         page.get_by_test_id("scenario-play").click()
         expect(page.get_by_role("button",name="Pause scenario",exact=True)).to_be_visible()
         expect(page.get_by_test_id("scenario-wet")).not_to_contain_text("—")
@@ -154,12 +200,10 @@ with sync_playwright() as p:
         page.get_by_role("button",name="Reset scenario",exact=True).click()
         # Layer switches must not rebuild/reset a paused simulation.
         snapshot=page.get_by_test_id("scenario-wet").inner_text()
-        if name=="mobile":
-            page.get_by_role("button",name="Explore & layers",exact=True).click()
+        page.get_by_role("button",name="Explore & layers",exact=True).click()
         page.get_by_role("checkbox",name="River network",exact=True).uncheck()
         page.get_by_role("checkbox",name="River network",exact=True).check()
-        if name=="mobile":
-            page.get_by_role("button",name="Close",exact=True).click()
+        page.get_by_role("button",name="Close",exact=True).click()
         assert snapshot==page.get_by_test_id("scenario-wet").inner_text()
         record(name+" flood run pause reset and stable layer controls")
         page.screenshot(path=str(OUT/("majuli-water-"+name+".png")),full_page=True)
@@ -206,22 +250,36 @@ with sync_playwright() as p:
         expect(page.get_by_test_id("attribution-text")).to_contain_text("produced using Copernicus WorldDEM-30")
         scan(page,name+" sources dialog")
         page.keyboard.press("Escape")
+        page.get_by_role("button",name="Share this view",exact=True).click()
         with page.expect_download() as downloaded:
             page.get_by_role("button",name="Save map image",exact=True).click()
         target=OUT/("export-"+name+".png")
         downloaded.value.save_as(str(target))
         assert target.stat().st_size>10000
+        page.keyboard.press("Escape")
         record(name+" attributed image export")
+        page.locator("#scenario-depth").fill("3.5")
+        page.get_by_text("Scenario inflow",exact=True).click()
+        page.locator("#scenario-inflow").fill("12500")
+        page.get_by_role("button",name="Share this view",exact=True).click()
+        scenario_link=page.get_by_label("Link to this view",exact=True).input_value()
+        page.goto(scenario_link);page.wait_for_load_state("networkidle");ready(page)
+        expect(page.get_by_test_id("region-majuli")).to_have_attribute("aria-pressed","true")
+        expect(page.locator("#scenario-depth")).to_have_value("3.5")
+        expect(page.get_by_test_id("scenario-play")).to_have_text("Run scenario")
+        page.get_by_role("button",name="Explore more",exact=True).click()
+        page.get_by_text("Scenario inflow",exact=True).click()
+        expect(page.locator("#scenario-inflow")).to_have_value("12500")
+        expect(page.get_by_test_id("scenario-wet")).to_contain_text("—")
+        record(name+" scenario link restores chosen inputs without running water")
         page.get_by_test_id("mode-fault").click()
         expect(page.get_by_test_id("region-majuli")).to_have_count(0)
         expect(page.get_by_test_id("region-sadiya-dibrugarh")).to_have_count(0)
-        if name=="mobile":
-            page.get_by_role("button",name="Explore & layers",exact=True).click()
-        terrain_controls=page.get_by_role("dialog") if name=="mobile" else page.locator(".atlas-layer-panel")
+        page.get_by_role("button",name="Explore & layers",exact=True).click()
+        terrain_controls=page.get_by_role("dialog")
         terrain_controls.get_by_text("Terrain settings",exact=True).click()
         expect(page.locator("input[name=terrain-area]")).to_have_count(0)
-        if name=="mobile":
-            page.get_by_role("button",name="Close",exact=True).click()
+        page.get_by_role("button",name="Close",exact=True).click()
         record(name+" FAULT only exposes Assam terrain")
         page.get_by_role("button",name="Explore the 1950 earthquake",exact=True).click()
         expect(page.locator("#quake-year")).to_have_value("1950")
@@ -237,6 +295,17 @@ with sync_playwright() as p:
         page.get_by_role("button",name="Illustrate ground motion",exact=True).click()
         expect(page.locator(".motion-note")).to_contain_text("synthetic")
         record(name+" earthquake records, empty state and replay")
+        if name=="mobile":
+            page.evaluate("() => { window.originalExport=HTMLCanvasElement.prototype.toDataURL; HTMLCanvasElement.prototype.toDataURL=function(){throw new Error('drawing buffer unavailable')}; }")
+            page.get_by_role("button",name="Share this view",exact=True).click()
+            expect(page.get_by_role("dialog")).to_contain_text("Could not save this view")
+            expect(page.get_by_label("Link to this view",exact=True)).to_be_visible()
+            page.evaluate("() => { HTMLCanvasElement.prototype.toDataURL=window.originalExport; }")
+            page.keyboard.press("Escape")
+            page.get_by_role("button",name="Share this view",exact=True).click()
+            expect(page.get_by_role("button",name="Save portrait story",exact=True)).to_be_enabled(timeout=15000)
+            page.keyboard.press("Escape")
+            record("failed image capture preserves links and recovers on retry")
         assert not errors, errors
         context.close()
     if not args.shots:
@@ -246,6 +315,7 @@ with sync_playwright() as p:
         motion_page=normal.new_page()
         motion_page.goto(args.url+"?mode=fault")
         motion_page.wait_for_load_state("networkidle")
+        motion_page.get_by_role("button",name="Explore more",exact=True).click()
         motion_page.get_by_role("button",name="Explore the 1950 earthquake",exact=True).click()
         motion_page.wait_for_timeout(4700)
         before=motion_page.get_by_test_id("terrain-canvas").screenshot()

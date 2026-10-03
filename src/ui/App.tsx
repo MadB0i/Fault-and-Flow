@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
-  ArrowDownRight,
   ArrowUpRight,
   Download,
   Layers,
@@ -27,7 +26,7 @@ import {
   CATALOGUE_CUTOFF,
   CATALOGUE_RETRIEVED,
 } from '../shared/catalogue.js';
-import { createViewLink } from '../shared/view-link.js';
+import { createViewLink, parseScenarioLink } from '../shared/view-link.js';
 import { useUiStore, initialPresentation } from './state/useUiStore.js';
 import { useTerrainView, type AreaId } from './terrain/useTerrainView.js';
 import TerrainScene from './terrain/TerrainScene.js';
@@ -39,12 +38,13 @@ import ModeRail from './ModeRail.js';
 import LangToggle from './LangToggle.js';
 import AtlasDialog from './AtlasDialog.js';
 import AtlasDock from './AtlasDock.js';
-import { saveAtlasImage } from './saveAtlasImage.js';
+import { createAtlasStory, downloadImage, saveAtlasImage } from './saveAtlasImage.js';
 import FlowSection from './FlowSection.js';
 
 const major = catalogue.events.reduce((a, b) => (a.magnitude > b.magnitude ? a : b));
 export default function App() {
-  const view = useTerrainView();
+  const [initialScene] = useState(() => parseScenarioLink(location.search));
+  const view = useTerrainView(initialScene.area);
   const locale = useUiStore((s) => s.locale);
   const copy = ATLAS_COPY[locale];
   const reduced = useReducedMotion();
@@ -54,17 +54,25 @@ export default function App() {
     'sources' | 'safety' | 'layers' | 'history' | 'districts' | 'share' | null
   >(null);
   const [focus, setFocus] = useState(false);
-  const [level, setLevel] = useState(2);
+  const [level, setLevel] = useState(initialScene.level);
+  const [inflow, setInflow] = useState(initialScene.inflow);
   const [historyPlaying, setHistoryPlaying] = useState(false);
   const [collisionPlaying, setCollisionPlaying] = useState(false);
   const [story, setStory] = useState(2);
   const [notice, setNotice] = useState('');
   const [districtSearch, setDistrictSearch] = useState('');
   const [shareLink, setShareLink] = useState('');
+  const [storyImage, setStoryImage] = useState('');
+  const [storyBusy, setStoryBusy] = useState(false);
   const selectedDistrict = districts.districts.find(
     (d) => d.id === atlas.selectedDistrict,
   );
   const ready = view.state.status.phase === 'ready';
+  const districtName = selectedDistrict
+    ? locale === 'as' && selectedDistrict.nameAs
+      ? selectedDistrict.nameAs
+      : selectedDistrict.name
+    : null;
   const sidecar = view.state.status.phase === 'ready' ? view.state.status.sidecar : null;
   const mode = atlas.mode;
   // FAULT is always the full Assam view, including browser-history navigation.
@@ -87,6 +95,10 @@ export default function App() {
   useEffect(() => {
     const onPop = () => {
       const restored = initialPresentation();
+      const scenario = parseScenarioLink(location.search);
+      view.setArea(scenario.area);
+      setLevel(scenario.level);
+      setInflow(scenario.inflow);
       setAtlas(restored);
       useUiStore.getState().setLocale(restored.locale);
       setHistoryPlaying(false);
@@ -95,7 +107,7 @@ export default function App() {
     };
     addEventListener('popstate', onPop);
     return () => removeEventListener('popstate', onPop);
-  }, [setAtlas, view.setWaterOn]);
+  }, [setAtlas, view.setWaterOn, view.setArea]);
   useEffect(() => {
     if (!historyPlaying) return;
     const id = setInterval(
@@ -159,7 +171,15 @@ export default function App() {
     };
     setAtlas(nextAtlas);
     if (next !== 'flow') view.setArea('assam-overview');
-    history.pushState(null, '', createViewLink(location.href, { ...nextAtlas, locale }));
+    history.pushState(
+      null,
+      '',
+      createViewLink(
+        location.href,
+        { ...nextAtlas, locale },
+        { area: next === 'flow' ? view.areaId : 'assam-overview', level, inflow },
+      ),
+    );
   };
   const save = async () => {
     try {
@@ -170,13 +190,71 @@ export default function App() {
         note:
           mode === 'plates'
             ? copy.platesNote
-            : `${[copy.overview, copy.majuli, copy.sadiya][['assam-overview', 'majuli', 'sadiya-dibrugarh'].indexOf(view.areaId)]} · ${copy.height} ${view.exaggeration}× · ${mode === 'flow' ? `${copy.level} ${level.toFixed(1)} m · ${copy.inflowSettings} ${view.water?.dischargeM3s ?? 0} m³/s${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}` : `${copy.year} ${atlas.quakeYear}`}`,
+            : `${[copy.overview, copy.majuli, copy.sadiya][['assam-overview', 'majuli', 'sadiya-dibrugarh'].indexOf(view.areaId)]} · ${copy.height} ${view.exaggeration}× · ${mode === 'flow' ? `${copy.level} ${level.toFixed(1)} m · ${copy.inflowSettings} ${inflow} m³/s${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}` : `${copy.year} ${atlas.quakeYear}`}`,
       });
       setNotice(copy.saved);
     } catch {
       setNotice(copy.invalidCapture);
     }
   };
+  const openShare = () => {
+    setShareLink(
+      createViewLink(
+        location.href,
+        { ...atlas, locale },
+        { area: view.areaId, level, inflow },
+      ),
+    );
+    setNotice('');
+    setStoryImage('');
+    setDrawer('share');
+  };
+  useEffect(() => {
+    if (drawer !== 'share') return;
+    let cancelled = false;
+    setStoryBusy(true);
+    let png: string | null = null;
+    try {
+      png = view.captureImage();
+    } catch {
+      // A lost drawing buffer must leave the share sheet usable for links.
+    }
+    if (!png) {
+      setNotice(copy.invalidCapture);
+      setStoryBusy(false);
+      return;
+    }
+    void createAtlasStory(png, mode, copy, {
+      title:
+        districtName ??
+        (view.areaId === 'majuli'
+          ? copy.majuli
+          : view.areaId === 'sadiya-dibrugarh'
+            ? copy.sadiya
+            : copy.overview),
+      attribution: sidecar?.attribution ?? '',
+      note:
+        mode === 'flow'
+          ? `${copy.level}: ${level.toFixed(1)} m · ${copy.inflowSettings}: ${inflow} m³/s · ${view.waterOn ? copy.scenario : copy.scenarioNotRun}${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}`
+          : mode === 'fault'
+            ? `${copy.year}: ${atlas.quakeYear} · ${copy.snapshot} ${CATALOGUE_CUTOFF} UTC`
+            : copy.platesNote,
+      height: `${copy.height}: ${view.exaggeration}×`,
+    })
+      .then((image) => {
+        if (!cancelled) setStoryImage(image);
+      })
+      .catch(() => {
+        if (!cancelled) setNotice(copy.invalidCapture);
+      })
+      .finally(() => {
+        if (!cancelled) setStoryBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Capture once when the share sheet opens; its preview and download match.
+  }, [drawer]);
   const changeArea = (id: AreaId) => {
     setAtlas((a) => ({ ...a, selectedDistrict: null }));
     view.setArea(id);
@@ -185,15 +263,6 @@ export default function App() {
   const icon = { size: 18, strokeWidth: 1.5, 'aria-hidden': true as const };
   const layerControls = (
     <>
-      <button
-        className="district-launch"
-        type="button"
-        disabled={!ready}
-        onClick={() => setDrawer('districts')}
-      >
-        <MapPin {...icon} /> <span>{selectedDistrict?.name ?? copy.districtExplore}</span>
-        <ArrowUpRight {...icon} />
-      </button>
       <h3>{copy.geography}</h3>
       {(['districts', 'rivers', 'boundaries', 'places'] as const).map((key) => (
         <label className="layer-toggle" key={key}>
@@ -256,6 +325,33 @@ export default function App() {
       <main id="main" tabIndex={-1} className="atlas-map" data-testid="terrain-scene">
         <TerrainScene view={view} copy={copy} />
         {!focus && (
+          <div className="atlas-discovery">
+            {mode !== 'plates' && (
+              <button
+                className="district-launch"
+                type="button"
+                disabled={!ready}
+                onClick={() => setDrawer('districts')}
+                aria-label={copy.districtExplore}
+              >
+                <MapPin {...icon} />
+                <span>{districtName ?? copy.districtExplore}</span>
+                <ArrowUpRight {...icon} />
+              </button>
+            )}
+            <button
+              className="share-launch"
+              type="button"
+              disabled={!ready}
+              onClick={openShare}
+              aria-label={copy.share}
+            >
+              <Share2 {...icon} />
+              <span>{copy.shareShort}</span>
+            </button>
+          </div>
+        )}
+        {!focus && (
           <>
             <AnimatePresence mode="wait">
               <motion.div
@@ -278,18 +374,16 @@ export default function App() {
                 ) : (
                   <>
                     <p className="eyebrow">{copy.eyebrow}</p>
-                    <h2>{copy[`${mode}Title`]}</h2>
-                    <p className="intro-copy">{copy[`${mode}Description`]}</p>
-                    {mode === 'flow' && (
-                      <button
-                        type="button"
-                        className="text-button"
-                        onClick={() => changeArea('majuli')}
-                      >
-                        {copy.explore}
-                        <ArrowDownRight {...icon} />
-                      </button>
-                    )}
+                    <h2>
+                      {districtName && mode !== 'plates'
+                        ? districtName
+                        : copy[`${mode}Title`]}
+                    </h2>
+                    <p className="intro-copy">
+                      {districtName && mode !== 'plates'
+                        ? copy.districtInvitation
+                        : copy[`${mode}Description`]}
+                    </p>
                     {mode === 'fault' && (
                       <p className="seismic-note">{copy.noPrediction}</p>
                     )}
@@ -299,9 +393,6 @@ export default function App() {
             </AnimatePresence>
             {mode !== 'plates' && (
               <>
-                <aside className="atlas-layer-panel" aria-label={copy.geography}>
-                  {layerControls}
-                </aside>
                 {mode === 'flow' && (
                   <div className="region-selector" role="group" aria-label={copy.region}>
                     {(['assam-overview', 'majuli', 'sadiya-dibrugarh'] as const).map(
@@ -327,15 +418,6 @@ export default function App() {
         <div className="map-tools" role="group" aria-label={copy.tools}>
           {mode !== 'plates' && (
             <>
-              <button
-                type="button"
-                className="icon-button"
-                disabled={!ready}
-                onClick={() => setDrawer('districts')}
-                aria-label={copy.districtExplore}
-              >
-                <MapPin {...icon} />
-              </button>
               <button
                 type="button"
                 className="icon-button"
@@ -381,32 +463,10 @@ export default function App() {
           <button
             type="button"
             className="icon-button"
-            disabled={!ready}
-            aria-label={copy.share}
-            onClick={() => {
-              setShareLink(createViewLink(location.href, { ...atlas, locale }));
-              setNotice('');
-              setDrawer('share');
-            }}
-          >
-            <Share2 {...icon} />
-          </button>
-          <button
-            type="button"
-            className="icon-button"
             onClick={() => setFocus((v) => !v)}
             aria-label={focus ? copy.exitFull : copy.full}
           >
             {focus ? <Minimize2 {...icon} /> : <Maximize2 {...icon} />}
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            disabled={!ready}
-            onClick={() => void save()}
-            aria-label={copy.save}
-          >
-            <Download {...icon} />
           </button>
         </div>
         <div
@@ -441,6 +501,8 @@ export default function App() {
           setAtlas={setAtlas}
           level={level}
           setLevel={setLevel}
+          inflow={inflow}
+          setInflow={setInflow}
           historyPlaying={historyPlaying}
           setHistoryPlaying={setHistoryPlaying}
           collisionPlaying={collisionPlaying}
@@ -550,6 +612,41 @@ export default function App() {
         )}
         {drawer === 'share' && (
           <>
+            <div className="share-preview" aria-busy={storyBusy}>
+              {storyImage ? (
+                <img src={storyImage} alt={copy.storyAlt} />
+              ) : (
+                <p role="status">
+                  {storyBusy ? copy.storyPreparing : copy.invalidCapture}
+                </p>
+              )}
+            </div>
+            <div className="share-actions">
+              <button
+                className="primary-button"
+                type="button"
+                disabled={!storyImage || storyBusy}
+                onClick={() => {
+                  downloadImage(
+                    storyImage,
+                    `fault-and-flow-${selectedDistrict?.name.toLowerCase() ?? mode}-story.png`,
+                  );
+                  setNotice(copy.storySaved);
+                }}
+              >
+                <Download {...icon} />
+                {copy.saveStory}
+              </button>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => void save()}
+                disabled={!ready}
+              >
+                <Download {...icon} />
+                {copy.save}
+              </button>
+            </div>
             <p>{copy.shareNote}</p>
             <label htmlFor="view-link">{copy.viewLink}</label>
             <input

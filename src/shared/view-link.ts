@@ -3,6 +3,39 @@ import { CATALOGUE_START_YEAR, CATALOGUE_END_YEAR } from './catalogue.js';
 import districts from '../data/districts.json';
 import catalogue from '../data/earthquakes.json';
 
+/** Chosen inputs only. Links never replay a computed flood footprint or auto-run. */
+export interface SharedScenario {
+  area: 'assam-overview' | 'majuli' | 'sadiya-dibrugarh';
+  level: number;
+  inflow: number;
+}
+export function parseScenarioLink(search: string): SharedScenario {
+  const p = new URLSearchParams(search);
+  const view = parseViewLink(search);
+  const area = p.get('area');
+  const chosen = (key: string, max: number, step: number, fallback: number) => {
+    const value = Number(p.get(key));
+    return p.has(key) &&
+      p.get(key)?.trim() &&
+      Number.isFinite(value) &&
+      value >= 0 &&
+      value <= max &&
+      Number.isInteger(value / step)
+      ? value
+      : fallback;
+  };
+  return {
+    area:
+      view.mode === 'flow' &&
+      !view.selectedDistrict &&
+      (area === 'majuli' || area === 'sadiya-dibrugarh')
+        ? area
+        : 'assam-overview',
+    level: chosen('level', 8, 0.5, 2),
+    inflow: chosen('inflow', 20000, 250, 0),
+  };
+}
+
 /** Only validated view choices enter the renderer. A shared link never starts water. */
 export function parseViewLink(search: string): AtlasPresentation {
   const p = new URLSearchParams(search);
@@ -29,7 +62,11 @@ export function parseViewLink(search: string): AtlasPresentation {
   };
 }
 
-export function createViewLink(base: string, view: AtlasPresentation): string {
+export function createViewLink(
+  base: string,
+  view: AtlasPresentation,
+  scenario?: SharedScenario,
+): string {
   const url = new URL(base);
   url.search = '';
   url.hash = '';
@@ -41,6 +78,16 @@ export function createViewLink(base: string, view: AtlasPresentation): string {
     url.searchParams.set('year', String(view.quakeYear));
     if (view.selectedQuake) url.searchParams.set('event', view.selectedQuake);
   }
-  if (view.mode === 'flow') url.searchParams.set('water', view.flowView);
+  if (view.mode === 'flow') {
+    url.searchParams.set('water', view.flowView);
+    if (scenario) {
+      url.searchParams.set(
+        'area',
+        view.selectedDistrict ? 'assam-overview' : scenario.area,
+      );
+      url.searchParams.set('level', String(scenario.level));
+      url.searchParams.set('inflow', String(scenario.inflow));
+    }
+  }
   return url.href;
 }

@@ -30,14 +30,14 @@ and 390 × 844, with all three modes in both languages.
 
 ## Verification
 
-- `npm run verify`: formatting, lint, TypeScript, 161 unit tests and production build.
-- Native Python Playwright: 49 desktop/mobile checks, including both languages,
+- `npm run verify`: formatting, lint, TypeScript, 162 unit tests and production build.
+- Native Python Playwright: 56 desktop/mobile checks, including both languages,
   axe, keyboard camera input, dialog focus, failed-load retry, flood reset,
   earthquake replay, attributed PNG download and GPU/CPU conservation. New checks
   verify depth paint without resetting the solver, a moving cross-section,
   updated depth after a scenario change, full-Assam-only FAULT controls and normal
   earthquake animation alongside reduced-motion coverage.
-- `npm run shots`: 16 mode/language/viewport and depth-section combinations. Actual PNGs reviewed,
+- `npm run shots`: 22 screenshot/layout checks across modes, languages, viewports, depth sections and portrait sharing. Actual PNGs reviewed,
   including the exported map with embedded notice and required DEM credit.
 - Existing palette contrast results remain unchanged. Decorative terrain/water
   exceptions remain documented in `DESIGN.md`; no palette substitution was made.
@@ -53,7 +53,7 @@ synthetic. The geographic camera-flight opener remains outstanding.
 Assamese glyph coverage passes; native-speaker copy review is pending. Browser QA
 used headless Chromium with software WebGL, so physical-device frame-rate claims
 are unverified. The production build still warns about JavaScript chunks above
-300 kB (approximately 416 kB app and 495 kB Three.js, before gzip). No current
+300 kB (approximately 424 kB app and 495 kB Three.js, before gzip). No current
 official alert was verified or asserted. Downloads and temporary profiles for this
 work were kept on the project drive.
 
@@ -91,3 +91,45 @@ Fresh USGS retrieval succeeded for 2026-10-03 UTC. Failed, empty and invalid
 responses retain the exact last good catalogue bytes in offline unit checks.
 Automated remote updates are prepared, not activated or deployed from this branch.
 Physical-device performance and native-speaker translation review remain pending.
+
+## Map-first exploration and portrait sharing — 2026-10-03
+
+The desktop map now measures 1408 × 614 CSS pixels at a 1440 × 900 viewport.
+Its display title is 31.248 CSS pixels (the existing step-3 token); the dock uses
+16/32-pixel token padding. At 390 × 844 the map is 390 × 438.875 CSS pixels and
+Play ends at y=754.875, within the first viewport. No horizontal overflow was
+observed. These are measured layout values, not performance targets.
+
+- **P2 — map crowded by permanent controls:** compact headings and the opt-in
+  detail dock leave the map dominant. A named district action and Share stay on
+  the map; geographical controls use the native modal at both widths.
+- **P2 — small phone overview:** a portrait camera frames the valley vertically.
+  District leaders are limited to nearby placements; zoom and the searchable
+  directory retain all 35 names without long lines crossing neighbouring terrain.
+- **P2 — Share obstructed by expanded controls:** the desktop toolbar sits at the
+  map's lower edge, so expanding inflow controls cannot move it over Share.
+- **P2 — plate-label overlap:** screen-space separation ignores invisible map
+  groups and restores anchors each layout pass, preventing label drift.
+- **P2 — incomplete shared FLOW context:** links now validate and restore the
+  region, chosen starting depth and chosen inflow. No link starts water or claims
+  to reproduce elapsed simulation output. The full-Assam FAULT scope remains.
+
+Portrait exports are static 1080 × 1920 PNGs with a preview of the central crop,
+district/region title, chosen settings, educational notice and wrapped credits.
+Phone captures temporarily raise rendering resolution for the export and restore
+the live buffer afterwards. PLATES cards cite the conceptual geology source;
+geographic cards retain the DEM, Natural Earth and OSM credits as applicable.
+The full-view PNG download remains separate. An image-capture failure leaves the
+copyable link available; the share sheet can be reopened to retry.
+
+The updated screenshot suite covers both widths, all three modes and languages,
+the depth section and portrait/share states. Actual English and Assamese pixels
+were inspected, including plate-label separation and exported text. New browser
+regressions check first-screen Play, portrait dimensions, unchanged live resolution
+and terrain after export, shared scenario restoration, and failed-capture recovery.
+
+No dependencies or scientific datasets were added; no colour token changed.
+Native-speaker translation review, a physical-phone performance pass and a manual
+screen-reader pass remain outstanding. Video export, a before/after comparison
+and a guided camera-flight introduction are not part of this change. No remote
+publication or activation of the existing scheduled refresh was performed.

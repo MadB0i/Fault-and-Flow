@@ -1032,22 +1032,31 @@ export function createTerrainView(
     }
     const def = areaDefinitionOrFirst(loaded.sidecar.area);
     const extent = extentMeters(loaded.sidecar);
+    const portrait = camera.aspect < 1 && atlasPresentation.mode !== 'plates';
     target.polarDeg =
-      atlasPresentation.mode === 'plates' ? 62 : clampPolar(def.defaultPolarDeg);
+      atlasPresentation.mode === 'plates'
+        ? 62
+        : portrait
+          ? 28
+          : clampPolar(def.defaultPolarDeg);
     target.azimuthDeg =
-      atlasPresentation.mode === 'plates' ? 22 : wrapAzimuth(def.defaultAzimuthDeg);
+      atlasPresentation.mode === 'plates'
+        ? 22
+        : portrait
+          ? 90
+          : wrapAzimuth(def.defaultAzimuthDeg);
     // Fit the area to the viewport rather than guessing from its diagonal, so
     // the whole area is visible and centred at any aspect ratio. Reset returns
     // here because this is the opening view.
     const aspect = camera.aspect > 0 ? camera.aspect : 1;
     target.distanceM = clampDistance(
       framingDistance(
-        extent.widthM,
-        extent.heightM,
+        portrait ? extent.heightM : extent.widthM,
+        portrait ? extent.widthM : extent.heightM,
         CAMERA_FOV_DEG,
         aspect,
         target.polarDeg,
-        atlasPresentation.mode === 'plates' ? 1.55 : 1.25,
+        atlasPresentation.mode === 'plates' ? 1.55 : portrait ? 1.15 : 1.25,
       ),
       minDistanceM,
       maxDistanceM,
@@ -1431,8 +1440,23 @@ export function createTerrainView(
   return {
     captureImage() {
       if (!loaded || disposed) return null;
-      render();
-      return canvas.toDataURL('image/png');
+      const ratio = renderer.getPixelRatio();
+      const screenHeight = material.uniforms['uScreenHeight']!.value as number;
+      const exportRatio = Math.max(
+        ratio,
+        Math.min(3, 1080 / Math.max(1, canvas.clientWidth)),
+      );
+      try {
+        // One sharper frame for sharing; idle/mobile rendering keeps its cap.
+        renderer.setPixelRatio(exportRatio);
+        material.uniforms['uScreenHeight']!.value = canvas.height;
+        render();
+        return canvas.toDataURL('image/png');
+      } finally {
+        renderer.setPixelRatio(ratio);
+        material.uniforms['uScreenHeight']!.value = screenHeight;
+        render();
+      }
     },
     setAtlas,
     setWaterLevel,

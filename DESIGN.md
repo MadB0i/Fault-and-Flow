@@ -120,9 +120,8 @@ copied from there verbatim.
   --atlas-header-height: 5rem;
   --atlas-title-width: 22rem;
   --atlas-mobile-title: 18rem;
-  --atlas-layer-width: 13rem;
   --atlas-dialog-width: 38rem;
-  --atlas-mobile-map: 32rem;
+  --atlas-mobile-map: clamp(24rem, 52svh, 32rem);
 }
 ```
 

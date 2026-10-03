@@ -3,10 +3,35 @@ import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import districts from '../src/data/districts.json';
 import { INITIAL_ATLAS } from '../src/shared/atlas.js';
-import { parseViewLink, createViewLink } from '../src/shared/view-link.js';
+import {
+  parseViewLink,
+  createViewLink,
+  parseScenarioLink,
+} from '../src/shared/view-link.js';
 import { CATALOGUE_END_YEAR } from '../src/shared/catalogue.js';
 
 describe('shareable atlas views', () => {
+  it('restores chosen region and valid scenario inputs, never a running simulation', () => {
+    const scenario = { area: 'majuli' as const, level: 4.5, inflow: 12500 };
+    const url = new URL(createViewLink('https://example.com/', INITIAL_ATLAS, scenario));
+    expect(parseScenarioLink(url.search)).toEqual(scenario);
+    for (const search of [
+      '?area=unknown&level=-1&inflow=Infinity',
+      '?level=9&inflow=20001',
+      '?level=1.3&inflow=3',
+      '?level=&inflow=',
+    ]) {
+      expect(parseScenarioLink(search)).toEqual({
+        area: 'assam-overview',
+        level: 2,
+        inflow: 0,
+      });
+    }
+    expect(parseScenarioLink('?area=majuli&mode=fault').area).toBe('assam-overview');
+    expect(
+      parseScenarioLink(`?area=majuli&district=${districts.districts[0]!.id}`).area,
+    ).toBe('assam-overview');
+  });
   it('restores a sourced district and dated history without carrying unrelated URL data', () => {
     const district = districts.districts.find((d) => d.name === 'Dibrugarh')!;
     const view = {
