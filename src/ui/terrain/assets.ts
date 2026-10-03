@@ -54,6 +54,8 @@ export function readPalette(element: Element): TerrainPalette {
 
   return {
     amber: token('--seismic-amber'),
+    seismicLight: token('--seismic-light'),
+    seismicRed: token('--seismic-red'),
     text: token('--text'),
     bg: token('--bg'),
     terrain1: token('--terrain-1'),

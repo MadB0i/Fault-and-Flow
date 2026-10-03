@@ -253,6 +253,142 @@
   border-radius: var(--radius);
   background: var(--surface);
 }
+.atlas-canvas[data-navigation='pan'] {
+  cursor: grab;
+}
+.atlas-canvas[data-navigation='pan']:active {
+  cursor: grabbing;
+}
+.atlas-canvas[data-navigation='orbit'] {
+  cursor: move;
+}
+.map-navigation {
+  position: absolute;
+  bottom: calc(var(--space-xl) + var(--control-size) + var(--space-l));
+  left: var(--space-l);
+  display: flex;
+  padding: var(--space-2xs);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.map-navigation button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding-inline: var(--space-s);
+  min-height: var(--control-size);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: var(--step--1);
+}
+.map-navigation button:hover,
+.map-navigation button[aria-pressed='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+[data-mode='plates'] .map-navigation {
+  bottom: var(--space-xl);
+}
+[data-mode='fault'] .map-navigation {
+  bottom: calc(var(--space-xl) + var(--control-size) + var(--space-xl));
+}
+.magnitude-legend {
+  position: absolute;
+  bottom: var(--space-xl);
+  left: var(--space-l);
+  max-width: calc(100% - var(--space-2xl));
+  padding: var(--space-xs) var(--space-s);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+}
+.magnitude-bands {
+  display: flex;
+  gap: var(--space-m);
+  margin-block: var(--space-xs);
+}
+.magnitude-bands span {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+[data-band='amber'] {
+  --band: var(--seismic-amber);
+}
+[data-band='light'] {
+  --band: var(--seismic-light);
+}
+[data-band='red'] {
+  --band: var(--seismic-red);
+}
+.magnitude-bands i {
+  width: var(--space-xs);
+  height: var(--space-xs);
+  border-radius: 50%;
+  background: var(--band);
+}
+.magnitude-bands [data-band='light'] i {
+  width: calc(var(--space-xs) + var(--space-2xs));
+  height: calc(var(--space-xs) + var(--space-2xs));
+}
+.magnitude-bands [data-band='red'] i {
+  width: var(--space-s);
+  height: var(--space-s);
+}
+.magnitude-hint {
+  color: var(--text-muted);
+}
+.quake-magnitude[data-band] {
+  color: var(--band);
+}
+.motion-strength {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-block: var(--space-s);
+}
+.motion-strength button {
+  min-height: var(--control-size);
+  padding-inline: var(--space-s);
+  border: var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+.motion-strength button:hover {
+  background: var(--surface-raised);
+}
+.motion-strength button[aria-pressed='true'] {
+  color: var(--band);
+  border-color: var(--band);
+}
+.assam-context {
+  margin-top: var(--space-s);
+  padding-top: var(--space-s);
+  border-top: var(--border);
+}
+.assam-context summary {
+  min-height: var(--control-size);
+  font-size: var(--step--1);
+}
+.collision-description .layer-toggle {
+  align-items: center;
+  justify-content: start;
+  min-height: var(--control-size);
+}
+[data-mode='plates'] .experience-dock {
+  max-height: var(--atlas-plates-dock);
+}
+[data-mode='plates'] .dock-content {
+  align-items: start;
+}
+.collision-description h3 {
+  margin-bottom: var(--space-xs);
+  font-size: var(--step-0);
+}
 .icon-button {
   min-width: var(--control-size);
   min-height: var(--control-size);
@@ -1113,6 +1249,37 @@
     border: 0;
     background: transparent;
   }
+  .map-navigation {
+    left: var(--space-s);
+    max-width: calc(100% - var(--space-2xl) - var(--space-l));
+    bottom: calc(var(--space-2xl) + var(--control-size) + var(--space-m));
+  }
+  .map-navigation button {
+    padding-inline: var(--space-xs);
+    white-space: nowrap;
+  }
+  .map-navigation svg {
+    display: none;
+  }
+  [data-mode='fault'] .map-caption,
+  [data-mode='plates'] .map-caption {
+    bottom: var(--space-xs);
+  }
+  [data-mode='fault'] .map-navigation {
+    bottom: calc(var(--space-2xl) + var(--space-2xl) + var(--space-m));
+  }
+  [data-mode='plates'] .map-navigation {
+    bottom: var(--space-xl);
+  }
+  .magnitude-legend {
+    left: var(--space-s);
+    bottom: var(--space-2xl);
+    max-width: calc(100% - var(--space-2xl) - var(--space-l));
+    padding: var(--space-xs);
+  }
+  .magnitude-bands {
+    gap: var(--space-xs);
+  }
   .region-selector {
     left: var(--space-s);
     right: var(--space-s);
@@ -1141,6 +1308,9 @@
     overflow: visible;
     padding: var(--space-s);
     border-radius: var(--radius) var(--radius) 0 0;
+  }
+  [data-mode='plates'] .experience-dock {
+    max-height: none;
   }
   .dock-heading {
     gap: var(--space-xs);

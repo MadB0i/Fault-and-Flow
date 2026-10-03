@@ -572,3 +572,28 @@ then restores both renderer resolution and the screen-height shader uniform in a
 finally block. The scene camera and simulation state are unchanged. Drawing-buffer
 errors leave the link-sharing path usable. No scientific input, dependency or
 engine API was added.
+
+### Navigation and illustrative settlement contract (2026-10-03)
+
+`AtlasPresentation` now requires `navigation` (`pan` / `orbit`), `buildings`
+and `buildingMotion` (`gentle` / `medium` / `strong`). This is a breaking
+contract extension; hosts should initialise from `INITIAL_ATLAS`. The existing
+motion replay counter also triggers the explicitly synthetic settlement demo.
+The optional palette entries `seismicLight` and `seismicRed` come from CSS tokens.
+
+Default pointer drag pans; the HUD switches to orbit. Shift and right/middle
+drag always pan. Arrow keys follow the chosen mode, Shift-arrows pan, wheel and
+double-click zoom at the pointer, and a two-finger gesture combines midpoint
+translation with pinch zoom. Zoom limits allow close inspection in all regions;
+district focus preserves azimuth. Camera clearance uses the rendered terrain.
+
+Epicentre anchors use the same tessellated surface as the renderer, including
+its triangle diagonal and no-data handling. Screen-sized sphere symbols touch
+that surface; radius and colour are display choices based on recorded magnitude.
+They are not depth markers, local shaking, pressure, damage or hazard zones.
+
+The procedural settlement runs entirely in `src/engine/terrain/`. Its buildings,
+roads, windows, heights and sway are original illustrative geometry. Collision
+progress transforms the existing scene rather than reconstructing it per tick.
+Reduced motion uses a static pose; a normal replay settles after four seconds.
+Building controls and navigation mode are not persisted in share URLs.

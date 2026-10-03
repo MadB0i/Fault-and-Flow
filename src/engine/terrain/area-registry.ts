@@ -89,7 +89,7 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     // nearly overhead, which hid the hills behind the floodplain.
     defaultPolarDeg: 50,
     defaultAzimuthDeg: 0,
-    minZoomFactor: 0.04,
+    minZoomFactor: 0.012,
     maxZoomFactor: 2.2,
   },
   {
@@ -98,7 +98,7 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     titleKey: 'areaMajuliTitle',
     defaultPolarDeg: 48,
     defaultAzimuthDeg: 20,
-    minZoomFactor: 0.3,
+    minZoomFactor: 0.04,
     maxZoomFactor: 2.4,
   },
   {
@@ -107,7 +107,7 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     titleKey: 'areaSadiyaTitle',
     defaultPolarDeg: 50,
     defaultAzimuthDeg: 10,
-    minZoomFactor: 0.3,
+    minZoomFactor: 0.04,
     maxZoomFactor: 2.4,
   },
 ] as const;

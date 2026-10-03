@@ -14,6 +14,8 @@ import {
   Minus,
   Share2,
   Check,
+  Move,
+  Rotate3D,
 } from 'lucide-react';
 import { ATLAS_COPY } from '../shared/i18n/atlas.js';
 import { FLOOD_HISTORY } from '../shared/flood-history.js';
@@ -237,7 +239,7 @@ export default function App() {
         mode === 'flow'
           ? `${copy.level}: ${level.toFixed(1)} m · ${copy.inflowSettings}: ${inflow} m³/s · ${view.waterOn ? copy.scenario : copy.scenarioNotRun}${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}`
           : mode === 'fault'
-            ? `${copy.year}: ${atlas.quakeYear} · ${copy.snapshot} ${CATALOGUE_CUTOFF} UTC`
+            ? `${copy.year}: ${atlas.quakeYear} · ${copy.snapshot} ${CATALOGUE_CUTOFF} UTC · ${copy.magnitudeScale}: ${copy.magnitudeSmall} / ${copy.magnitudeMedium} / ${copy.magnitudeLarge}. ${copy.magnitudeHint}.`
             : copy.platesNote,
       height: `${copy.height}: ${view.exaggeration}×`,
     })
@@ -416,7 +418,7 @@ export default function App() {
           </>
         )}
         <div className="map-tools" role="group" aria-label={copy.tools}>
-          {mode !== 'plates' && (
+          {
             <>
               <button
                 type="button"
@@ -437,7 +439,7 @@ export default function App() {
                 <Minus {...icon} />
               </button>
             </>
-          )}
+          }
           {mode !== 'plates' && (
             <button
               type="button"
@@ -469,6 +471,38 @@ export default function App() {
             {focus ? <Minimize2 {...icon} /> : <Maximize2 {...icon} />}
           </button>
         </div>
+        <div className="map-navigation" role="group" aria-label={copy.navigation}>
+          {(['pan', 'orbit'] as const).map((navigation) => (
+            <button
+              type="button"
+              key={navigation}
+              disabled={!ready}
+              aria-pressed={atlas.navigation === navigation}
+              onClick={() => setAtlas((a) => ({ ...a, navigation }))}
+            >
+              {navigation === 'pan' ? <Move {...icon} /> : <Rotate3D {...icon} />}
+              {navigation === 'pan' ? copy.moveMap : copy.rotateMap}
+            </button>
+          ))}
+        </div>
+        {mode === 'fault' && (
+          <div className="magnitude-legend" role="group" aria-label={copy.magnitudeScale}>
+            <p>{copy.magnitudeScale}</p>
+            <div className="magnitude-bands">
+              {(['amber', 'light', 'red'] as const).map((band, index) => (
+                <span key={band} data-band={band}>
+                  <i aria-hidden="true" />
+                  {
+                    [copy.magnitudeSmall, copy.magnitudeMedium, copy.magnitudeLarge][
+                      index
+                    ]
+                  }
+                </span>
+              ))}
+            </div>
+            <p className="magnitude-hint">{copy.magnitudeHint}</p>
+          </div>
+        )}
         <div
           className={`map-caption${mode === 'flow' && atlas.flowView === 'depth' ? ' is-depth' : ''}`}
         >

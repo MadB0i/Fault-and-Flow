@@ -25,6 +25,8 @@
 
   --seismic-amber: #ffb547;
   --seismic-hot: #ff5a3c;
+  --seismic-light: #ff968a;
+  --seismic-red: #ff4f64;
   --plate-line: #9aa7b4;
 
   --terrain-1: #1c3b35;
@@ -91,6 +93,7 @@
   --atlas-mobile-title: 18rem;
   --atlas-dialog-width: 38rem;
   --atlas-mobile-map: clamp(24rem, 52svh, 32rem);
+  --atlas-plates-dock: 36dvh;
 
   /* A sentinel the glyph-coverage test checks against, so that a weight can
      never be added to the UI without the test being told about it. */

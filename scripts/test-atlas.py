@@ -72,6 +72,17 @@ with sync_playwright() as p:
             page.screenshot(path=str(OUT/(mode+"-"+name+"-as.png")),
                             animations="disabled", caret="hide", full_page=True)
             page.get_by_role("radio",name="ইংৰাজী").check()
+            if mode=="plates" and args.shots:
+                page.get_by_role("button",name="Explore more",exact=True).click()
+                page.get_by_role("button",name="Strong",exact=True).click()
+                page.wait_for_timeout(400)
+                scan(page,name+" building controls")
+                page.screenshot(path=str(OUT/("plates-detail-"+name+"-en.png")),full_page=True)
+                page.get_by_role("radio",name="অসমীয়া").check()
+                scan(page,name+" building controls Assamese")
+                page.screenshot(path=str(OUT/("plates-detail-"+name+"-as.png")),full_page=True)
+                page.get_by_role("radio",name="ইংৰাজী").check()
+                page.get_by_role("button",name="Collapse",exact=True).click()
         if args.shots:
             # The portrait is a user-reviewable crop, in both shipping languages.
             page.get_by_test_id("mode-flow").click()
@@ -123,6 +134,16 @@ with sync_playwright() as p:
         page.get_by_role("button",name="Play collision",exact=True).click()
         expect(page.locator("#collision")).to_have_value("1")
         record(name+" reduced motion collision")
+        canvas=page.get_by_test_id("terrain-canvas")
+        before=canvas.screenshot()
+        page.get_by_role("button",name="Strong",exact=True).click()
+        expect(page.get_by_role("button",name="Strong",exact=True)).to_have_attribute("aria-pressed","true")
+        page.wait_for_timeout(400)
+        assert before!=canvas.screenshot(), "reduced-motion building illustration did not paint"
+        page.get_by_label("Show illustrative buildings",exact=True).uncheck()
+        expect(page.get_by_role("button",name="Show building motion",exact=True)).to_be_disabled()
+        page.get_by_label("Show illustrative buildings",exact=True).check()
+        record(name+" illustrative buildings, chosen strength and reduced motion")
         page.get_by_role("button",name="Down to the river",exact=True).click()
         ready(page)
         # Browser history restores the mode as well as the view.
@@ -137,6 +158,47 @@ with sync_playwright() as p:
         assert before!=canvas.screenshot(), "keyboard orbit did not change paint"
         canvas.press("Home")
         record(name+" keyboard camera paints")
+        # Both navigation modes act on terrain pixels, not only on their HUD state.
+        rect=canvas.bounding_box()
+        cx=rect["x"]+rect["width"]*.55
+        cy=rect["y"]+rect["height"]*.45
+        camera_clip={"x":rect["x"]+rect["width"]*.35,"y":rect["y"]+rect["height"]*.3,
+                     "width":rect["width"]*.3,"height":rect["height"]*.25}
+        page.get_by_role("button",name="Move map",exact=True).click()
+        page.mouse.move(cx,cy);page.wait_for_timeout(300)
+        before=page.screenshot(clip=camera_clip)
+        page.mouse.down();page.mouse.move(cx+55,cy+20,steps=8);page.mouse.up()
+        page.wait_for_timeout(600)
+        assert before!=page.screenshot(clip=camera_clip), "plain drag did not pan terrain"
+        page.get_by_role("button",name="Rotate 3D",exact=True).click()
+        before=page.screenshot(clip=camera_clip)
+        page.mouse.move(cx,cy);page.mouse.down();page.mouse.move(cx-55,cy+20,steps=8);page.mouse.up()
+        page.wait_for_timeout(600)
+        assert before!=page.screenshot(clip=camera_clip), "chosen orbit did not rotate terrain"
+        page.get_by_role("button",name="Move map",exact=True).click()
+        canvas.focus();canvas.press("Home");page.wait_for_timeout(400)
+        record(name+" plain drag pans and explicit 3D drag rotates")
+        # Two moving fingers pan even without changing their separation, then pinch.
+        cdp=context.new_cdp_session(page)
+        cdp.send("Emulation.setTouchEmulationEnabled", {"enabled":True,"maxTouchPoints":2})
+        before=page.screenshot(clip=camera_clip)
+        points=lambda a,b:[{"x":a,"y":cy,"id":1},{"x":b,"y":cy,"id":2}]
+        cdp.send("Input.dispatchTouchEvent", {"type":"touchStart","touchPoints":points(cx-35,cx+35)})
+        cdp.send("Input.dispatchTouchEvent", {"type":"touchMove","touchPoints":points(cx-7,cx+63)})
+        page.wait_for_timeout(400)
+        assert before!=page.screenshot(clip=camera_clip), "two fingers did not pan"
+        before=page.screenshot(clip=camera_clip)
+        cdp.send("Input.dispatchTouchEvent", {"type":"touchMove","touchPoints":points(cx-27,cx+83)})
+        page.wait_for_timeout(400)
+        assert before!=page.screenshot(clip=camera_clip), "two fingers did not pinch zoom"
+        cdp.send("Input.dispatchTouchEvent", {"type":"touchEnd","touchPoints":[]})
+        cdp.send("Emulation.setTouchEmulationEnabled", {"enabled":False})
+        canvas.focus();canvas.press("Home");page.wait_for_timeout(400)
+        before=page.screenshot(clip=camera_clip)
+        page.mouse.dblclick(cx,cy);page.wait_for_timeout(500)
+        assert before!=page.screenshot(clip=camera_clip), "double click did not zoom to its location"
+        canvas.press("Home")
+        record(name+" two-finger move, pinch and pointer double-click zoom")
         # Every sourced district is searchable and focuses the same full Assam DEM.
         page.get_by_role("button",name="Find your district",exact=True).last.click()
         expect(page.locator(".district-grid button")).to_have_count(35)
@@ -284,6 +346,9 @@ with sync_playwright() as p:
         page.get_by_role("button",name="Explore the 1950 earthquake",exact=True).click()
         expect(page.locator("#quake-year")).to_have_value("1950")
         expect(page.locator(".quake-magnitude")).to_contain_text("8.6")
+        expect(page.locator(".quake-magnitude")).to_have_attribute("data-band","red")
+        expect(page.locator(".magnitude-bands [data-band]")).to_have_count(3)
+        record(name+" historical magnitude bands and full red M7+ record")
         assert "earthquake.usgs.gov" in page.get_by_role("link",name="View catalogue record").get_attribute("href")
         page.locator("#quake-year").fill("1900")
         expect(page.locator("#quake-record")).to_contain_text("No catalogue events")

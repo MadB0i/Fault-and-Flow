@@ -19,6 +19,8 @@ import {
   CATALOGUE_CUTOFF,
 } from '../shared/catalogue.js';
 import { GEOLOGY_SOURCE } from '../shared/flood-history.js';
+import { ASSAM_PLAN_SOURCE } from '../shared/flood-history.js';
+import { magnitudeBand } from '../shared/seismic-display.js';
 import type { TerrainViewController } from './terrain/useTerrainView.js';
 import { useUiStore } from './state/useUiStore.js';
 
@@ -369,7 +371,10 @@ export default function AtlasDock({
               </select>
               {selected && (
                 <>
-                  <strong className="quake-magnitude">
+                  <strong
+                    className="quake-magnitude"
+                    data-band={magnitudeBand(selected.magnitude)}
+                  >
                     M {selected.magnitude} <small>{selected.magnitudeType}</small>
                   </strong>
                   <p>
@@ -425,14 +430,74 @@ export default function AtlasDock({
                   {copy.returnRiver}
                   <ArrowDownRight {...icon} />
                 </button>
+                <button
+                  type="button"
+                  className="text-button"
+                  disabled={!ready || !atlas.buildings}
+                  onClick={() =>
+                    setAtlas((a) => ({
+                      ...a,
+                      motionIllustration: a.motionIllustration + 1,
+                    }))
+                  }
+                >
+                  <Play {...icon} />
+                  {copy.replayBuildings}
+                </button>
               </div>
             </div>
             <div className="collision-description">
+              <h3>{copy.buildingResponse}</h3>
+              <p>{copy.buildingNote}</p>
+              <label className="layer-toggle">
+                <input
+                  type="checkbox"
+                  checked={atlas.buildings}
+                  onChange={(e) =>
+                    setAtlas((a) => ({ ...a, buildings: e.target.checked }))
+                  }
+                />
+                <span>{copy.buildings}</span>
+              </label>
+              <div
+                className="motion-strength"
+                role="group"
+                aria-label={copy.motionStrength}
+              >
+                {(['gentle', 'medium', 'strong'] as const).map(
+                  (buildingMotion, index) => (
+                    <button
+                      type="button"
+                      key={buildingMotion}
+                      aria-pressed={atlas.buildingMotion === buildingMotion}
+                      disabled={!atlas.buildings}
+                      data-band={(['amber', 'light', 'red'] as const)[index]}
+                      onClick={() =>
+                        setAtlas((a) => ({
+                          ...a,
+                          buildingMotion,
+                          motionIllustration: a.motionIllustration + 1,
+                        }))
+                      }
+                    >
+                      {[copy.gentleMotion, copy.mediumMotion, copy.strongMotion][index]}
+                    </button>
+                  ),
+                )}
+              </div>
               <p>{copy.collisionText}</p>
               <a href={GEOLOGY_SOURCE} target="_blank" rel="noreferrer">
                 {copy.geologySource}
                 <ArrowUpRight {...icon} />
               </a>
+              <details className="assam-context">
+                <summary>{copy.assamContext}</summary>
+                <p>{copy.assamContextBody}</p>
+                <a href={ASSAM_PLAN_SOURCE} target="_blank" rel="noreferrer">
+                  {copy.readAssamPlan}
+                  <ArrowUpRight {...icon} />
+                </a>
+              </details>
             </div>
           </>
         )}

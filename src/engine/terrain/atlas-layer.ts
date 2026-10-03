@@ -10,6 +10,13 @@ import {
 } from '../../shared/atlas.js';
 import { ATLAS_COPY } from '../../shared/i18n/atlas.js';
 import { sampleBilinear } from './sampling.js';
+import { sampleMeshSurface } from './mesh-sampling.js';
+import { createSyntheticSettlement } from './synthetic-settlement.js';
+import {
+  magnitudeBand,
+  magnitudeRadius,
+  syntheticBuildingSway,
+} from '../../shared/seismic-display.js';
 import { extentMeters } from './metrics.js';
 import type { TerrainSidecar } from './sidecar.js';
 
@@ -17,6 +24,8 @@ type Palette = {
   water: string;
   text: string;
   amber: string;
+  light: string;
+  red: string;
   muted: string;
   ground: string;
   high: string;
@@ -29,6 +38,7 @@ export function createAtlasLayer(
   doc: Document,
   palette: Palette,
   reducedMotion: boolean,
+  meshSegments: number,
 ) {
   const map = new THREE.Group();
   const rivers = new THREE.Group();
@@ -46,11 +56,16 @@ export function createAtlasLayer(
   let exaggeration = 1;
   let span = 1;
   let markers: THREE.InstancedMesh | null = null;
+  let markerAnchors: (THREE.Vector3 | null)[] = [];
+  let settlement: THREE.Group | null = null;
+  const buildingPivots: THREE.Group[] = [];
+  const movingIndia: THREE.Object3D[] = [];
+  let ridgeMesh: THREE.Mesh | null = null;
   let waves: THREE.LineSegments[] = [];
   let epicentre: THREE.Vector3 | null = null;
   let eventVisible = false;
   let selectedAge = 2;
-  let motionAge = 2;
+  let motionAge = 4;
   const dummy = new THREE.Object3D();
   const labelMetrics = new WeakMap<THREE.Sprite, { height: number; ratio: number }>();
   const riverOpacity = new WeakMap<THREE.MeshBasicMaterial, number>();
@@ -58,17 +73,28 @@ export function createAtlasLayer(
   const plateAnchors = new WeakMap<THREE.Sprite, THREE.Vector3>();
   const leaders = new WeakMap<THREE.Sprite, THREE.Line>();
   let layoutKey = '';
-  const positionFor = (lon: number, lat: number, lift = 0): THREE.Vector3 | null => {
+  const positionFor = (
+    lon: number,
+    lat: number,
+    lift = 0,
+    renderedSurface = false,
+  ): THREE.Vector3 | null => {
     if (!ground) return null;
     const { sidecar: s } = ground;
     const u = (lon - s.bbox.west) / (s.bbox.east - s.bbox.west);
     const v = (s.bbox.north - lat) / (s.bbox.north - s.bbox.south);
     if (u < 0 || u > 1 || v < 0 || v > 1) return null;
     const h = sampleBilinear(ground.heights, ground.noData, s, u, v);
+    const surface = renderedSurface
+      ? sampleMeshSurface(ground.heights, ground.noData, s, u, v, meshSegments)
+      : h.noData
+        ? null
+        : h.elevationM;
+    if (surface === null) return null;
     const e = extentMeters(s);
     return new THREE.Vector3(
       (u - 0.5) * e.widthM,
-      (h.noData ? 0 : h.elevationM) * exaggeration + lift,
+      surface * exaggeration + lift,
       (v - 0.5) * e.heightM,
     );
   };
@@ -81,6 +107,7 @@ export function createAtlasLayer(
       ) {
         if (o instanceof THREE.Mesh || o instanceof THREE.Line)
           (o.geometry as THREE.BufferGeometry).dispose();
+        if (o instanceof THREE.InstancedMesh) o.dispose();
         const materials: THREE.Material[] = Array.isArray(o.material)
           ? (o.material as THREE.Material[])
           : [o.material as THREE.Material];
@@ -233,6 +260,9 @@ export function createAtlasLayer(
   function buildPlates() {
     layoutKey = '';
     clear(plates);
+    settlement = null;
+    buildingPivots.length = 0;
+    movingIndia.length = 0;
     if (!ground) return;
     const scale = span;
     const india = new THREE.Mesh(
@@ -242,6 +272,7 @@ export function createAtlasLayer(
     india.name = 'india';
     india.position.set(0, -scale * 0.04, scale * (0.24 - presentation.collision * 0.12));
     plates.add(india);
+    movingIndia.push(india);
     const eurasia = new THREE.Mesh(
       new THREE.BoxGeometry(scale * 0.7, scale * 0.06, scale * 0.32),
       new THREE.MeshStandardMaterial({ color: palette.high, roughness: 0.85 }),
@@ -261,6 +292,7 @@ export function createAtlasLayer(
       );
       edges.position.copy(block.position);
       plates.add(edges);
+      if (block === india) movingIndia.push(edges);
       for (let layer = 1; layer <= 3; layer++) {
         const slice = new THREE.Mesh(
           block.geometry.clone(),
@@ -273,6 +305,7 @@ export function createAtlasLayer(
         slice.position.copy(block.position);
         slice.position.y -= scale * (0.028 + layer * 0.007);
         plates.add(slice);
+        if (block === india) movingIndia.push(slice);
       }
       const grid = new THREE.GridHelper(scale * 0.6, 16, palette.amber, palette.muted);
       grid.position.copy(block.position);
@@ -282,6 +315,7 @@ export function createAtlasLayer(
       mat.transparent = true;
       mat.opacity = 0.16;
       plates.add(grid);
+      if (block === india) movingIndia.push(grid);
     }
     // Original, explicitly synthetic ridge. No fabricated geographic elevation.
     const ridgeGeo = new THREE.PlaneGeometry(scale * 0.66, scale * 0.2, 180, 60);
@@ -296,19 +330,47 @@ export function createAtlasLayer(
           0.016 * Math.abs(Math.sin(x * 89 + z * 53)) +
           0.015 * Math.abs(Math.sin(x * 151 - z * 93)) +
           0.012 * Math.sin(x * 24));
-      pos.setY(i, scale * syntheticPeak * (0.15 + presentation.collision));
+      pos.setY(i, scale * syntheticPeak);
     }
     ridgeGeo.computeVertexNormals();
-    plates.add(
-      new THREE.Mesh(
-        ridgeGeo,
-        new THREE.MeshStandardMaterial({
-          color: palette.high,
-          roughness: 1,
-          side: THREE.DoubleSide,
-        }),
-      ),
+    ridgeMesh = new THREE.Mesh(
+      ridgeGeo,
+      new THREE.MeshStandardMaterial({
+        color: palette.high,
+        roughness: 1,
+        side: THREE.DoubleSide,
+      }),
     );
+    ridgeMesh.scale.y = 0.15 + presentation.collision;
+    plates.add(ridgeMesh);
+    const town = createSyntheticSettlement(scale, palette);
+    settlement = town.group;
+    settlement.position.set(
+      0,
+      india.position.y + scale * 0.019,
+      india.position.z + scale * 0.027,
+    );
+    settlement.visible = presentation.buildings;
+    buildingPivots.push(...town.pivots);
+    movingIndia.push(settlement);
+    plates.add(settlement);
+    // A tilted crustal tongue exposes the conceptual underthrusting mechanism.
+    const tongue = new THREE.Mesh(
+      new THREE.BoxGeometry(scale * 0.56, scale * 0.018, scale * 0.25),
+      new THREE.MeshStandardMaterial({ color: palette.ground, roughness: 1 }),
+    );
+    tongue.rotation.x = -0.23;
+    tongue.position.set(0, -scale * 0.07, -scale * 0.075);
+    plates.add(tongue);
+    const tongueEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(tongue.geometry),
+      new THREE.LineBasicMaterial({
+        color: palette.amber,
+        transparent: true,
+        opacity: 0.5,
+      }),
+    );
+    tongue.add(tongueEdges);
     const arrow = new THREE.ArrowHelper(
       new THREE.Vector3(0, 0, -1),
       new THREE.Vector3(0, scale * 0.008, scale * 0.25),
@@ -345,6 +407,14 @@ export function createAtlasLayer(
       new THREE.Vector3(-scale * 0.22, scale * 0.11, 0),
       plates,
     );
+    const settlementLabel = label(
+      copy.buildingLabel,
+      palette.water,
+      scale * 0.18,
+      new THREE.Vector3(-scale * 0.23, scale * 0.055, scale * 0.21),
+      plates,
+    );
+    if (settlementLabel) settlementLabel.name = 'settlement-label';
   }
   function rebuild(next: Ground, ex: number) {
     ground = next;
@@ -386,16 +456,23 @@ export function createAtlasLayer(
       if (position) label(place.name, palette.text, span * 0.085, position, places);
     }
     markers = new THREE.InstancedMesh(
-      new THREE.SphereGeometry(1, 10, 8),
-      new THREE.MeshBasicMaterial({
-        color: palette.amber,
-        transparent: true,
-        opacity: 0.8,
-      }),
+      new THREE.SphereGeometry(1, 16, 12),
+      new THREE.MeshStandardMaterial({ roughness: 0.4, metalness: 0.12 }),
       catalogue.events.length,
     );
     markers.frustumCulled = false;
+    catalogue.events.forEach((event, i) => {
+      const band = magnitudeBand(event.magnitude);
+      markers!.setColorAt(
+        i,
+        new THREE.Color(band === 'unknown' ? palette.muted : palette[band]),
+      );
+    });
     quakes.add(markers);
+    quakes.add(new THREE.AmbientLight(palette.text, 1.7));
+    const markerLight = new THREE.DirectionalLight(palette.text, 1.8);
+    markerLight.position.set(-span, span, span * 0.3);
+    quakes.add(markerLight);
     waves = Array.from({ length: 3 }, (_, i) => {
       const wave = new THREE.LineSegments(
         new THREE.BufferGeometry().setAttribute(
@@ -422,9 +499,9 @@ export function createAtlasLayer(
     update(presentation);
   }
   function update(next: AtlasPresentation) {
+    layoutKey = '';
     const changed = next.selectedQuake !== presentation.selectedQuake;
-    const collisionChanged =
-      next.collision !== presentation.collision || next.locale !== presentation.locale;
+    const collisionDelta = next.collision - presentation.collision;
     const localeChanged = next.locale !== presentation.locale;
     if (next.motionIllustration !== presentation.motionIllustration) motionAge = 0;
     presentation = { ...next };
@@ -446,15 +523,25 @@ export function createAtlasLayer(
     districtNames.visible = next.districts;
     districtLeaders.visible = next.districts;
     quakes.visible = next.mode === 'fault';
-    if (collisionChanged) buildPlates();
+    if (localeChanged) buildPlates();
+    else if (collisionDelta !== 0) {
+      movingIndia.forEach((object) => {
+        object.position.z -= span * collisionDelta * 0.12;
+      });
+      if (ridgeMesh) ridgeMesh.scale.y = 0.15 + next.collision;
+    }
+    if (settlement) settlement.visible = next.buildings;
+    const settlementLabel = plates.getObjectByName('settlement-label');
+    if (settlementLabel) settlementLabel.visible = next.buildings;
     if (markers) {
+      markerAnchors = [];
       catalogue.events.forEach((event, i) => {
-        const p = positionFor(event.longitude, event.latitude, span * 0.004);
+        const p = positionFor(event.longitude, event.latitude, 0, true);
         const shown = Number(event.time.slice(0, 4)) <= next.quakeYear && p !== null;
+        markerAnchors.push(shown ? p : null);
         dummy.position.copy(p ?? new THREE.Vector3());
-        const size = shown
-          ? span * 0.0011 * Math.pow(1.5, (event.magnitude ?? 5) - 5)
-          : 0;
+        const size = shown ? span * 0.001 : 0;
+        dummy.position.y += size;
         dummy.scale.setScalar(size);
         dummy.updateMatrix();
         markers!.setMatrixAt(i, dummy.matrix);
@@ -476,6 +563,17 @@ export function createAtlasLayer(
   function step(dt: number) {
     selectedAge += dt;
     motionAge += dt;
+    if (settlement) {
+      const sway = reducedMotion
+        ? presentation.motionIllustration > 0
+          ? syntheticBuildingSway(1, presentation.buildingMotion)
+          : 0
+        : syntheticBuildingSway(motionAge, presentation.buildingMotion);
+      buildingPivots.forEach((pivot, index) => {
+        // All parameters are original display choices; these are not real assets.
+        pivot.rotation.z = sway * (0.75 + (index % 4) * 0.12);
+      });
+    }
     // Concentric, terrain-following display waves. Their radius, timing and
     // brightness are synthetic; none represents P/S arrival or shaking intensity.
     const age = Math.min(selectedAge, motionAge);
@@ -515,9 +613,10 @@ export function createAtlasLayer(
       });
     return (
       !reducedMotion &&
-      presentation.mode === 'fault' &&
-      eventVisible &&
-      (selectedAge < 4.2 || motionAge < 4.2)
+      ((presentation.mode === 'fault' &&
+        eventVisible &&
+        (selectedAge < 4.2 || motionAge < 4.2)) ||
+        (presentation.mode === 'plates' && presentation.buildings && motionAge < 4))
     );
   }
   return {
@@ -557,6 +656,25 @@ export function createAtlasLayer(
       const key = `${camera.matrixWorld.elements.join(',')}/${camera.projectionMatrix.elements.join(',')}/${width}/${height}/${presentation.mode}/${presentation.selectedDistrict}/${districtNames.visible}/${places.visible}/${plates.visible}`;
       if (key === layoutKey) return;
       layoutKey = key;
+      if (markers && quakes.visible && map.visible) {
+        const forward = new THREE.Vector3(0, 0, -1).transformDirection(
+          camera.matrixWorld,
+        );
+        markerAnchors.forEach((anchor, index) => {
+          const depth = anchor ? anchor.clone().sub(camera.position).dot(forward) : 0;
+          const radius =
+            depth > 0
+              ? (depth * 2 * magnitudeRadius(catalogue.events[index]!.magnitude)) /
+                (camera.projectionMatrix.elements[5] * height)
+              : 0;
+          dummy.position.copy(anchor ?? new THREE.Vector3());
+          dummy.position.y += radius;
+          dummy.scale.setScalar(radius);
+          dummy.updateMatrix();
+          markers!.setMatrixAt(index, dummy.matrix);
+        });
+        markers.instanceMatrix.needsUpdate = true;
+      }
       const rectangles: { left: number; right: number; top: number; bottom: number }[] =
         [];
       for (const parent of [districtNames, places, plates])
@@ -567,6 +685,7 @@ export function createAtlasLayer(
         )) {
           if (!parent.visible || (parent !== plates && !map.visible)) continue;
           if (!(object instanceof THREE.Sprite)) continue;
+          if (object.name === 'settlement-label' && !presentation.buildings) continue;
           const metric = labelMetrics.get(object as THREE.Sprite);
           if (!metric) continue;
           const district = parent === districtNames;
@@ -574,7 +693,14 @@ export function createAtlasLayer(
             ? (2 * (width < 600 ? 20 : 22)) /
               (camera.projectionMatrix.elements[5] * height)
             : parent === plates
-              ? (2 * (width < 600 ? 28 : 32)) /
+              ? (2 *
+                  (object.name === 'settlement-label'
+                    ? width < 600
+                      ? 16
+                      : 20
+                    : width < 600
+                      ? 20
+                      : 26)) /
                 (camera.projectionMatrix.elements[5] * height)
               : metric.height;
           object.scale.set(size * metric.ratio, size, 1);
@@ -589,21 +715,27 @@ export function createAtlasLayer(
           const h = (size * camera.projectionMatrix.elements[5] * height) / 2;
           if (parent === plates) {
             const sx = Math.max(w / 2 + 8, Math.min(width - w / 2 - 8, x));
-            let sy = y;
+            const top = width < 600 ? 132 : 120;
+            const bottom = height - 110;
+            let sy = Math.max(top, Math.min(bottom, y));
             // The small diagram must retain all three names. Separate nearby
             // labels in screen space without accumulating offsets across frames.
-            for (let attempt = 0; attempt < 8; attempt++) {
+            for (let attempt = 0; attempt < 12; attempt++) {
+              const offset = Math.ceil(attempt / 2) * (h + 8) * (attempt % 2 ? -1 : 1);
+              const candidate = Math.max(top, Math.min(bottom, y)) + offset;
+              if (candidate < top || candidate > bottom) continue;
               if (
                 !rectangles.some(
                   (r) =>
                     sx - w / 2 < r.right &&
                     sx + w / 2 > r.left &&
-                    sy - h / 2 < r.bottom &&
-                    sy + h / 2 > r.top,
+                    candidate - h / 2 < r.bottom &&
+                    candidate + h / 2 > r.top,
                 )
-              )
+              ) {
+                sy = candidate;
                 break;
-              sy -= h + 8;
+              }
             }
             object.position
               .set((sx / width) * 2 - 1, 1 - (sy / height) * 2, p.z)

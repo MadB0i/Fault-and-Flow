@@ -10,6 +10,12 @@ export interface AtlasPresentation {
   places: boolean;
   districts: boolean;
   selectedDistrict: number | null;
+  /** Primary drag gesture; two-finger movement always pans. */
+  navigation: 'pan' | 'orbit';
+  /** Procedural settlement in the collision diagram, not surveyed buildings. */
+  buildings: boolean;
+  /** User-chosen visual amplitude, not magnitude or an engineering calculation. */
+  buildingMotion: 'gentle' | 'medium' | 'strong';
   /** Display only: the simulation is identical in both views. */
   flowView: 'surface' | 'depth';
   sectionOpen: boolean;
@@ -17,7 +23,7 @@ export interface AtlasPresentation {
   sectionPosition: number;
   quakeYear: number;
   selectedQuake: string | null;
-  /** Replay counter for synthetic ground motion, not a recorded shaking field. */
+  /** Replay counter for synthetic ground/building motion, not recorded shaking. */
   motionIllustration: number;
   /** Normalised, explicitly schematic collision progress; not a geological date. */
   collision: number;
@@ -31,6 +37,9 @@ export const INITIAL_ATLAS: AtlasPresentation = {
   places: false,
   districts: true,
   selectedDistrict: null,
+  navigation: 'pan',
+  buildings: true,
+  buildingMotion: 'medium',
   flowView: 'surface',
   sectionOpen: false,
   sectionPosition: 0.5,

@@ -1047,3 +1047,24 @@ are Karimganj → Sribhumi, Marigaon → Morigaon, and removing the literal
 search aliases. Source Assamese names are retained where present; missing ones
 remain in English rather than inventing a translation. Sribhumi's old Assamese
 name is omitted pending verification of its new spelling.
+
+### Dated official seismic context (link only, 2026-10-03)
+
+Source: [Assam State Disaster Management Plan 2022, Volume I](https://asdma.assam.gov.in/sites/default/files/swf_utility_folder/departments/asdma_revenue_uneecopscloud_com_oid_70/this_comm/asdmp_vol-_i.pdf).
+Retrieved and resolved: **2026-10-03**. PDF page 36 references the BIS 2002 map
+and states that Assam falls in Zone V. UI wording explicitly preserves both dates;
+it makes no claim about the current BIS classification, an active alert, local
+intensity, a district's safety or an upcoming earthquake.
+
+Licence for redistribution/modification: **UNVERIFIED** — no explicit grant was
+located. Attribution: Assam State Disaster Management Authority (ASDMA), _Assam
+State Disaster Management Plan 2022_, Volume I. The PDF remains a link; no PDF,
+map image, hazard polygon or local intensity dataset is redistributed. The
+download used for verification is on D: in the ignored `.cache/qa/` directory.
+
+Magnitude versus local intensity was checked against [USGS: Earthquake
+Magnitude, Energy Release, and Shaking Intensity](https://www.usgs.gov/programs/earthquake-hazards/earthquake-magnitude-energy-release-and-shaking-intensity)
+on **2026-10-03**. Licence of the page as a whole: **UNVERIFIED**; individual media
+have different notices and none are bundled. Attribution: U.S. Geological Survey.
+The atlas's M5–<6 / M6–<7 / M7+ colours are chosen display bins, not official alert
+thresholds. No pressure, local shaking or building vulnerability data was added.

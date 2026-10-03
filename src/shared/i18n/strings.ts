@@ -174,7 +174,8 @@ export const EN: Strings = {
   terrainCanvasLabel:
     'Three-dimensional terrain view. Use the arrow keys to orbit, plus and ' +
     'minus to zoom, Home to reset.',
-  terrainCanvasHint: 'Arrow keys orbit · + and − zoom · Home resets',
+  terrainCanvasHint:
+    'Arrow keys move or rotate in the chosen mode. Shift always moves. Plus and minus zoom. Home resets. Drag to move; choose Rotate 3D to orbit. Scroll or double-click to zoom at the pointer. Two fingers move and zoom.',
 
   areaOverviewTitle: 'Assam valley, whole',
   areaMajuliTitle: 'Majuli island',
@@ -292,7 +293,8 @@ export const AS: Strings = {
   terrainCanvasLabel:
     // DRAFT
     'তিনিটা মাপৰ ভূমিৰ দৃশ্য। বাঁৰী আৰু তীৰৰ বোতামেৰে ধাৰণ কৰক, আৰু প্ৰয়োজনীয় আৰু অপ্ৰয়োজনীয় বোতামেৰে ইমান-ঘমানি কৰক।', // DRAFT
-  terrainCanvasHint: 'তীৰ বোতাম ধাৰণ, + আৰু - ইমান-ঘমানি, Home পুনৰ সেট', // DRAFT
+  terrainCanvasHint:
+    'তীৰ বোতামে নিৰ্বাচিত ধৰণে সৰায় বা ঘূৰায়। Shift ধৰিলে সদায় সৰায়। যোগ আৰু বিয়োগ বোতামে জুম কৰে। Homeএ পুনৰ আৰম্ভ কৰে। টানি সৰাওক; ঘূৰাবলৈ 3D ঘূৰাওক বাছক। স্ক্ৰল বা দুবাৰ ক্লিক কৰি সেই ঠাইত জুম কৰক। দুটা আঙুলিৰে সৰাওক আৰু জুম কৰক।', // DRAFT
 
   areaOverviewTitle: 'সমগ্ৰ অসম ঘাটি', // DRAFT
   areaMajuliTitle: 'মাজুলী দ্বীপ', // DRAFT

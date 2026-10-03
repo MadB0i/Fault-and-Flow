@@ -72,6 +72,7 @@ import {
 import { sampleBilinear } from './sampling.js';
 import { decodeTerrainRgba, NO_DATA_HEIGHT } from './decode-terrain.js';
 import { TERRAIN_FRAGMENT_SHADER, TERRAIN_VERTEX_SHADER } from './shaders.js';
+import { sampleMeshSurface } from './mesh-sampling.js';
 import {
   buildSimGrid,
   deriveChannel,
@@ -89,6 +90,8 @@ export const MAX_PIXEL_RATIO = 1.5;
 
 export type TerrainPalette = {
   readonly amber?: string;
+  readonly seismicLight?: string;
+  readonly seismicRed?: string;
   readonly text?: string;
   readonly bg: string;
   readonly terrain1: string;
@@ -420,12 +423,17 @@ export function createTerrainView(
       water: options.palette.waterShallow,
       text: options.palette.text ?? options.palette.terrain4,
       amber: options.palette.amber ?? options.palette.terrain3,
+      light:
+        options.palette.seismicLight ?? options.palette.amber ?? options.palette.terrain4,
+      red:
+        options.palette.seismicRed ?? options.palette.amber ?? options.palette.terrain4,
       muted: options.palette.contour,
       ground: options.palette.terrain2,
       high: options.palette.terrain4,
       surface: options.palette.bg,
     },
     reducedMotion,
+    MAX_MESH_SEGMENTS,
   );
 
   // --- Camera state -------------------------------------------------------
@@ -496,6 +504,24 @@ export function createTerrainView(
       pos.y + currentCentre.y,
       pos.z + currentCentre.z,
     );
+    // The exaggerated hills can rise above a close orbit. Keep the camera
+    // outside the actual rendered surface rather than letting zoom enter it.
+    if (loaded && atlasPresentation.mode !== 'plates') {
+      const extent = extentMeters(loaded.sidecar);
+      const surface = sampleMeshSurface(
+        loaded.heights,
+        loaded.noData,
+        loaded.sidecar,
+        camera.position.x / extent.widthM + 0.5,
+        camera.position.z / extent.heightM + 0.5,
+        MAX_MESH_SEGMENTS,
+      );
+      if (surface !== null)
+        camera.position.y = Math.max(
+          camera.position.y,
+          surface * exaggeration + Math.max(10, current.distanceM * 0.02),
+        );
+    }
     camera.lookAt(currentCentre);
     camera.updateMatrixWorld();
     atlasLayer.layout(camera, canvas.clientWidth, canvas.clientHeight);
@@ -612,7 +638,7 @@ export function createTerrainView(
       sample.elevationM * exaggeration,
       (grid.v - 0.5) * extent.heightM,
     );
-    setCamera(35, 0, extent.diagonalM * 0.24);
+    setCamera(35, target.azimuthDeg, extent.diagonalM * 0.12);
   }
 
   const KEY_ORBIT: Record<string, [number, number]> = {
@@ -626,7 +652,24 @@ export function createTerrainView(
     const orbit = KEY_ORBIT[event.key];
     if (orbit) {
       event.preventDefault();
-      nudge(orbit[0], orbit[1]);
+      if (atlasPresentation.navigation === 'orbit' && !event.shiftKey) {
+        nudge(orbit[0], orbit[1]);
+      } else {
+        const centre = { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
+        const offset = 48;
+        pan(centre, {
+          x:
+            centre.x +
+            (event.key === 'ArrowLeft'
+              ? offset
+              : event.key === 'ArrowRight'
+                ? -offset
+                : 0),
+          y:
+            centre.y +
+            (event.key === 'ArrowUp' ? offset : event.key === 'ArrowDown' ? -offset : 0),
+        });
+      }
       return;
     }
     if (event.key === '+' || event.key === '=') {
@@ -655,6 +698,8 @@ export function createTerrainView(
   }
 
   function onPointerDown(event: PointerEvent): void {
+    if (event.pointerType === 'mouse' && event.button > 2) return;
+    canvas.focus({ preventScroll: true });
     canvas.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, localPoint(event));
     if (pointers.size === 2) lastPinchDistance = pinchDistance();
@@ -668,6 +713,7 @@ export function createTerrainView(
       return;
     }
     const now = localPoint(event);
+    const previousMidpoint = pinchMidpoint();
     pointers.set(event.pointerId, now);
 
     if (pointers.size === 1) {
@@ -675,49 +721,79 @@ export function createTerrainView(
       // viewport size rather than scaling with it.
       const dx = now.x - prev.x;
       const dy = now.y - prev.y;
-      if (event.shiftKey && loaded) {
-        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentCentre.y);
-        const before = new THREE.Vector3();
-        const after = new THREE.Vector3();
-        const project = (point: { x: number; y: number }, out: THREE.Vector3) => {
-          raycaster.setFromCamera(
-            new THREE.Vector2(
-              (point.x / canvas.clientWidth) * 2 - 1,
-              1 - (point.y / canvas.clientHeight) * 2,
-            ),
-            camera,
-          );
-          return raycaster.ray.intersectPlane(plane, out);
-        };
-        if (project(prev, before) && project(now, after)) {
-          targetCentre.add(before.sub(after));
-          const extent = extentMeters(loaded.sidecar);
-          targetCentre.x = Math.max(
-            -extent.widthM / 2,
-            Math.min(extent.widthM / 2, targetCentre.x),
-          );
-          targetCentre.z = Math.max(
-            -extent.heightM / 2,
-            Math.min(extent.heightM / 2, targetCentre.z),
-          );
-          cameraNavigated = true;
-          invalidateCamera();
-        }
+      if (
+        atlasPresentation.navigation === 'pan' ||
+        event.shiftKey ||
+        (event.buttons & 6) !== 0
+      ) {
+        pan(prev, now);
         return;
       }
       const perDeg = 0.4;
       nudge(dy * perDeg, -dx * perDeg);
     } else if (pointers.size === 2) {
       const d = pinchDistance();
+      const midpoint = pinchMidpoint();
+      if (previousMidpoint && midpoint) pan(previousMidpoint, midpoint);
       if (lastPinchDistance > 0 && d > 0) {
-        const pts = [...pointers.values()];
-        zoom(lastPinchDistance / d, {
-          x: (pts[0]!.x + pts[1]!.x) / 2,
-          y: (pts[0]!.y + pts[1]!.y) / 2,
-        });
+        zoom(lastPinchDistance / d, midpoint ?? undefined);
       }
       lastPinchDistance = d;
     }
+  }
+
+  function pan(previous: { x: number; y: number }, next: { x: number; y: number }): void {
+    if (!loaded) return;
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentCentre.y);
+    const project = (point: { x: number; y: number }) => {
+      raycaster.setFromCamera(
+        new THREE.Vector2(
+          (point.x / canvas.clientWidth) * 2 - 1,
+          1 - (point.y / canvas.clientHeight) * 2,
+        ),
+        camera,
+      );
+      return raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+    };
+    const before = project(previous);
+    const after = project(next);
+    if (!before || !after) return;
+    targetCentre.add(before.sub(after));
+    const extent = extentMeters(loaded.sidecar);
+    targetCentre.x = Math.max(
+      -extent.widthM / 2,
+      Math.min(extent.widthM / 2, targetCentre.x),
+    );
+    targetCentre.z = Math.max(
+      -extent.heightM / 2,
+      Math.min(extent.heightM / 2, targetCentre.z),
+    );
+    if (atlasPresentation.mode !== 'plates') {
+      const sample = sampleBilinear(
+        loaded.heights,
+        loaded.noData,
+        loaded.sidecar,
+        targetCentre.x / extent.widthM + 0.5,
+        targetCentre.z / extent.heightM + 0.5,
+      );
+      if (!sample.noData) targetCentre.y = sample.elevationM * exaggeration;
+    }
+    cameraNavigated = true;
+    invalidateCamera();
+  }
+
+  function pinchMidpoint(): { x: number; y: number } | null {
+    const [a, b] = [...pointers.values()];
+    return a && b ? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } : null;
+  }
+
+  function onDoubleClick(event: MouseEvent): void {
+    const rect = canvas.getBoundingClientRect();
+    zoom(0.5, { x: event.clientX - rect.left, y: event.clientY - rect.top });
+  }
+
+  function onContextMenu(event: Event): void {
+    event.preventDefault();
   }
 
   function onPointerUp(event: PointerEvent): void {
@@ -773,6 +849,8 @@ export function createTerrainView(
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
   canvas.addEventListener('wheel', onWheel, { passive: false });
+  canvas.addEventListener('dblclick', onDoubleClick);
+  canvas.addEventListener('contextmenu', onContextMenu);
   doc.addEventListener('visibilitychange', onVisibilityChange);
   doc.defaultView?.addEventListener('resize', onResize);
 
@@ -1056,7 +1134,15 @@ export function createTerrainView(
         CAMERA_FOV_DEG,
         aspect,
         target.polarDeg,
-        atlasPresentation.mode === 'plates' ? 1.55 : portrait ? 1.15 : 1.25,
+        atlasPresentation.mode === 'plates'
+          ? aspect < 1
+            ? 1.05
+            : aspect > 2.8
+              ? 1.6
+              : 1.2
+          : portrait
+            ? 1.15
+            : 1.25,
       ),
       minDistanceM,
       maxDistanceM,
@@ -1415,6 +1501,8 @@ export function createTerrainView(
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerup', onPointerUp);
     canvas.removeEventListener('pointercancel', onPointerUp);
+    canvas.removeEventListener('dblclick', onDoubleClick);
+    canvas.removeEventListener('contextmenu', onContextMenu);
     canvas.removeEventListener('wheel', onWheel);
     doc.removeEventListener('visibilitychange', onVisibilityChange);
     doc.defaultView?.removeEventListener('resize', onResize);

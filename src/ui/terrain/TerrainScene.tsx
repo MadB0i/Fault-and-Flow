@@ -9,6 +9,7 @@ export default function TerrainScene({
   copy: AtlasCopy;
 }) {
   const strings = useUiStore((s) => s.strings());
+  const navigation = useUiStore((s) => s.atlas.navigation);
   const phase = view.state.status.phase;
   const loading = !view.fatal && (phase === 'idle' || phase === 'loading');
   const error = phase === 'error' || view.fatal !== null;
@@ -22,6 +23,7 @@ export default function TerrainScene({
         aria-describedby="map-keyboard-help"
         className="atlas-canvas"
         data-testid="terrain-canvas"
+        data-navigation={navigation}
       />
       <span className="sr-only" id="map-keyboard-help">
         {strings.terrainCanvasHint}

@@ -133,3 +133,36 @@ Native-speaker translation review, a physical-phone performance pass and a manua
 screen-reader pass remain outstanding. Video export, a before/after comparison
 and a guided camera-flight introduction are not part of this change. No remote
 publication or activation of the existing scheduled refresh was performed.
+
+## Navigation, magnitude symbols and settlement follow-up (2026-10-03)
+
+The primary drag now moves the map, with visible Move map / Rotate 3D controls,
+keyboard equivalents, right/middle drag, combined two-finger pan/pinch and
+pointer-anchored double-click zoom. All regions permit closer inspection.
+District focus retains the camera's orientation; close cameras remain above the
+exaggerated rendered terrain.
+
+Historical symbols use magnitude bands and readable screen sizes. Their bases
+follow the tessellated terrain, including steep slopes and data gaps. The visible
+legend identifies magnitude rather than local shaking. Selected records retain
+their magnitude type, depth and catalogue source.
+
+PLATES adds an original miniature settlement, illuminated windows, roof details,
+schematic roads, crustal strata and an underthrusting tongue. Building visibility
+and chosen motion strength are controllable. No actual building survey, local
+hazard map, damage prediction or future earthquake forecast is claimed. The dated
+ASDMA 2022 context is cited separately from the diagram. Collision progress updates
+existing objects; it does not regenerate the settlement each frame.
+
+New magnitude text colours pass AA on all three HUD surfaces: light red **9.15 /
+8.35 / 7.50:1**, red **6.01 / 5.49 / 4.92:1**, as computed by `npm run contrast`.
+The two pre-existing terrain/deep-water decorative exceptions remain documented
+in DESIGN.md. Native-speaker Assamese review, a manual screen-reader session and
+physical-phone performance testing remain outstanding. No dependency was added.
+
+Validation: `npm run verify` passes (166 tests across 15 files); the native Python
+browser suite passes 64 checks. Screenshot generation passes 26 layout/axe checks
+and updates 28 PNGs. Actual 1440px and 390px English/Assamese renders were inspected,
+including the expanded building controls. The updated earthquake portrait's text
+fits its 1080 × 1920 frame in both languages. Temporary browser caches are kept on
+D: and excluded from lint; no cache or reference PDF is committed.

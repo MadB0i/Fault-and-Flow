@@ -21,3 +21,6 @@ export const FLOOD_HISTORY = [
 ] as const;
 export const GEOLOGY_SOURCE =
   'https://www.usgs.gov/publications/seismicity-earth-1900-2010-himalaya-and-vicinity';
+/** Dated context only; no local hazard layer is redistributed. */
+export const ASSAM_PLAN_SOURCE =
+  'https://asdma.assam.gov.in/sites/default/files/swf_utility_folder/departments/asdma_revenue_uneecopscloud_com_oid_70/this_comm/asdmp_vol-_i.pdf';
