@@ -1,10 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import geography from '../src/data/geography.json';
 import catalogue from '../src/data/earthquakes.json';
+import districts from '../src/data/districts.json';
 import { ATLAS_COPY } from '../src/shared/i18n/atlas.js';
 import { seedRiverScenario } from '../src/engine/water/scenario.js';
 
 describe('cited atlas extracts', () => {
+  it('includes all 35 distinct district names with ODbL provenance and sourced administration anchors', () => {
+    expect(districts.districts).toHaveLength(35);
+    expect(new Set(districts.districts.map((d) => d.id)).size).toBe(35);
+    expect(new Set(districts.districts.map((d) => d.name)).size).toBe(35);
+    expect(districts.license).toContain('/odbl/1-0/');
+    expect(districts.districts.find((d) => d.sourceName === 'Karimganj')?.name).toBe(
+      'Sribhumi',
+    );
+    for (const d of districts.districts) {
+      expect(d.anchor).toBe('OSM admin_centre');
+      expect(d.nodeId).toBeGreaterThan(0);
+      expect(d.longitude).toBeGreaterThanOrEqual(catalogue.bbox[0]!);
+      expect(d.longitude).toBeLessThanOrEqual(catalogue.bbox[2]!);
+      expect(d.latitude).toBeGreaterThanOrEqual(catalogue.bbox[1]!);
+      expect(d.latitude).toBeLessThanOrEqual(catalogue.bbox[3]!);
+    }
+  });
   it('keeps real events within the documented time, area and magnitude subset', () => {
     expect(catalogue.events.length).toBeGreaterThan(0);
     expect(new Set(catalogue.events.map((e) => e.id)).size).toBe(catalogue.events.length);

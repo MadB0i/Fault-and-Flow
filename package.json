@@ -24,6 +24,7 @@
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "contrast": "node scripts/check-contrast.mjs",
     "data:atlas": "node scripts/build-atlas.mjs",
+    "data:quakes:refresh": "node scripts/refresh-quakes.mjs",
     "data:dem": "node scripts/build-dem.ts",
     "data:dem:check": "node scripts/build-dem.ts --check",
     "data:dem:previews": "node scripts/build-dem.ts --previews",

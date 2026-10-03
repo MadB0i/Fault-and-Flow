@@ -214,6 +214,10 @@ export type TerrainView = {
   subscribe(listener: (state: TerrainViewState) => void): () => void;
   /** Reset the camera to the area's opening view. */
   resetCamera(): void;
+  /** Zoom around the view centre; pointer gestures use their geographic anchor. */
+  zoomView(factor: number): void;
+  /** Focus a sourced geographic location in the currently loaded DEM. */
+  focusLocation(lon: number, lat: number): void;
   /**
    * Build the water layer for the loaded area. False when the device cannot
    * render to float (see state.water.reason); the terrain is unaffected.
@@ -427,6 +431,9 @@ export function createTerrainView(
   // --- Camera state -------------------------------------------------------
   const current: MutableSpherical = { polarDeg: 40, azimuthDeg: 0, distanceM: 1e5 };
   const target: MutableSpherical = { ...current };
+  const currentCentre = new THREE.Vector3();
+  const targetCentre = new THREE.Vector3();
+  let cameraNavigated = false;
 
   // --- Render on demand ----------------------------------------------------
   let frameHandle: number | null = null;
@@ -484,8 +491,12 @@ export function createTerrainView(
 
   function render(): void {
     const pos = sphericalToCartesian(current);
-    camera.position.set(pos.x + atlasLayer.motionOffset(), pos.y, pos.z);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(
+      pos.x + currentCentre.x + atlasLayer.motionOffset(),
+      pos.y + currentCentre.y,
+      pos.z + currentCentre.z,
+    );
+    camera.lookAt(currentCentre);
     camera.updateMatrixWorld();
     atlasLayer.layout(camera, canvas.clientWidth, canvas.clientHeight);
     renderer.render(scene, camera);
@@ -501,6 +512,7 @@ export function createTerrainView(
    */
   function advanceCamera(deltaSeconds: number): boolean {
     if (reducedMotion) {
+      currentCentre.copy(targetCentre);
       current.polarDeg = target.polarDeg;
       current.azimuthDeg = target.azimuthDeg;
       current.distanceM = target.distanceM;
@@ -508,6 +520,7 @@ export function createTerrainView(
     }
 
     const f = dampingFactor(DEFAULT_DAMPING_RATE, deltaSeconds);
+    currentCentre.lerp(targetCentre, f);
     current.polarDeg += (target.polarDeg - current.polarDeg) * f;
     // Azimuth is angular, so a fixed fraction of a degree is the right step
     // regardless of zoom.
@@ -520,9 +533,11 @@ export function createTerrainView(
     const settled =
       hasSettled(current.polarDeg, target.polarDeg) &&
       hasSettled(current.azimuthDeg, target.azimuthDeg) &&
-      hasSettled(current.distanceM, target.distanceM);
+      hasSettled(current.distanceM, target.distanceM) &&
+      currentCentre.distanceTo(targetCentre) < 0.01;
 
     if (settled) {
+      currentCentre.copy(targetCentre);
       current.polarDeg = target.polarDeg;
       current.azimuthDeg = target.azimuthDeg;
       current.distanceM = target.distanceM;
@@ -532,6 +547,7 @@ export function createTerrainView(
 
   // --- Camera interaction --------------------------------------------------
   function setCamera(polarDeg: number, azimuthDeg: number, distanceM: number): void {
+    cameraNavigated = true;
     const clamped = clampSpherical(
       { polarDeg, azimuthDeg, distanceM },
       minDistanceM,
@@ -543,13 +559,60 @@ export function createTerrainView(
     invalidateCamera();
   }
 
-  /** Move the orbit target. Not exposed: the target is always the origin. */
+  /** Orbit around the selected geographic centre. */
   function nudge(dPolar: number, dAzimuth: number): void {
     setCamera(target.polarDeg + dPolar, target.azimuthDeg + dAzimuth, target.distanceM);
   }
 
-  function zoom(factor: number): void {
+  function zoom(factor: number, point?: { x: number; y: number }): void {
+    if (!Number.isFinite(factor) || factor <= 0) return;
+    const distance = clampDistance(target.distanceM * factor, minDistanceM, maxDistanceM);
+    const ratio = distance / target.distanceM;
+    if (point && loaded && atlasPresentation.mode !== 'plates') {
+      const grid = gridFromNdc(
+        (point.x / canvas.clientWidth) * 2 - 1,
+        1 - (point.y / canvas.clientHeight) * 2,
+      );
+      if (grid) {
+        const extent = extentMeters(loaded.sidecar);
+        const sample = sampleBilinear(
+          loaded.heights,
+          loaded.noData,
+          loaded.sidecar,
+          grid.u,
+          grid.v,
+        );
+        if (!sample.noData) {
+          const anchor = new THREE.Vector3(
+            (grid.u - 0.5) * extent.widthM,
+            sample.elevationM * exaggeration,
+            (grid.v - 0.5) * extent.heightM,
+          );
+          targetCentre.sub(anchor).multiplyScalar(ratio).add(anchor);
+        }
+      }
+    }
     setCamera(target.polarDeg, target.azimuthDeg, target.distanceM * factor);
+  }
+
+  function focusLocation(lon: number, lat: number): void {
+    if (!loaded || !Number.isFinite(lon) || !Number.isFinite(lat)) return;
+    const grid = lonLatToGrid(loaded.sidecar.bbox, lon, lat);
+    const sample = sampleBilinear(
+      loaded.heights,
+      loaded.noData,
+      loaded.sidecar,
+      grid.u,
+      grid.v,
+    );
+    if (grid.u < 0 || grid.u > 1 || grid.v < 0 || grid.v > 1 || sample.noData) return;
+    const extent = extentMeters(loaded.sidecar);
+    targetCentre.set(
+      (grid.u - 0.5) * extent.widthM,
+      sample.elevationM * exaggeration,
+      (grid.v - 0.5) * extent.heightM,
+    );
+    setCamera(35, 0, extent.diagonalM * 0.24);
   }
 
   const KEY_ORBIT: Record<string, [number, number]> = {
@@ -612,12 +675,46 @@ export function createTerrainView(
       // viewport size rather than scaling with it.
       const dx = now.x - prev.x;
       const dy = now.y - prev.y;
+      if (event.shiftKey && loaded) {
+        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentCentre.y);
+        const before = new THREE.Vector3();
+        const after = new THREE.Vector3();
+        const project = (point: { x: number; y: number }, out: THREE.Vector3) => {
+          raycaster.setFromCamera(
+            new THREE.Vector2(
+              (point.x / canvas.clientWidth) * 2 - 1,
+              1 - (point.y / canvas.clientHeight) * 2,
+            ),
+            camera,
+          );
+          return raycaster.ray.intersectPlane(plane, out);
+        };
+        if (project(prev, before) && project(now, after)) {
+          targetCentre.add(before.sub(after));
+          const extent = extentMeters(loaded.sidecar);
+          targetCentre.x = Math.max(
+            -extent.widthM / 2,
+            Math.min(extent.widthM / 2, targetCentre.x),
+          );
+          targetCentre.z = Math.max(
+            -extent.heightM / 2,
+            Math.min(extent.heightM / 2, targetCentre.z),
+          );
+          cameraNavigated = true;
+          invalidateCamera();
+        }
+        return;
+      }
       const perDeg = 0.4;
       nudge(dy * perDeg, -dx * perDeg);
     } else if (pointers.size === 2) {
       const d = pinchDistance();
       if (lastPinchDistance > 0 && d > 0) {
-        zoom(lastPinchDistance / d);
+        const pts = [...pointers.values()];
+        zoom(lastPinchDistance / d, {
+          x: (pts[0]!.x + pts[1]!.x) / 2,
+          y: (pts[0]!.y + pts[1]!.y) / 2,
+        });
       }
       lastPinchDistance = d;
     }
@@ -640,7 +737,14 @@ export function createTerrainView(
 
   function onWheel(event: WheelEvent): void {
     event.preventDefault();
-    zoom(Math.exp(event.deltaY * 0.0012));
+    const rect = canvas.getBoundingClientRect();
+    const delta =
+      event.deltaY *
+      (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? rect.height : 1);
+    zoom(Math.exp(Math.max(-1, Math.min(1, delta * 0.0012))), {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    });
   }
 
   function onVisibilityChange(): void {
@@ -659,7 +763,7 @@ export function createTerrainView(
 
   function onResize(): void {
     applySize();
-    resetCamera();
+    if (!cameraNavigated) resetCamera();
     scheduleFrame();
   }
 
@@ -717,6 +821,7 @@ export function createTerrainView(
     if (!loaded) return null;
     ndc.set(x, y);
     raycaster.setFromCamera(ndc, camera);
+    planeXZ.constant = 0;
     if (!raycaster.ray.intersectPlane(planeXZ, hit)) return null;
 
     const extent = extentMeters(loaded.sidecar);
@@ -731,7 +836,10 @@ export function createTerrainView(
       if (raycaster.ray.intersectPlane(planeXZ, hit)) {
         const u2 = hit.x / extent.widthM + 0.5;
         const v2 = hit.z / extent.heightM + 0.5;
-        if (u2 >= 0 && u2 <= 1 && v2 >= 0 && v2 <= 1) return { u: u2, v: v2 };
+        if (u2 >= 0 && u2 <= 1 && v2 >= 0 && v2 <= 1) {
+          planeXZ.constant = 0;
+          return { u: u2, v: v2 };
+        }
       }
       planeXZ.constant = 0;
     }
@@ -916,6 +1024,8 @@ export function createTerrainView(
   }
 
   function resetCamera(): void {
+    cameraNavigated = false;
+    targetCentre.set(0, 0, 0);
     if (!loaded) {
       invalidateCamera();
       return;
@@ -1336,6 +1446,8 @@ export function createTerrainView(
       return () => listeners.delete(listener);
     },
     resetCamera,
+    zoomView: zoom,
+    focusLocation,
     enableWater,
     disableWater,
     setWaterPlaying,

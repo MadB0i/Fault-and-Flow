@@ -78,6 +78,11 @@ with sync_playwright() as p:
             page.get_by_role("button",name="Depth bands",exact=True).click()
             page.get_by_role("button",name="River cross-section",exact=True).click()
             expect(page.get_by_test_id("section-depth")).to_contain_text("2.00 m")
+            canvas_box=page.get_by_test_id("terrain-canvas").bounding_box()
+            tools_box=page.locator(".map-tools").bounding_box()
+            assert tools_box["y"] >= canvas_box["y"] and tools_box["y"]+tools_box["height"] <= canvas_box["y"]+canvas_box["height"], "depth tools escaped the map"
+            caption_box=page.locator(".map-caption").bounding_box()
+            assert not (caption_box["x"] < tools_box["x"]+tools_box["width"] and caption_box["x"]+caption_box["width"] > tools_box["x"] and caption_box["y"] < tools_box["y"]+tools_box["height"] and caption_box["y"]+caption_box["height"] > tools_box["y"]), "depth legend covers map tools"
             scan(page,name+" depth section")
             page.screenshot(path=str(OUT/("depth-section-"+name+"-en.png")),full_page=True)
             page.get_by_role("radio",name="অসমীয়া").check()
@@ -104,6 +109,40 @@ with sync_playwright() as p:
         assert before!=canvas.screenshot(), "keyboard orbit did not change paint"
         canvas.press("Home")
         record(name+" keyboard camera paints")
+        # Every sourced district is searchable and focuses the same full Assam DEM.
+        page.get_by_role("button",name="Find your district",exact=True).last.click()
+        expect(page.locator(".district-grid button")).to_have_count(35)
+        scan(page,name+" district directory")
+        page.get_by_label("Search districts",exact=True).fill("does-not-exist")
+        expect(page.get_by_text("No matching district. Try another spelling.")).to_be_visible()
+        page.get_by_label("Search districts",exact=True).fill("Dibrugarh")
+        expect(page.locator(".district-grid button")).to_have_count(1)
+        page.locator(".district-grid button").click()
+        page.wait_for_timeout(500)
+        before=canvas.screenshot()
+        page.get_by_role("button",name="Zoom in",exact=True).click()
+        page.wait_for_timeout(500)
+        assert before!=canvas.screenshot(), "zoom-in button did not paint"
+        page.get_by_role("button",name="Zoom out",exact=True).click()
+        page.wait_for_timeout(500)
+        before=canvas.screenshot()
+        rect=canvas.bounding_box()
+        page.mouse.move(rect["x"]+rect["width"]*.45,rect["y"]+rect["height"]*.5)
+        page.mouse.wheel(0,-350);page.wait_for_timeout(500)
+        assert before!=canvas.screenshot(), "wheel over the middle did not zoom"
+        record(name+" all districts, district focus, zoom buttons and centre wheel")
+        # Link keeps sourced district and timeline choices, with a usable copy fallback.
+        page.get_by_role("button",name="Share this view",exact=True).click()
+        link=page.get_by_label("Link to this view",exact=True).input_value()
+        assert "district=2026441" in link and "mode=flow" in link
+        page.get_by_role("button",name="Copy link",exact=True).click()
+        expect(page.get_by_role("dialog")).to_contain_text("cop")
+        scan(page,name+" share dialog")
+        page.keyboard.press("Escape")
+        page.goto(link);page.wait_for_load_state("networkidle");ready(page)
+        assert page.evaluate("document.querySelector('.region-selector button').getAttribute('aria-pressed')") == "true"
+        page.get_by_role("button",name="Reset view",exact=True).click()
+        record(name+" share link restores district")
         page.get_by_test_id("region-majuli").click()
         ready(page)
         page.get_by_test_id("scenario-play").click()

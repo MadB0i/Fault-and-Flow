@@ -16,10 +16,15 @@ Assamese controls, no backend, accounts or telemetry.
   FAULT uses the full Assam view only.
 - **PLATES:** explore an original schematic India–Eurasia collision diagram.
 - Open source, risk and historical flood-report panels; save an attributed map PNG.
+- Explore all 35 district names, search a district and focus its sourced
+  administration centre. Zoom with wheel, pinch or buttons; Shift-drag pans.
+  Share links restore the district, language and historical earthquake selection.
 
 **Educational sandbox, not a forecast, hazard map or prediction tool.** Earthquakes
 cannot be predicted. Flood inputs are values you choose. Seismic rings and plate
-geometry are illustrative. The catalogue is incomplete and cuts off on 1 October 2026. Historical flood footprints, bank erosion and calibrated shaking effects
+geometry are illustrative. The committed catalogue is incomplete and cuts off at
+3 October 2026 UTC. The app shows each built snapshot's actual cutoff.
+Historical flood footprints, bank erosion and calibrated shaking effects
 are not implemented. Assamese copy awaits native-speaker review.
 
 Current warnings and preparedness: [ASDMA](https://asdma.assam.gov.in/),
@@ -41,6 +46,8 @@ npm run verify       # formatting, lint, TypeScript, headless tests and build
 npm run e2e          # desktop/mobile, both languages, axe, interactions and GPU checks
 npm run shots        # all three modes at 1440px and 390px, both languages
 npm run data:atlas   # small Natural Earth and USGS extracts; local .cache/atlas
+npm run data:quakes:refresh # fresh validated historical USGS query, UTC cutoff
+node scripts/build-districts.mjs # small OSM district-name extract; local cache
 npm run contrast
 ```
 
@@ -56,6 +63,19 @@ For a drive with limited space, use `npm install --cache D:/npm-cache` and set
 any installation. No new browser download was needed for this implementation.
 
 ## Implementation and data
+
+The Pages workflow now refreshes earthquake history before its checked build,
+including a daily scheduled run at 06:47 IST. This becomes active only after the
+workflow is on the default branch and GitHub Actions/Pages are enabled; no remote
+deployment was performed by this change. GitHub schedules can be delayed or
+disabled after inactivity. A network or validation failure stops the deployment,
+leaving the existing site in place. See [data updates](docs/DATA_UPDATES.md).
+FLOW inputs remain chosen scenarios, and official warnings remain linked.
+
+District labels use OSM administration-centre anchors, not district centroids or
+district polygons. Nearby names declutter at small scales; the full directory
+remains searchable. The distinct OSM extract is ODbL, with a downloadable copy
+and visible attribution. The software's MIT licence does not replace data licences.
 
 Vite, strict TypeScript, React HUD, imperative Three.js engine, Zustand, Tailwind
 and CSS-variable tokens, motion, Vitest and Playwright. Fonts are self-hosted.

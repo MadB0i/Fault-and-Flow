@@ -55,6 +55,8 @@ export type TerrainViewController = {
   contours: boolean;
   setContours: (on: boolean) => void;
   resetCamera: () => void;
+  zoomView: (factor: number) => void;
+  focusLocation: (lon: number, lat: number) => void;
   retry: () => void;
   /** Elevation at the orbit target, the keyboard equivalent of the pointer. */
   cameraTargetProbe: TerrainViewState['probe'];
@@ -226,6 +228,11 @@ export function useTerrainView(): TerrainViewController {
     viewRef.current?.setAtlas(presentation);
   }, []);
   const captureImage = useCallback(() => viewRef.current?.captureImage() ?? null, []);
+  const zoomView = useCallback((factor: number) => viewRef.current?.zoomView(factor), []);
+  const focusLocation = useCallback(
+    (lon: number, lat: number) => viewRef.current?.focusLocation(lon, lat),
+    [],
+  );
   const setWaterLevel = useCallback((depthM: number) => {
     viewRef.current?.setWaterLevel(depthM);
   }, []);
@@ -246,9 +253,7 @@ export function useTerrainView(): TerrainViewController {
       setTargetProbe(null);
       return;
     }
-    const lon = (sidecar.bbox.west + sidecar.bbox.east) / 2;
-    const lat = (sidecar.bbox.south + sidecar.bbox.north) / 2;
-    setTargetProbe(view.probe({ kind: 'lonlat', lon, lat }));
+    setTargetProbe(view.probe({ kind: 'ndc', x: 0, y: 0 }));
   }, [state.status]);
 
   useEffect(() => {
@@ -258,6 +263,8 @@ export function useTerrainView(): TerrainViewController {
   const controls = useMemo<TerrainViewController>(
     () => ({
       captureImage,
+      zoomView,
+      focusLocation,
       setAtlas,
       setWaterLevel,
       attachCanvas,
@@ -283,6 +290,8 @@ export function useTerrainView(): TerrainViewController {
     }),
     [
       captureImage,
+      zoomView,
+      focusLocation,
       setAtlas,
       setWaterLevel,
       attachCanvas,

@@ -1,5 +1,6 @@
 /** Serialisable atlas controls. No rendering or framework types cross this boundary. */
 import type { Mode, Locale } from './types.js';
+import { CATALOGUE_END_YEAR } from './catalogue.js';
 
 export interface AtlasPresentation {
   mode: Mode;
@@ -7,6 +8,8 @@ export interface AtlasPresentation {
   rivers: boolean;
   boundaries: boolean;
   places: boolean;
+  districts: boolean;
+  selectedDistrict: number | null;
   /** Display only: the simulation is identical in both views. */
   flowView: 'surface' | 'depth';
   sectionOpen: boolean;
@@ -25,11 +28,13 @@ export const INITIAL_ATLAS: AtlasPresentation = {
   locale: 'en',
   rivers: true,
   boundaries: true,
-  places: true,
+  places: false,
+  districts: true,
+  selectedDistrict: null,
   flowView: 'surface',
   sectionOpen: false,
   sectionPosition: 0.5,
-  quakeYear: 2026,
+  quakeYear: CATALOGUE_END_YEAR,
   selectedQuake: null,
   motionIllustration: 0,
   collision: 0.65,

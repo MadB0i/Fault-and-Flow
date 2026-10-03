@@ -30,8 +30,8 @@ and 390 × 844, with all three modes in both languages.
 
 ## Verification
 
-- `npm run verify`: formatting, lint, TypeScript, 155 unit tests and production build.
-- Native Python Playwright: 41 desktop/mobile checks, including both languages,
+- `npm run verify`: formatting, lint, TypeScript, 161 unit tests and production build.
+- Native Python Playwright: 49 desktop/mobile checks, including both languages,
   axe, keyboard camera input, dialog focus, failed-load retry, flood reset,
   earthquake replay, attributed PNG download and GPU/CPU conservation. New checks
   verify depth paint without resetting the solver, a moving cross-section,
@@ -53,7 +53,7 @@ synthetic. The geographic camera-flight opener remains outstanding.
 Assamese glyph coverage passes; native-speaker copy review is pending. Browser QA
 used headless Chromium with software WebGL, so physical-device frame-rate claims
 are unverified. The production build still warns about JavaScript chunks above
-300 kB (approximately 397 kB app and 495 kB Three.js, before gzip). No current
+300 kB (approximately 416 kB app and 495 kB Three.js, before gzip). No current
 official alert was verified or asserted. Downloads and temporary profiles for this
 work were kept on the project drive.
 
@@ -66,3 +66,28 @@ method notes are reachable by scrolling the section. A mobile depth legend
 overlap with the region selector was fixed by separating their vertical anchors.
 The normal-motion earthquake capture confirms wave-front geometry changes on the
 terrain; radius/timing remain synthetic. No new scientific dataset was added.
+
+## District and premium interface follow-up
+
+The 35-name OSM extract is documented separately in `DATA.md`. District search,
+empty results, district focus, centre wheel input, zoom buttons and share-link
+restoration pass at both widths. Its administration-centre anchors are not legal
+district boundaries. Leader lines retain the sourced anchor when a desktop label
+separates from nearby text; phones declutter labels and keep the full directory.
+Source Assamese names have verified glyph coverage; missing translations retain
+source English names.
+
+Actual pixel review found two layout defects in this change: dense phone labels
+crossed the title and tools, and the cross-section toolbar inherited a static
+position below the chart. Label safe areas and a canvas-relative toolbar anchor
+fix them. A bounding-box regression requires the tools to remain within the
+canvas when the chart is open. Plate labels now have a legible screen-space size
+and their cached layout is invalidated on diagram rebuilds. Computed tool bounds
+and document widths were checked at 1440 and 390; no horizontal overflow was found.
+The existing tokens supply the segmented header, framed map, compact HUD and
+bottom dock. No colour token, font dependency or icon set was changed.
+
+Fresh USGS retrieval succeeded for 2026-10-03 UTC. Failed, empty and invalid
+responses retain the exact last good catalogue bytes in offline unit checks.
+Automated remote updates are prepared, not activated or deployed from this branch.
+Physical-device performance and native-speaker translation review remain pending.

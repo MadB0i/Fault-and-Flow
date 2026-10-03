@@ -518,3 +518,27 @@ FAULT's region picker is removed from both HUD paths, and entering it through
 navigation or browser history selects Assam overview. Its terrain-following wave
 fronts use display choices for radius, timing and brightness. They are not P/S
 arrivals, intensity contours or measured shaking fields.
+
+### District navigation and dated snapshots — 2026-10-03
+
+The typed public contract adds `TerrainView.zoomView(factor)` and
+`focusLocation(lon, lat)`, and `AtlasPresentation.districts` / `selectedDistrict`.
+This is a breaking API extension. The HUD passes numbers and sourced IDs only;
+the engine keeps camera position, damping, ray intersection and screen-label
+layout. Wheel/pinch zoom uses a geographic anchor, Shift-drag pans, and resize
+preserves an already navigated camera. Home/reset returns to the overview.
+Probing resets its temporary intersection plane on every path.
+
+OSM district labels use independently attributed administration-centre anchors.
+Leader lines connect displaced screen labels to their unchanged anchors. Small
+viewports declutter close labels; all 35 names remain in a native button directory.
+Layout is cached while the camera and label state are unchanged, avoiding a
+district collision search on every water frame. Town labels are independently
+available and off by default to keep the initial district view readable.
+
+Shared links validate mode, locale, sourced district ID, historical year, event ID
+and depth-view selection. They never start a water simulation. Clipboard failure
+retains a selectable native text field. The build-time USGS updater atomically
+replaces validated data, and the UI's timeline bounds derive from the snapshot
+cutoff rather than a hard-coded year. See `docs/DATA_UPDATES.md` for activation
+conditions and the distinction between historical refresh and live warnings.

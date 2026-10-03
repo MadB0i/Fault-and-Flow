@@ -6,7 +6,8 @@
 import { create } from 'zustand';
 
 import type { Locale } from '../../shared/types.js';
-import { INITIAL_ATLAS, type AtlasPresentation } from '../../shared/atlas.js';
+import { type AtlasPresentation } from '../../shared/atlas.js';
+import { parseViewLink } from '../../shared/view-link.js';
 import { STRINGS, type Strings } from '../../shared/i18n/strings.js';
 
 interface UiState {
@@ -22,7 +23,7 @@ interface UiState {
 }
 
 export const useUiStore = create<UiState>((set, get) => ({
-  locale: 'en',
+  locale: initialPresentation().locale,
   setLocale: (locale) => set({ locale }),
   atlas: initialPresentation(),
   setAtlas: (next) =>
@@ -31,12 +32,5 @@ export const useUiStore = create<UiState>((set, get) => ({
 }));
 
 export function initialPresentation(): AtlasPresentation {
-  const mode =
-    typeof location === 'undefined'
-      ? null
-      : new URLSearchParams(location.search).get('mode');
-  return {
-    ...INITIAL_ATLAS,
-    mode: mode === 'fault' || mode === 'plates' ? mode : 'flow',
-  };
+  return parseViewLink(typeof location === 'undefined' ? '' : location.search);
 }

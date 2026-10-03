@@ -927,7 +927,7 @@ number. See "The no-data encoding" above.
    than merely observed, add an entry to [`docs/DECISIONS.md`](DECISIONS.md) and reference it
    from this file. A licence finding with no decision attached gets re-litigated.
 
-## 14. Committed atlas extracts — 2026-10-02
+## 14. Committed atlas extracts — 2026-10-03
 
 Built by `npm run data:atlas`, with raw responses cached under `.cache/atlas/`.
 The cache, npm downloads, temporary browser profiles and generated diagnostics stay
@@ -936,7 +936,7 @@ on the project drive. No large raw dataset is committed.
 | Artefact                    | Source                                                                                                                                              | Retrieved  | Licence text/source                                                          | Attribution                                                     |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | `src/data/geography.json`   | Natural Earth author-maintained repository, revision `ca96624a56bd078437bca8184e78163e5039ad19`; source URLs and SHA-256 below and inside the asset | 2026-10-02 | Section 2; repository `LICENSE.md` and Natural Earth terms verified directly | Made with Natural Earth.                                        |
-| `src/data/earthquakes.json` | USGS FDSN query recorded below and in the asset                                                                                                     | 2026-10-02 | Section 3, verbatim policy text verified directly                            | Earthquake catalog data courtesy of the U.S. Geological Survey. |
+| `src/data/earthquakes.json` | USGS FDSN query recorded below and in the asset                                                                                                     | 2026-10-03 | Section 3, verbatim policy text verified directly                            | Earthquake catalog data courtesy of the U.S. Geological Survey. |
 
 Natural Earth licence text, quoted verbatim from
 <https://www.naturalearthdata.com/about/terms-of-use/> (retrieved 2026-10-02,
@@ -971,14 +971,19 @@ to reduce clutter; it never moves the remaining locations.
 
 USGS query, resolved during extraction:
 
-<https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-01&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc>
+<https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-03&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc>
 
-Raw response SHA-256: `6e084a85265543b0f81527f7b0c1be1c0d9a2c8f8f0922b20de7de00d90a00ac`.
+Raw response SHA-256: `8a73ef37fd547fcbcc742d9c4f0bf8279811eaa6576c2e967d1c622850ca00e2`.
 289 event records: UTC time, longitude, latitude, depth in kilometres, magnitude,
 magnitude type, event ID and record URL. Magnitude types are retained as supplied,
 not converted to moment magnitude. Early coverage is incomplete and this is a
 geographic M5+ subset, not a complete Assam earthquake history. ComCat records can
 be revised: a clean network fetch is not guaranteed byte-identical to this snapshot.
+
+Subsequent scheduled builds use the same source and licence, with the UTC midnight
+cutoff moved to their build day. Every snapshot records its exact query URL,
+retrieval date and raw-response SHA-256 in `src/data/earthquakes.json`; those fields
+are authoritative for that build, rather than this committed baseline's date.
 
 ### Link-only historical flood reports and geology
 
@@ -995,3 +1000,50 @@ No redistribution licence is asserted for link-only content (`UNVERIFIED`).
 PLATES geometry is our original, explicitly synthetic teaching diagram. It supplies
 no measured boundaries, convergence rate, geological date, or real mountain height.
 The flood reports do not configure FLOW: historical flood footprints are not held.
+
+### District names and administration-centre anchors — 2026-10-03
+
+| Artefact                  | Source                                                                                                                           | Retrieved  | Licence                            | Required attribution                                                                             |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `src/data/districts.json` | OpenStreetMap API relation tags and `admin_centre` nodes; exact query URLs, source dates, versions and hashes inside the extract | 2026-10-03 | ODbL 1.0; verbatim statement below | © OpenStreetMap contributors, linked to the copyright page; ODbL notice and downloadable extract |
+
+Verbatim statement retrieved 2026-10-03 from
+<https://www.openstreetmap.org/copyright>:
+
+> OpenStreetMap is open data, licensed under the Open Data Commons Open Database License (ODbL) by the OpenStreetMap Foundation (OSMF).
+
+The [ODbL legal text](https://opendatacommons.org/licenses/odbl/1-0/) was read on
+2026-10-03: sections 3.1 and 4 govern extraction, modification, redistribution,
+attribution and share alike. The extract is explicitly distributed under ODbL,
+contains its licence URI and attribution, and is offered as a machine-readable
+download in the district directory. This data licence does not replace the
+software's MIT licence. The map footer links the credit; exported images include
+the copyright URL when hyperlinks are unavailable.
+
+`scripts/build-districts.mjs` fetches 35 district relations and their referenced
+administration-centre nodes through these OSM API endpoints:
+
+- <https://api.openstreetmap.org/api/0.6/relations.json> with the recorded `relations` query;
+  response SHA-256 `34c8029cc341ec9b4f8dd715464d6cbe10b993220b761e12a683a37eb0d4ed58`.
+- <https://api.openstreetmap.org/api/0.6/nodes.json> with the recorded `nodes` query;
+  response SHA-256 `53f8ac428da94109454ee118cd2e2ec018d2fce255955685c9afbccdc8c57663`.
+
+Both queries resolved during extraction. Coordinates are actual administration
+centres from the relations, not invented district centroids. No district polygon,
+district area, population or legal boundary is claimed. Display labels may move
+with a leader line to the unchanged source anchor; nearby labels declutter at small
+scales, especially on phones. All 35 remain in the searchable directory.
+
+The OSM community's [district index](https://wiki.openstreetmap.org/wiki/Districts_in_Assam)
+was used to discover relation IDs, not as a geometry source. No wiki prose or
+district statistics are bundled. Naming facts were cross-checked against
+[Hojai's Assam district list](https://hojai.assam.gov.in/information-and-services/districts-assam)
+and [the Sribhumi district site](https://sribhumi.assam.gov.in/about-district/district-glance), retrieved
+2026-10-03. The Hojai list itself has old naming, so it is not treated as a current
+administrative-boundary dataset. Official page redistribution terms are
+`UNVERIFIED`; their page content is not redistributed. The three name adjustments
+are Karimganj → Sribhumi, Marigaon → Morigaon, and removing the literal
+"district" suffix from Hailakandi. Original OSM names remain in `sourceName` and
+search aliases. Source Assamese names are retained where present; missing ones
+remain in English rather than inventing a translation. Sribhumi's old Assamese
+name is omitted pending verification of its new spelling.

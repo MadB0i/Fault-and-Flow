@@ -14,12 +14,13 @@ export async function saveAtlasImage(
   const style = getComputedStyle(document.documentElement);
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(img.width, 1000);
-  canvas.height = Math.round((img.height * canvas.width) / img.width) + 230;
+  const footerHeight = 260;
+  canvas.height = Math.round((img.height * canvas.width) / img.width) + footerHeight;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas unavailable');
   ctx.fillStyle = style.getPropertyValue('--bg').trim();
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const mapHeight = canvas.height - 230;
+  const mapHeight = canvas.height - footerHeight;
   ctx.drawImage(img, 0, 0, canvas.width, mapHeight);
   ctx.fillStyle = style.getPropertyValue('--text').trim();
   ctx.font = `${style.getPropertyValue('--step-0').trim()} ${style.getPropertyValue('--font-ui').trim()}`;
@@ -34,6 +35,11 @@ export async function saveAtlasImage(
     context.note,
     context.attribution,
     `${copy.riverCredit} ${copy.usgsCredit}`,
+    ...(mode === 'plates'
+      ? []
+      : [
+          '© OpenStreetMap contributors · ODbL · https://www.openstreetmap.org/copyright',
+        ]),
     mode === 'fault' ? copy.catalogueNote : copy.riverNote,
   ];
   lines.forEach((line, i) =>

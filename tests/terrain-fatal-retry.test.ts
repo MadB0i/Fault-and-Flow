@@ -58,6 +58,8 @@ vi.mock('@engine/terrain', () => {
         };
       },
       resetCamera: () => undefined,
+      zoomView: () => undefined,
+      focusLocation: () => undefined,
       dispose: () => undefined,
     };
   }

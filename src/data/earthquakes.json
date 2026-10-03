@@ -1,12 +1,12 @@
 {
-  "retrieved": "2026-10-02",
-  "cutoff": "2026-10-01",
+  "retrieved": "2026-10-03",
+  "cutoff": "2026-10-03",
   "start": "1900-01-01",
   "minMagnitude": 5,
   "bbox": [89.5, 24, 96.5, 28.5],
   "source": {
-    "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-01&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc",
-    "sha256": "6e084a85265543b0f81527f7b0c1be1c0d9a2c8f8f0922b20de7de00d90a00ac"
+    "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-03&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc",
+    "sha256": "8a73ef37fd547fcbcc742d9c4f0bf8279811eaa6576c2e967d1c622850ca00e2"
   },
   "events": [
     {

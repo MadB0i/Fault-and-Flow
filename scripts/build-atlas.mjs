@@ -41,7 +41,7 @@ async function fetchJson(url, name) {
     const r = await fetch(url);
     if (!r.ok) throw new Error(`${r.status}: ${url}`);
     raw = await r.text();
-    if (name === 'comcat-history.json') historyFetched = true;
+    if (name.startsWith('comcat-history')) historyFetched = true;
     else mapFetched = true;
     JSON.parse(raw);
     await writeFile(file, raw);
@@ -113,12 +113,14 @@ const geography = {
     .slice(0, 18),
 };
 await writeJson('geography.json', geography);
+const cutoff = previousHistory.cutoff ?? '2026-10-01';
 const quakeUrl =
-  'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-01&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc';
-const quakes = await fetchJson(quakeUrl, 'comcat-history.json');
+  previousHistory.source?.url ??
+  `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=${cutoff}&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc`;
+const quakes = await fetchJson(quakeUrl, `comcat-history-${cutoff}.json`);
 const history = {
   retrieved: historyFetched ? today : (previousHistory.retrieved ?? today),
-  cutoff: '2026-10-01',
+  cutoff,
   start: '1900-01-01',
   minMagnitude: 5,
   bbox,

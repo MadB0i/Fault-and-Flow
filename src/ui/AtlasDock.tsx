@@ -11,6 +11,11 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { AtlasPresentation } from '../shared/atlas.js';
 import type { AtlasCopy } from '../shared/i18n/atlas.js';
 import catalogue from '../data/earthquakes.json';
+import {
+  CATALOGUE_START_YEAR,
+  CATALOGUE_END_YEAR,
+  CATALOGUE_CUTOFF,
+} from '../shared/catalogue.js';
 import { GEOLOGY_SOURCE } from '../shared/flood-history.js';
 import type { TerrainViewController } from './terrain/useTerrainView.js';
 import { useUiStore } from './state/useUiStore.js';
@@ -219,6 +224,9 @@ export default function AtlasDock({
             <p className="eyebrow">02 / FAULT</p>
             <h2>{copy.catalogue}</h2>
             <p>{copy.catalogueNote}</p>
+            <p className="snapshot-note">
+              {copy.snapshot} <strong>{CATALOGUE_CUTOFF} UTC</strong>
+            </p>
           </div>
           <div className="history-controls">
             <label htmlFor="quake-year">
@@ -226,27 +234,32 @@ export default function AtlasDock({
               <output>{atlas.quakeYear}</output>
             </label>
             <div className="event-bars" aria-hidden="true">
-              {Array.from({ length: 64 }, (_, i) => {
-                const year = 1900 + i * 2;
-                const count = catalogue.events.filter(
-                  (e) =>
-                    Number(e.time.slice(0, 4)) >= year &&
-                    Number(e.time.slice(0, 4)) < year + 2,
-                ).length;
-                return (
-                  <span
-                    key={year}
-                    style={{ height: `${Math.min(100, 6 + count * 4)}%` }}
-                    className={year <= atlas.quakeYear ? 'is-past' : ''}
-                  />
-                );
-              })}
+              {Array.from(
+                {
+                  length: Math.ceil((CATALOGUE_END_YEAR - CATALOGUE_START_YEAR + 1) / 2),
+                },
+                (_, i) => {
+                  const year = CATALOGUE_START_YEAR + i * 2;
+                  const count = catalogue.events.filter(
+                    (e) =>
+                      Number(e.time.slice(0, 4)) >= year &&
+                      Number(e.time.slice(0, 4)) < year + 2,
+                  ).length;
+                  return (
+                    <span
+                      key={year}
+                      style={{ height: `${Math.min(100, 6 + count * 4)}%` }}
+                      className={year <= atlas.quakeYear ? 'is-past' : ''}
+                    />
+                  );
+                },
+              )}
             </div>
             <input
               id="quake-year"
               type="range"
-              min="1900"
-              max="2026"
+              min={CATALOGUE_START_YEAR}
+              max={CATALOGUE_END_YEAR}
               value={atlas.quakeYear}
               onChange={(e) => {
                 setHistoryPlaying(false);
@@ -258,19 +271,23 @@ export default function AtlasDock({
               }}
             />
             <div className="timeline-ends">
-              <span>1900</span>
+              <span>{CATALOGUE_START_YEAR}</span>
               <span>
                 {events.length} {copy.events}
               </span>
-              <span>2026</span>
+              <span>{CATALOGUE_END_YEAR}</span>
             </div>
             <div className="inline-controls">
               <button
                 className="primary-button"
                 type="button"
                 onClick={() => {
-                  if (!historyPlaying && atlas.quakeYear >= 2026)
-                    setAtlas((a) => ({ ...a, quakeYear: 1900, selectedQuake: null }));
+                  if (!historyPlaying && atlas.quakeYear >= CATALOGUE_END_YEAR)
+                    setAtlas((a) => ({
+                      ...a,
+                      quakeYear: CATALOGUE_START_YEAR,
+                      selectedQuake: null,
+                    }));
                   setHistoryPlaying((v) => !v);
                 }}
               >

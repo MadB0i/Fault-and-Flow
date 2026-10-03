@@ -1,5 +1,26 @@
 /** English and Assamese atlas copy. Assamese remains an owner-review draft. */
 const en = {
+  districts: 'District names',
+  districtExplore: 'Find your district',
+  districtSearch: 'Search districts',
+  districtNote:
+    'District name anchors from OpenStreetMap; not surveyed district boundaries. Names follow the source; zoom to separate close labels.',
+  districtEmpty: 'No matching district. Try another spelling.',
+  allDistricts: 'All districts',
+  zoomIn: 'Zoom in',
+  zoomOut: 'Zoom out',
+  share: 'Share this view',
+  shareNote:
+    'Send someone this district or earthquake timeline. The link restores the chosen view; it does not forecast a flood or earthquake.',
+  viewLink: 'Link to this view',
+  copyLink: 'Copy link',
+  linkCopied: 'Link copied. Your view is ready to share.',
+  linkFailed: 'Could not copy automatically. Select the link and copy it manually.',
+  snapshot: 'USGS history through',
+  retrieved: 'Retrieved',
+  updateNote:
+    'Dated historical snapshot, not a live alert. Scheduled builds refresh earthquake records; FLOW remains a scenario you choose.',
+  districtCredit: 'District names · © OpenStreetMap contributors · ODbL',
   eyebrow: 'AN INTERACTIVE ATLAS OF ASSAM',
   flowTitle: 'A river. A restless land.',
   flowDescription: 'Follow the Brahmaputra through a landscape that never stands still.',
@@ -58,7 +79,7 @@ const en = {
     'The simulation could not continue reliably. Reset the scenario to try again.',
   loading: 'Building the landscape…',
   resetView: 'Reset view',
-  mapHint: 'Drag to orbit · Scroll to zoom',
+  mapHint: 'Drag orbit · Shift-drag move · Scroll zoom',
   touchHint: 'Drag to orbit · Pinch to zoom',
   terrain: 'Terrain settings',
   sources: 'Sources & limitations',
@@ -82,7 +103,7 @@ const en = {
   eventSource: 'View catalogue record',
   majorEvent: 'Explore the 1950 earthquake',
   catalogueNote:
-    'M5+ catalogue subset, 1900–1 Oct 2026. Coverage is incomplete, especially in early years; magnitude types vary.',
+    'M5+ catalogue subset. Coverage is incomplete, especially in early years; magnitude types vary. See the dated snapshot below.',
   usgsCredit: 'Earthquake catalog data courtesy of the U.S. Geological Survey.',
   riverCredit:
     'Made with Natural Earth. Boundaries are simplified; place names retain the source’s English spelling.',
@@ -143,6 +164,27 @@ const en = {
 };
 type Copy = { [K in keyof typeof en]: string };
 const as: Copy = {
+  districts: 'জিলাৰ নাম',
+  districtExplore: 'নিজৰ জিলা বিচাৰক',
+  districtSearch: 'জিলা সন্ধান কৰক',
+  districtNote:
+    'OpenStreetMapৰ জিলাৰ নামৰ স্থান; জৰীপ কৰা জিলাৰ সীমা নহয়। উৎসৰ নাম ব্যৱহাৰ কৰা হৈছে; ওচৰৰ নাম পৃথক কৰিবলৈ জুম কৰক।',
+  districtEmpty: 'মিলা জিলা নাই। আন বানান চেষ্টা কৰক।',
+  allDistricts: 'সকলো জিলা',
+  zoomIn: 'জুম বঢ়াওক',
+  zoomOut: 'জুম কমাওক',
+  share: 'এই দৃশ্য ভাগ কৰক',
+  shareNote:
+    'এই জিলা বা ভূমিকম্পৰ সময়ৰেখাৰ লিংক ভাগ কৰক। লিংকে বাছনি কৰা দৃশ্য খোলে; বান বা ভূমিকম্পৰ পূৰ্বাভাস নহয়।',
+  viewLink: 'এই দৃশ্যৰ লিংক',
+  copyLink: 'লিংক কপি কৰক',
+  linkCopied: 'লিংক কপি হ’ল। দৃশ্য ভাগ কৰিবলৈ সাজু।',
+  linkFailed: 'স্বয়ংক্ৰিয়ভাৱে কপি কৰিব নোৱাৰিলে। লিংক বাছি নিজে কপি কৰক।',
+  snapshot: 'USGSৰ ইতিহাসৰ শেষ তাৰিখ',
+  retrieved: 'সংগ্ৰহৰ তাৰিখ',
+  updateNote:
+    'তাৰিখসহ ঐতিহাসিক তালিকা, বৰ্তমানৰ সতৰ্কতা নহয়। নিৰ্ধাৰিত বিল্ডে ভূমিকম্পৰ নথি নৱীকৰণ কৰে; FLOW আপোনাৰ বাছনি কৰা দৃশ্য।',
+  districtCredit: 'জিলাৰ নাম · © OpenStreetMap contributors · ODbL',
   eyebrow: 'অসমৰ এখন ইণ্টাৰেক্টিভ মানচিত্ৰ',
   flowTitle: 'এখন নদী। সলনি হোৱা ভূমি।',
   flowDescription: 'সদায় সলনি হোৱা ভূদৃশ্যৰ মাজেৰে ব্ৰহ্মপুত্ৰক অনুসৰণ কৰক।',
@@ -201,7 +243,7 @@ const as: Copy = {
   unstable: 'মডেলটো নিৰ্ভৰযোগ্যভাৱে চলিব নোৱাৰিলে। পুনৰ আৰম্ভ কৰি চাওক।',
   loading: 'ভূদৃশ্য প্ৰস্তুত কৰা হৈছে…',
   resetView: 'দৃশ্য ঘূৰাওক',
-  mapHint: 'টানি ঘূৰাওক · স্ক্ৰল কৰি ডাঙৰ কৰক',
+  mapHint: 'টানি ঘূৰাওক · Shift ধৰি টানি স্থান সলনি কৰক · স্ক্ৰল কৰি জুম কৰক',
   touchHint: 'টানি ঘূৰাওক · দুটা আঙুলিৰে ডাঙৰ কৰক',
   terrain: 'ভূদৃশ্যৰ ছেটিং',
   sources: 'উৎস আৰু সীমাবদ্ধতা',

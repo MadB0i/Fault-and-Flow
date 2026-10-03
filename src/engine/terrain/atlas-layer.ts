@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import geography from '../../data/geography.json';
 import catalogue from '../../data/earthquakes.json';
+import districtData from '../../data/districts.json';
 import {
   INITIAL_ATLAS,
   type AtlasPresentation,
@@ -33,10 +34,12 @@ export function createAtlasLayer(
   const rivers = new THREE.Group();
   const borders = new THREE.Group();
   const places = new THREE.Group();
+  const districtNames = new THREE.Group();
+  const districtLeaders = new THREE.Group();
   const quakes = new THREE.Group();
   const plates = new THREE.Group();
   const section = new THREE.Group();
-  map.add(rivers, borders, places, quakes, section);
+  map.add(rivers, borders, places, districtNames, districtLeaders, quakes, section);
   scene.add(map, plates);
   let presentation = { ...INITIAL_ATLAS };
   let ground: Ground | null = null;
@@ -51,6 +54,9 @@ export function createAtlasLayer(
   const dummy = new THREE.Object3D();
   const labelMetrics = new WeakMap<THREE.Sprite, { height: number; ratio: number }>();
   const riverOpacity = new WeakMap<THREE.MeshBasicMaterial, number>();
+  const districtAnchors = new WeakMap<THREE.Sprite, THREE.Vector3>();
+  const leaders = new WeakMap<THREE.Sprite, THREE.Line>();
+  let layoutKey = '';
   const positionFor = (lon: number, lat: number, lift = 0): THREE.Vector3 | null => {
     if (!ground) return null;
     const { sidecar: s } = ground;
@@ -161,8 +167,8 @@ export function createAtlasLayer(
     ctx.textBaseline = 'middle';
     ctx.fillStyle = colour;
     ctx.shadowColor = palette.surface;
-    ctx.shadowBlur = 12;
-    ctx.lineWidth = 12;
+    ctx.shadowBlur = 6;
+    ctx.lineWidth = 8;
     ctx.strokeStyle = palette.surface;
     ctx.strokeText(text, canvas.width / 2, 48);
     ctx.fillText(text, canvas.width / 2, 48);
@@ -182,8 +188,48 @@ export function createAtlasLayer(
     labelMetrics.set(sprite, { height: labelHeight, ratio: canvas.width / 96 });
     sprite.renderOrder = 5;
     parent.add(sprite);
+    return sprite;
+  }
+  function buildDistrictNames() {
+    layoutKey = '';
+    clear(districtNames);
+    clear(districtLeaders);
+    for (const district of districtData.districts) {
+      const anchor = positionFor(district.longitude, district.latitude, span * 0.002);
+      if (!anchor) continue;
+      const sprite = label(
+        presentation.locale === 'as' && district.nameAs ? district.nameAs : district.name,
+        palette.text,
+        span * 0.07,
+        anchor,
+        districtNames,
+      );
+      if (!sprite) continue;
+      sprite.userData['districtId'] = district.id;
+      districtAnchors.set(sprite, anchor.clone());
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setAttribute(
+          'position',
+          new THREE.BufferAttribute(new Float32Array(6), 3).setUsage(
+            THREE.DynamicDrawUsage,
+          ),
+        ),
+        new THREE.LineBasicMaterial({
+          color: palette.muted,
+          transparent: true,
+          opacity: 0.65,
+          depthTest: false,
+          depthWrite: false,
+        }),
+      );
+      line.frustumCulled = false;
+      line.renderOrder = 4;
+      districtLeaders.add(line);
+      leaders.set(sprite, line);
+    }
   }
   function buildPlates() {
+    layoutKey = '';
     clear(plates);
     if (!ground) return;
     const scale = span;
@@ -370,14 +416,17 @@ export function createAtlasLayer(
       return wave;
     });
     buildPlates();
+    buildDistrictNames();
     update(presentation);
   }
   function update(next: AtlasPresentation) {
     const changed = next.selectedQuake !== presentation.selectedQuake;
     const collisionChanged =
       next.collision !== presentation.collision || next.locale !== presentation.locale;
+    const localeChanged = next.locale !== presentation.locale;
     if (next.motionIllustration !== presentation.motionIllustration) motionAge = 0;
     presentation = { ...next };
+    if (localeChanged) buildDistrictNames();
     map.visible = next.mode !== 'plates';
     plates.visible = next.mode === 'plates';
     rivers.visible = next.rivers;
@@ -392,6 +441,8 @@ export function createAtlasLayer(
     });
     borders.visible = next.boundaries;
     places.visible = next.places;
+    districtNames.visible = next.districts;
+    districtLeaders.visible = next.districts;
     quakes.visible = next.mode === 'fault';
     if (collisionChanged) buildPlates();
     if (markers) {
@@ -499,40 +550,123 @@ export function createAtlasLayer(
         if (path.at(-1)) label('B', palette.text, span * 0.04, path.at(-1)!, section);
       }
     },
-    /** Suppress overlapping labels without moving their geographic anchors. */
+    /** District leader lines preserve sourced anchors when screen labels separate. */
     layout(camera: THREE.Camera, width: number, height: number) {
+      const key = `${camera.matrixWorld.elements.join(',')}/${camera.projectionMatrix.elements.join(',')}/${width}/${height}/${presentation.mode}/${presentation.selectedDistrict}/${districtNames.visible}/${places.visible}/${plates.visible}`;
+      if (key === layoutKey) return;
+      layoutKey = key;
       const rectangles: { left: number; right: number; top: number; bottom: number }[] =
         [];
-      for (const parent of [places, plates])
-        for (const object of parent.children) {
+      for (const parent of [districtNames, places, plates])
+        for (const object of [...parent.children].sort(
+          (a, b) =>
+            Number(b.userData['districtId'] === presentation.selectedDistrict) -
+            Number(a.userData['districtId'] === presentation.selectedDistrict),
+        )) {
+          if (!parent.visible) continue;
           if (!(object instanceof THREE.Sprite)) continue;
           const metric = labelMetrics.get(object as THREE.Sprite);
           if (!metric) continue;
-          const size = metric.height * (parent === plates && width < 600 ? 0.65 : 1);
+          const district = parent === districtNames;
+          const size = district
+            ? (2 * (width < 600 ? 20 : 22)) /
+              (camera.projectionMatrix.elements[5] * height)
+            : parent === plates
+              ? (2 * (width < 600 ? 28 : 32)) /
+                (camera.projectionMatrix.elements[5] * height)
+              : metric.height;
           object.scale.set(size * metric.ratio, size, 1);
           if (parent === plates) continue;
-          const p = object.position.clone().project(camera);
+          const anchor = districtAnchors.get(object as THREE.Sprite);
+          const p = (anchor ?? object.position).clone().project(camera);
           const x = ((p.x + 1) * width) / 2;
           const y = ((1 - p.y) * height) / 2;
           const w =
             (size * metric.ratio * camera.projectionMatrix.elements[0] * width) / 2;
           const h = (size * camera.projectionMatrix.elements[5] * height) / 2;
-          const rect = {
+          let rect = {
             left: x - w / 2 - 4,
             right: x + w / 2 + 4,
             top: y - h / 2 - 4,
             bottom: y + h / 2 + 4,
           };
+          let labelX = x;
+          let labelY = y;
+          const overlaps = (r: typeof rect) =>
+            rectangles.some(
+              (other) =>
+                r.left < other.right &&
+                r.right > other.left &&
+                r.top < other.bottom &&
+                r.bottom > other.top,
+            );
+          const underHud = (r: typeof rect) =>
+            width >= 600 &&
+            ((r.left < width * 0.27 && r.top < height * 0.65) ||
+              (r.right > width * 0.82 && r.top < height * 0.8));
+          if (
+            district &&
+            width >= 600 &&
+            (overlaps(rect) || underHud(rect)) &&
+            p.z >= -1 &&
+            p.z <= 1
+          ) {
+            const offsets: { dx: number; dy: number }[] = [];
+            for (let row = -7; row <= 7; row++)
+              for (let column = -3; column <= 3; column++)
+                offsets.push({ dx: column * 40, dy: row * 28 });
+            offsets.sort((a, b) => Math.hypot(a.dx, a.dy) - Math.hypot(b.dx, b.dy));
+            for (const { dx, dy } of offsets) {
+              const candidate = {
+                left: x + dx - w / 2 - 4,
+                right: x + dx + w / 2 + 4,
+                top: y + dy - h / 2 - 4,
+                bottom: y + dy + h / 2 + 4,
+              };
+              if (
+                candidate.left >= 8 &&
+                candidate.right <= width - 8 &&
+                candidate.top >= 8 &&
+                candidate.bottom <= height - 60 &&
+                !overlaps(candidate) &&
+                !underHud(candidate)
+              ) {
+                rect = candidate;
+                labelX = x + dx;
+                labelY = y + dy;
+                break;
+              }
+            }
+          }
           object.visible =
             p.z >= -1 &&
             p.z <= 1 &&
-            !rectangles.some(
-              (r) =>
-                rect.left < r.right &&
-                rect.right > r.left &&
-                rect.top < r.bottom &&
-                rect.bottom > r.top,
-            );
+            x >= 0 &&
+            x <= width &&
+            y >= 0 &&
+            y <= height &&
+            (!district ||
+              width >= 600 ||
+              (rect.top >= height * 0.35 &&
+                rect.bottom <= height - 90 &&
+                (rect.bottom < height - 280 || rect.right < width - 120))) &&
+            (!district || !underHud(rect)) &&
+            !overlaps(rect);
+          if (anchor) {
+            object.position
+              .set((labelX / width) * 2 - 1, 1 - (labelY / height) * 2, p.z)
+              .unproject(camera);
+            const line = leaders.get(object as THREE.Sprite);
+            if (line) {
+              line.visible = object.visible && (labelX !== x || labelY !== y);
+              const buffer = line.geometry.getAttribute(
+                'position',
+              ) as THREE.BufferAttribute;
+              buffer.setXYZ(0, anchor.x, anchor.y, anchor.z);
+              buffer.setXYZ(1, object.position.x, object.position.y, object.position.z);
+              buffer.needsUpdate = true;
+            }
+          }
           if (object.visible) rectangles.push(rect);
         }
     },
@@ -542,7 +676,17 @@ export function createAtlasLayer(
         ? 0
         : span * 0.002 * Math.sin(motionAge * 44) * Math.exp(-motionAge * 2),
     dispose() {
-      for (const g of [rivers, borders, places, quakes, plates, section]) clear(g);
+      for (const g of [
+        rivers,
+        borders,
+        places,
+        districtNames,
+        districtLeaders,
+        quakes,
+        plates,
+        section,
+      ])
+        clear(g);
       scene.remove(map, plates);
     },
   };

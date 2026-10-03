@@ -89,7 +89,7 @@ export const AREA_DEFINITIONS: readonly AreaDefinition[] = [
     // nearly overhead, which hid the hills behind the floodplain.
     defaultPolarDeg: 50,
     defaultAzimuthDeg: 0,
-    minZoomFactor: 0.35,
+    minZoomFactor: 0.04,
     maxZoomFactor: 2.2,
   },
   {

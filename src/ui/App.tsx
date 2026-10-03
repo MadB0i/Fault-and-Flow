@@ -10,11 +10,24 @@ import {
   RotateCcw,
   ShieldCheck,
   Waves,
+  MapPin,
+  Plus,
+  Minus,
+  Share2,
+  Check,
 } from 'lucide-react';
 import { ATLAS_COPY } from '../shared/i18n/atlas.js';
 import { FLOOD_HISTORY } from '../shared/flood-history.js';
 import type { Mode } from '../shared/types.js';
 import catalogue from '../data/earthquakes.json';
+import districts from '../data/districts.json';
+import districtDownloadUrl from '../data/districts.json?url';
+import {
+  CATALOGUE_END_YEAR,
+  CATALOGUE_CUTOFF,
+  CATALOGUE_RETRIEVED,
+} from '../shared/catalogue.js';
+import { createViewLink } from '../shared/view-link.js';
 import { useUiStore, initialPresentation } from './state/useUiStore.js';
 import { useTerrainView, type AreaId } from './terrain/useTerrainView.js';
 import TerrainScene from './terrain/TerrainScene.js';
@@ -38,7 +51,7 @@ export default function App() {
   const atlas = useUiStore((s) => s.atlas);
   const setAtlas = useUiStore((s) => s.setAtlas);
   const [drawer, setDrawer] = useState<
-    'sources' | 'safety' | 'layers' | 'history' | null
+    'sources' | 'safety' | 'layers' | 'history' | 'districts' | 'share' | null
   >(null);
   const [focus, setFocus] = useState(false);
   const [level, setLevel] = useState(2);
@@ -46,6 +59,11 @@ export default function App() {
   const [collisionPlaying, setCollisionPlaying] = useState(false);
   const [story, setStory] = useState(2);
   const [notice, setNotice] = useState('');
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [shareLink, setShareLink] = useState('');
+  const selectedDistrict = districts.districts.find(
+    (d) => d.id === atlas.selectedDistrict,
+  );
   const ready = view.state.status.phase === 'ready';
   const sidecar = view.state.status.phase === 'ready' ? view.state.status.sidecar : null;
   const mode = atlas.mode;
@@ -58,8 +76,19 @@ export default function App() {
     if (ready) view.setAtlas({ ...atlas, locale });
   }, [atlas, locale, ready, view.setAtlas]);
   useEffect(() => {
+    if (
+      ready &&
+      selectedDistrict &&
+      view.areaId === 'assam-overview' &&
+      mode !== 'plates'
+    )
+      view.focusLocation(selectedDistrict.longitude, selectedDistrict.latitude);
+  }, [ready, selectedDistrict, view.areaId, mode, view.focusLocation]);
+  useEffect(() => {
     const onPop = () => {
-      setAtlas(initialPresentation());
+      const restored = initialPresentation();
+      setAtlas(restored);
+      useUiStore.getState().setLocale(restored.locale);
       setHistoryPlaying(false);
       setCollisionPlaying(false);
       view.setWaterOn(false);
@@ -72,7 +101,7 @@ export default function App() {
     const id = setInterval(
       () =>
         setAtlas((a) => {
-          if (a.quakeYear >= 2026) {
+          if (a.quakeYear >= CATALOGUE_END_YEAR) {
             setHistoryPlaying(false);
             return a;
           }
@@ -122,16 +151,15 @@ export default function App() {
     view.setWaterOn(false);
     setHistoryPlaying(false);
     setCollisionPlaying(false);
-    setAtlas((a) => ({
-      ...a,
+    const nextAtlas = {
+      ...atlas,
       mode: next,
-      selectedQuake: next === 'fault' ? major.id : a.selectedQuake,
-      quakeYear: 2026,
-    }));
+      selectedQuake: next === 'fault' ? major.id : atlas.selectedQuake,
+      quakeYear: CATALOGUE_END_YEAR,
+    };
+    setAtlas(nextAtlas);
     if (next !== 'flow') view.setArea('assam-overview');
-    const url = new URL(location.href);
-    url.searchParams.set('mode', next);
-    history.pushState(null, '', url);
+    history.pushState(null, '', createViewLink(location.href, { ...nextAtlas, locale }));
   };
   const save = async () => {
     try {
@@ -150,14 +178,24 @@ export default function App() {
     }
   };
   const changeArea = (id: AreaId) => {
+    setAtlas((a) => ({ ...a, selectedDistrict: null }));
     view.setArea(id);
     setHistoryPlaying(false);
   };
   const icon = { size: 18, strokeWidth: 1.5, 'aria-hidden': true as const };
   const layerControls = (
     <>
+      <button
+        className="district-launch"
+        type="button"
+        disabled={!ready}
+        onClick={() => setDrawer('districts')}
+      >
+        <MapPin {...icon} /> <span>{selectedDistrict?.name ?? copy.districtExplore}</span>
+        <ArrowUpRight {...icon} />
+      </button>
       <h3>{copy.geography}</h3>
-      {(['rivers', 'boundaries', 'places'] as const).map((key) => (
+      {(['districts', 'rivers', 'boundaries', 'places'] as const).map((key) => (
         <label className="layer-toggle" key={key}>
           <input
             type="checkbox"
@@ -288,6 +326,37 @@ export default function App() {
         )}
         <div className="map-tools" role="group" aria-label={copy.tools}>
           {mode !== 'plates' && (
+            <>
+              <button
+                type="button"
+                className="icon-button"
+                disabled={!ready}
+                onClick={() => setDrawer('districts')}
+                aria-label={copy.districtExplore}
+              >
+                <MapPin {...icon} />
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                disabled={!ready}
+                onClick={() => view.zoomView(0.75)}
+                aria-label={copy.zoomIn}
+              >
+                <Plus {...icon} />
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                disabled={!ready}
+                onClick={() => view.zoomView(1 / 0.75)}
+                aria-label={copy.zoomOut}
+              >
+                <Minus {...icon} />
+              </button>
+            </>
+          )}
+          {mode !== 'plates' && (
             <button
               type="button"
               className="icon-button mobile-layers"
@@ -301,10 +370,26 @@ export default function App() {
             type="button"
             className="icon-button"
             disabled={!ready}
-            onClick={view.resetCamera}
+            onClick={() => {
+              setAtlas((a) => ({ ...a, selectedDistrict: null }));
+              view.resetCamera();
+            }}
             aria-label={copy.resetView}
           >
             <RotateCcw {...icon} />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            disabled={!ready}
+            aria-label={copy.share}
+            onClick={() => {
+              setShareLink(createViewLink(location.href, { ...atlas, locale }));
+              setNotice('');
+              setDrawer('share');
+            }}
+          >
+            <Share2 {...icon} />
           </button>
           <button
             type="button"
@@ -369,13 +454,23 @@ export default function App() {
           <ShieldCheck {...icon} />
           {copy.disclaimer}
         </p>
+        {mode !== 'plates' && (
+          <a
+            className="district-credit"
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {copy.districtCredit}
+          </a>
+        )}
         <button type="button" onClick={() => setDrawer('sources')}>
           {copy.sources}
           <ArrowUpRight {...icon} />
         </button>
       </footer>
       <p className="sr-only" role="status">
-        {notice}
+        {drawer === 'share' ? '' : notice}
       </p>
       <AtlasDialog
         open={drawer !== null}
@@ -387,16 +482,119 @@ export default function App() {
               ? copy.safetyTitle
               : drawer === 'history'
                 ? copy.floodHistory
-                : copy.controls
+                : drawer === 'districts'
+                  ? copy.districtExplore
+                  : drawer === 'share'
+                    ? copy.share
+                    : copy.controls
         }
         closeLabel={copy.close}
       >
         {drawer === 'layers' && layerControls}
+        {drawer === 'districts' && (
+          <>
+            <p>{copy.districtNote}</p>
+            <label htmlFor="district-search">{copy.districtSearch}</label>
+            <input
+              id="district-search"
+              className="district-search"
+              type="search"
+              value={districtSearch}
+              onChange={(e) => setDistrictSearch(e.target.value)}
+            />
+            <p className="district-count">
+              {copy.allDistricts} · {districts.districts.length}
+            </p>
+            <div className="district-grid">
+              {districts.districts
+                .filter((d) =>
+                  `${d.name} ${d.sourceName} ${d.nameAs}`
+                    .toLowerCase()
+                    .includes(districtSearch.trim().toLowerCase()),
+                )
+                .map((d) => (
+                  <button
+                    type="button"
+                    key={d.id}
+                    aria-pressed={atlas.selectedDistrict === d.id}
+                    onClick={() => {
+                      view.setArea('assam-overview');
+                      setAtlas((a) => ({
+                        ...a,
+                        districts: true,
+                        selectedDistrict: d.id,
+                      }));
+                      view.focusLocation(d.longitude, d.latitude);
+                      setDrawer(null);
+                    }}
+                  >
+                    {atlas.selectedDistrict === d.id ? (
+                      <Check {...icon} />
+                    ) : (
+                      <MapPin {...icon} />
+                    )}
+                    <span>{locale === 'as' && d.nameAs ? d.nameAs : d.name}</span>
+                    <ArrowUpRight {...icon} />
+                  </button>
+                ))}
+            </div>
+            {!districts.districts.some((d) =>
+              `${d.name} ${d.sourceName} ${d.nameAs}`
+                .toLowerCase()
+                .includes(districtSearch.trim().toLowerCase()),
+            ) && <p role="status">{copy.districtEmpty}</p>}
+            <a href={districtDownloadUrl} download="assam-district-names-odbl.json">
+              {copy.districtCredit} <Download {...icon} />
+            </a>
+          </>
+        )}
+        {drawer === 'share' && (
+          <>
+            <p>{copy.shareNote}</p>
+            <label htmlFor="view-link">{copy.viewLink}</label>
+            <input
+              id="view-link"
+              className="district-search"
+              value={shareLink}
+              readOnly
+              onFocus={(e) => e.target.select()}
+            />
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() =>
+                void (async () => {
+                  try {
+                    await navigator.clipboard.writeText(shareLink);
+                    setNotice(copy.linkCopied);
+                  } catch {
+                    setNotice(copy.linkFailed);
+                  }
+                })()
+              }
+            >
+              {copy.copyLink}
+            </button>
+            <p role="status">{notice}</p>
+          </>
+        )}
         {drawer === 'sources' && (
           <>
             <p>{copy.riverCredit}</p>
             <p>{copy.usgsCredit}</p>
             <p>{copy.catalogueNote}</p>
+            <p className="snapshot-note">
+              {copy.snapshot} <strong>{CATALOGUE_CUTOFF} UTC</strong> · {copy.retrieved}{' '}
+              {CATALOGUE_RETRIEVED}
+            </p>
+            <p>{copy.updateNote}</p>
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {copy.districtCredit}
+            </a>
             <p>{copy.noPrediction}</p>
             <TerrainLegend
               sidecar={sidecar}
