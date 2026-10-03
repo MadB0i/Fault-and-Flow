@@ -34,18 +34,18 @@ entry is labelled accordingly. Status labels:
 
 ## Status summary
 
-| Dataset                          | Purpose                     | Status                                                  | Ship it?                                                                |
-| -------------------------------- | --------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
-| **Copernicus DEM GLO-30**        | Terrain, all modes          | **VERIFIED**                                            | **Yes — chosen source**, with mandatory attribution (DECISIONS §8, §11) |
-| **Natural Earth**                | Coastline, basemap fallback | **VERIFIED** (public domain)                            | Yes                                                                     |
-| **USGS ANSS ComCat**             | FAULT earthquake history    | **VERIFIED BY OWNER** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2)      |
-| **Bird PB2002** plate boundaries | PLATES mode                 | **UNVERIFIED**                                          | **No** — no licence found anywhere (DECISIONS §6)                       |
-| **SRTM**                         | Terrain alternative         | **UNVERIFIED** + no keyless route                       | **No** — rejected for the DEM (§5, §11)                                 |
-| **Mapzen Terrain Tiles**         | Bare-earth DEM alternative  | Composite, per-source terms                             | **No** — untraceable provenance (§11)                                   |
-| **NCS (seismo.gov.in)**          | Indian earthquake authority | **RESTRICTIVE**                                         | Link and cite only                                                      |
-| **IMD**                          | Weather / hydrology         | No licence asserted                                     | Link only                                                               |
-| **ASDMA**                        | Flood authority, Assam      | **UNVERIFIED**                                          | **Link only — never bundle** (DECISIONS §4)                             |
-| **CWC** discharge / river stage  | FLOW                        | Out of scope                                            | Not used — FLOW uses a user-controlled level (DECISIONS §3)             |
+| Dataset                          | Purpose                     | Status                                         | Ship it?                                                                |
+| -------------------------------- | --------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------- |
+| **Copernicus DEM GLO-30**        | Terrain, all modes          | **VERIFIED**                                   | **Yes — chosen source**, with mandatory attribution (DECISIONS §8, §11) |
+| **Natural Earth**                | Coastline, basemap fallback | **VERIFIED** (public domain)                   | Yes                                                                     |
+| **USGS ANSS ComCat**             | FAULT earthquake history    | **VERIFIED** (public domain, credit requested) | **Yes — event parameters only**, no product imagery (DECISIONS §2)      |
+| **Bird PB2002** plate boundaries | PLATES mode                 | **UNVERIFIED**                                 | **No** — no licence found anywhere (DECISIONS §6)                       |
+| **SRTM**                         | Terrain alternative         | **UNVERIFIED** + no keyless route              | **No** — rejected for the DEM (§5, §11)                                 |
+| **Mapzen Terrain Tiles**         | Bare-earth DEM alternative  | Composite, per-source terms                    | **No** — untraceable provenance (§11)                                   |
+| **NCS (seismo.gov.in)**          | Indian earthquake authority | **RESTRICTIVE**                                | Link and cite only                                                      |
+| **IMD**                          | Weather / hydrology         | No licence asserted                            | Link only                                                               |
+| **ASDMA**                        | Flood authority, Assam      | **UNVERIFIED**                                 | **Link only — never bundle** (DECISIONS §4)                             |
+| **CWC** discharge / river stage  | FLOW                        | Out of scope                                   | Not used — FLOW uses a user-controlled level (DECISIONS §3)             |
 
 **Nothing from this table is committed to git in Phase 1.** These are research findings and
 a plan, recorded now so the data pipeline can be built against verified terms later.
@@ -256,7 +256,7 @@ higher-stakes dataset's licence is unresolved.
 
 ---
 
-## 3. USGS ANSS Comprehensive Earthquake Catalog (ComCat) — **VERIFIED BY OWNER**
+## 3. USGS ANSS Comprehensive Earthquake Catalog (ComCat) — **VERIFIED**
 
 Source for FAULT mode's earthquake history.
 
@@ -273,20 +273,18 @@ Source for FAULT mode's earthquake history.
 | **Licence**    | **Public domain**, per the USGS crediting page                                     |
 | Attribution    | **Credit requested, not required** — see the credit line below                     |
 
-**How this was verified.** The `usgs.gov` policy pages return an HTTP 202 JavaScript
-robot-check interstitial to a plain HTTP client, so an agent could never read them. The
-owner opened the USGS crediting page in a real browser on **2026-10-01** and reported its
-substance: most USGS information is **public domain** and may be used without
-restriction; USGS **asks for credit**; and some **non-USGS** images and graphics are used
-with permission. That is the source for the public-domain status, and it is why the
-third-party-graphics caveat below exists.
+**Terms verified directly on 2026-10-02, rechecked 2026-10-03** at
+<https://www.usgs.gov/information-policies-and-instructions/acknowledging-or-crediting-usgs>.
+The owner approval above is retained as the original decision; direct page text now
+supersedes the earlier unresolved transcription gap.
 
-> **Not yet quoted verbatim.** Rule 1 of this file requires licence text in quotation
-> marks, and what is above is the owner's summary of the page rather than a transcription
-> of it. That is a weaker form of evidence than the rest of this file and it is recorded as
-> such, not papered over. **The verbatim text of the crediting page should still be pasted
-> here** — it costs the owner one copy-paste and it is the only thing standing between
-> this entry and a licence claim this project cannot show a reader.
+**Licence text (verbatim):**
+
+> Most U.S. Geological Survey (USGS) information resides in the Public Domain and may be used without restriction.
+
+This applies to the event parameters shipped here. It does not clear third-party
+photographs, ShakeMap/PAGER imagery or other product graphics. The UI supplies the
+requested USGS credit; no USGS identifier/logo is used.
 
 **Attribution (verbatim from the ComCat page):**
 
@@ -928,3 +926,163 @@ number. See "The no-data encoding" above.
 7. **Record the decision, not just the finding.** When a dataset's status is settled rather
    than merely observed, add an entry to [`docs/DECISIONS.md`](DECISIONS.md) and reference it
    from this file. A licence finding with no decision attached gets re-litigated.
+
+## 14. Committed atlas extracts — 2026-10-03
+
+Built by `npm run data:atlas`, with raw responses cached under `.cache/atlas/`.
+The cache, npm downloads, temporary browser profiles and generated diagnostics stay
+on the project drive. No large raw dataset is committed.
+
+| Artefact                    | Source                                                                                                                                              | Retrieved  | Licence text/source                                                          | Attribution                                                     |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `src/data/geography.json`   | Natural Earth author-maintained repository, revision `ca96624a56bd078437bca8184e78163e5039ad19`; source URLs and SHA-256 below and inside the asset | 2026-10-02 | Section 2; repository `LICENSE.md` and Natural Earth terms verified directly | Made with Natural Earth.                                        |
+| `src/data/earthquakes.json` | USGS FDSN query recorded below and in the asset                                                                                                     | 2026-10-03 | Section 3, verbatim policy text verified directly                            | Earthquake catalog data courtesy of the U.S. Geological Survey. |
+
+Natural Earth licence text, quoted verbatim from
+<https://www.naturalearthdata.com/about/terms-of-use/> (retrieved 2026-10-02,
+reverified 2026-10-03):
+
+> All versions of Natural Earth raster + vector map data found on this website are in the public domain.
+
+The GeoJSON comes from the dataset authors' repository, rather than a separately
+licensed third-party conversion. The repository's licence is checked separately at
+<https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/LICENSE.md>
+(retrieved 2026-10-03), quoted verbatim:
+
+> Everything here is public domain.
+
+These layers are a simplified cartographic reference, with stylised river widths.
+Political outlines are not precise boundaries. Place labels remain in the source's
+English spelling, including during an Assamese session.
+
+Source files, all pinned to the revision above:
+
+- <https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_rivers_lake_centerlines.geojson>
+  SHA-256 `bb854a900ecbd3b408df46d5e16e3e0f974ba55993f9d8b5c26e855273c0905a`
+- <https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_admin_1_states_provinces.geojson>
+  SHA-256 `22d0e3ad85eb3e27f17cabf8ba2d50e554fbc27a87796ff891d958185da62fb5`
+- <https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_populated_places.geojson>
+  SHA-256 `9b8e3de09048ef00dfc70357dbb9fa324493f214b5e0ae4daf1aa79a8d10116b`
+
+All three resolved during extraction. Processing clips independent line segments to
+89.5–96.5° E, 24–28.5° N, rounds coordinates to five decimal places, and retains
+18 source-ranked place records. The renderer excludes four neighbouring city labels
+to reduce clutter; it never moves the remaining locations.
+
+USGS query, resolved during extraction:
+
+<https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=1900-01-01&endtime=2026-10-03&minlatitude=24&maxlatitude=28.5&minlongitude=89.5&maxlongitude=96.5&minmagnitude=5&orderby=time-asc>
+
+Raw response SHA-256: `8a73ef37fd547fcbcc742d9c4f0bf8279811eaa6576c2e967d1c622850ca00e2`.
+289 event records: UTC time, longitude, latitude, depth in kilometres, magnitude,
+magnitude type, event ID and record URL. Magnitude types are retained as supplied,
+not converted to moment magnitude. Early coverage is incomplete and this is a
+geographic M5+ subset, not a complete Assam earthquake history. ComCat records can
+be revised: a clean network fetch is not guaranteed byte-identical to this snapshot.
+
+Subsequent scheduled builds use the same source and licence, with the UTC midnight
+cutoff moved to their build day. Every snapshot records its exact query URL,
+retrieval date and raw-response SHA-256 in `src/data/earthquakes.json`; those fields
+are authoritative for that build, rather than this committed baseline's date.
+
+### Link-only historical flood reports and geology
+
+Retrieved 2026-10-02; links resolved directly. Short original summaries are written
+in `src/shared/flood-history.ts` and the bilingual copy table. No NASA imagery,
+inundation polygons, ASDMA reports or plate-boundary dataset is redistributed.
+No redistribution licence is asserted for link-only content (`UNVERIFIED`).
+
+- 2007: <https://science.nasa.gov/earth/earth-observatory/flooding-in-india-and-bangladesh-19049/>
+- 2008: <https://science.nasa.gov/earth/earth-observatory/the-brahmaputra-river-floods-northeast-india-20484/>
+- 2020: <https://science.nasa.gov/earth/earth-observatory/excessive-monsoon-rains-flood-asia-147006/>
+- Collision mechanism: <https://www.usgs.gov/publications/seismicity-earth-1900-2010-himalaya-and-vicinity>
+
+PLATES geometry is our original, explicitly synthetic teaching diagram. It supplies
+no measured boundaries, convergence rate, geological date, or real mountain height.
+The flood reports do not configure FLOW: historical flood footprints are not held.
+
+### District names and administration-centre anchors — 2026-10-03
+
+| Artefact                  | Source                                                                                                                           | Retrieved  | Licence                            | Required attribution                                                                             |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `src/data/districts.json` | OpenStreetMap API relation tags and `admin_centre` nodes; exact query URLs, source dates, versions and hashes inside the extract | 2026-10-03 | ODbL 1.0; verbatim statement below | © OpenStreetMap contributors, linked to the copyright page; ODbL notice and downloadable extract |
+
+Verbatim statement retrieved 2026-10-03 from
+<https://www.openstreetmap.org/copyright>:
+
+> OpenStreetMap is open data, licensed under the Open Data Commons Open Database License (ODbL) by the OpenStreetMap Foundation (OSMF).
+
+The [ODbL legal text](https://opendatacommons.org/licenses/odbl/1-0/) was read on
+2026-10-03: sections 3.1 and 4 govern extraction, modification, redistribution,
+attribution and share alike. The extract is explicitly distributed under ODbL,
+contains its licence URI and attribution, and is offered as a machine-readable
+download in the district directory. This data licence does not replace the
+software's MIT licence. The map footer links the credit; exported images include
+the copyright URL when hyperlinks are unavailable.
+
+`scripts/build-districts.mjs` fetches 35 district relations and their referenced
+administration-centre nodes through these OSM API endpoints:
+
+- <https://api.openstreetmap.org/api/0.6/relations.json> with the recorded `relations` query;
+  response SHA-256 `34c8029cc341ec9b4f8dd715464d6cbe10b993220b761e12a683a37eb0d4ed58`.
+- <https://api.openstreetmap.org/api/0.6/nodes.json> with the recorded `nodes` query;
+  response SHA-256 `53f8ac428da94109454ee118cd2e2ec018d2fce255955685c9afbccdc8c57663`.
+
+Both queries resolved during extraction. Coordinates are actual administration
+centres from the relations, not invented district centroids. No district polygon,
+district area, population or legal boundary is claimed. Display labels may move
+with a leader line to the unchanged source anchor; nearby labels declutter at small
+scales, especially on phones. All 35 remain in the searchable directory.
+
+The OSM community's [district index](https://wiki.openstreetmap.org/wiki/Districts_in_Assam)
+was used to discover relation IDs, not as a geometry source. No wiki prose or
+district statistics are bundled. Naming facts were cross-checked against
+[Hojai's Assam district list](https://hojai.assam.gov.in/information-and-services/districts-assam)
+and [the Sribhumi district site](https://sribhumi.assam.gov.in/about-district/district-glance), retrieved
+2026-10-03. The Hojai list itself has old naming, so it is not treated as a current
+administrative-boundary dataset. Official page redistribution terms are
+`UNVERIFIED`; their page content is not redistributed. The three name adjustments
+are Karimganj → Sribhumi, Marigaon → Morigaon, and removing the literal
+"district" suffix from Hailakandi. Original OSM names remain in `sourceName` and
+search aliases. Source Assamese names are retained where present; missing ones
+remain in English rather than inventing a translation. Sribhumi's old Assamese
+name is omitted pending verification of its new spelling.
+
+### Dated official seismic context (link only, 2026-10-03)
+
+Source: [Assam State Disaster Management Plan 2022, Volume I](https://asdma.assam.gov.in/sites/default/files/swf_utility_folder/departments/asdma_revenue_uneecopscloud_com_oid_70/this_comm/asdmp_vol-_i.pdf).
+Retrieved and resolved: **2026-10-03**. PDF page 36 references the BIS 2002 map
+and states that Assam falls in Zone V. UI wording explicitly preserves both dates;
+it makes no claim about the current BIS classification, an active alert, local
+intensity, a district's safety or an upcoming earthquake.
+
+Licence for redistribution/modification: **UNVERIFIED** — no explicit grant was
+located. Attribution: Assam State Disaster Management Authority (ASDMA), _Assam
+State Disaster Management Plan 2022_, Volume I. The PDF remains a link; no PDF,
+map image, hazard polygon or local intensity dataset is redistributed. The
+download used for verification is on D: in the ignored `.cache/qa/` directory.
+
+Magnitude versus local intensity was checked against [USGS: Earthquake
+Magnitude, Energy Release, and Shaking Intensity](https://www.usgs.gov/programs/earthquake-hazards/earthquake-magnitude-energy-release-and-shaking-intensity)
+on **2026-10-03**. Licence of the page as a whole: **UNVERIFIED**; individual media
+have different notices and none are bundled. Attribution: U.S. Geological Survey.
+The atlas's M5–<6 / M6–<7 / M7+ colours are chosen display bins, not official alert
+thresholds. No pressure, local shaking or building vulnerability data was added.
+
+### Derived district context (2026-10-03)
+
+Nearest-event cards reuse the documented OSM district-name anchors and the USGS
+historical catalogue. Distances use a spherical great-circle calculation with
+radius **6371 km**, from [NASA NSSDCA Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html)
+(retrieved and resolved 2026-10-03), which lists "Volumetric mean radius (km)"
+as "6371.000". These are rounded approximate anchor-to-epicentre distances,
+not distances from district boundaries, shaking estimates or a hazard analysis.
+NASA page redistribution/modification licence: **UNVERIFIED**; no page or media
+is redistributed. Attribution: NASA Goddard Space Flight Center, NSSDCA, David R.
+Williams. The numerical constant is used in a calculation; no new data extract
+has been added. Original OSM/USGS attribution and licences continue to apply.
+
+Release screenshots and the demo GIF are captures of the app. The GIF carries
+educational wording and source credits; the README retains the full adapted
+Copernicus DEM attribution. Recording frames are genuine browser renders; chosen
+scenario inputs and synthetic motion are never represented as measurements.

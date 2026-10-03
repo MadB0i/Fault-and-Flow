@@ -109,6 +109,33 @@ export interface Strings {
   terrainErrorFloat: string;
   terrainErrorLoad: string;
   terrainRetry: string;
+
+  // --- FLOW phase 1: illustrative water ---------------------------------
+  /** Panel title. The word "illustrative" is carried by waterIllustrativeNote. */
+  waterTitle: string;
+  waterToggleLabel: string;
+  waterIllustrativeNote: string;
+  /** The burned-in trough, stated as an assumption rather than as data. */
+  waterChannelAssumption: string;
+  waterPlay: string;
+  waterPause: string;
+  waterSpeedLabel: string;
+  waterSpeedHint: string;
+  waterDischargeLabel: string;
+  waterDischargeHint: string;
+  waterReset: string;
+  waterWetArea: string;
+  waterMaxDepth: string;
+  waterInflowLabel: string;
+  waterOutletLabel: string;
+  waterUnsupportedFloat: string;
+  waterUnsupportedChannel: string;
+  legendWaterLabel: string;
+  /** Percentile stretch of the elevation ramp, stated under the axis. */
+  legendRampNote: string;
+  legendClippedLow: string;
+  legendClippedHigh: string;
+  legendClippedBoth: string;
 }
 
 /**
@@ -147,7 +174,8 @@ export const EN: Strings = {
   terrainCanvasLabel:
     'Three-dimensional terrain view. Use the arrow keys to orbit, plus and ' +
     'minus to zoom, Home to reset.',
-  terrainCanvasHint: 'Arrow keys orbit · + and − zoom · Home resets',
+  terrainCanvasHint:
+    'Arrow keys move or rotate in the chosen mode. Shift always moves. Plus and minus zoom. Home resets. Drag to move; choose Rotate 3D to orbit. Scroll or double-click to zoom at the pointer. Two fingers move and zoom.',
 
   areaOverviewTitle: 'Assam valley, whole',
   areaMajuliTitle: 'Majuli island',
@@ -185,6 +213,39 @@ export const EN: Strings = {
     'avoid quantising elevation into visible steps.',
   terrainErrorLoad: 'The terrain could not be loaded.',
   terrainRetry: 'Try again',
+
+  // --- FLOW phase 1 ------------------------------------------------------
+  waterTitle: 'Flow water',
+  waterToggleLabel: 'Flood water',
+  waterIllustrativeNote:
+    'Illustrative flood model, not a forecast. The DEM has no riverbed, ' +
+    'so the river runs on a flat surface.',
+  /** The burned-in trough, stated as an assumption rather than as data. */
+  waterChannelAssumption:
+    'The channel is a model assumption: the terrain has no riverbed, so the ' +
+    'model cuts one along the river’s own lowest line.',
+  waterPlay: 'Run water',
+  waterPause: 'Pause water',
+  waterSpeedLabel: 'Speed',
+  waterSpeedHint: 'Simulated seconds per real second. Faster is not truer.',
+  waterDischargeLabel: 'River inflow (scenario)',
+  waterDischargeHint:
+    'A value you set for this illustration. Not a gauge reading, not a forecast.',
+  waterReset: 'Reset water',
+  waterWetArea: 'Wet area',
+  waterMaxDepth: 'Deepest water',
+  waterInflowLabel: 'River enters, found in the terrain',
+  waterOutletLabel: 'River leaves west',
+  waterUnsupportedFloat:
+    'This device cannot render water (no 32-bit float rendering). ' +
+    'The terrain still works.',
+  waterUnsupportedChannel:
+    'No continuous river channel found in this terrain, so water stays off.',
+  legendWaterLabel: 'Water depth, illustrative',
+  legendRampNote: 'Colour spans the middle 96% of this area.',
+  legendClippedLow: 'Ground below is shown in the lowest colour:',
+  legendClippedHigh: 'Ground above is shown in the highest colour:',
+  legendClippedBoth: 'Ground outside this range shares the end colours:',
 };
 
 /**
@@ -232,7 +293,8 @@ export const AS: Strings = {
   terrainCanvasLabel:
     // DRAFT
     'তিনিটা মাপৰ ভূমিৰ দৃশ্য। বাঁৰী আৰু তীৰৰ বোতামেৰে ধাৰণ কৰক, আৰু প্ৰয়োজনীয় আৰু অপ্ৰয়োজনীয় বোতামেৰে ইমান-ঘমানি কৰক।', // DRAFT
-  terrainCanvasHint: 'তীৰ বোতাম ধাৰণ, + আৰু - ইমান-ঘমানি, Home পুনৰ সেট', // DRAFT
+  terrainCanvasHint:
+    'তীৰ বোতামে নিৰ্বাচিত ধৰণে সৰায় বা ঘূৰায়। Shift ধৰিলে সদায় সৰায়। যোগ আৰু বিয়োগ বোতামে জুম কৰে। Homeএ পুনৰ আৰম্ভ কৰে। টানি সৰাওক; ঘূৰাবলৈ 3D ঘূৰাওক বাছক। স্ক্ৰল বা দুবাৰ ক্লিক কৰি সেই ঠাইত জুম কৰক। দুটা আঙুলিৰে সৰাওক আৰু জুম কৰক।', // DRAFT
 
   areaOverviewTitle: 'সমগ্ৰ অসম ঘাটি', // DRAFT
   areaMajuliTitle: 'মাজুলী দ্বীপ', // DRAFT
@@ -273,6 +335,42 @@ export const AS: Strings = {
     'এই যন্ত্ৰই ৩২-বিট ফ্লোট ছবিপড় পঢ়া পুৰা নাযায়, আৰু উচ্চতাক স্পষ্ট স্তৰত টুকুৱাবলৈ ভূমিটোক এইটো লাগে।', // DRAFT
   terrainErrorLoad: "ভূমিটো আনা নহ'ল।", // DRAFT
   terrainRetry: 'পুনৰ চেষ্টা কৰা', // DRAFT
+
+  // --- FLOW phase 1 ------------------------------------------------------
+  waterTitle: 'বানৰ পানী', // DRAFT
+  waterToggleLabel: 'বানৰ পানী', // DRAFT
+  waterIllustrativeNote:
+    // DRAFT
+    'এইখন কেৱল ব্যাখ্যাৰ বানৰ ছবি, পূৰ্বাভাস নহয়। নদীৰ তলি জনা নাযায়, ' +
+    'সেয়ে নদী সমান পৃষ্ঠতহে বৈছে।', // DRAFT
+  waterChannelAssumption:
+    // DRAFT
+    'বাটটো মানে ধৰা: ভূমিত নদীৰ তলি নাই, সেয়ে মানে সেই দৈনিক নিম্নতম ৰেখাৰ পুথেই ' +
+    'এখন বাট কাটি দিয়ে।', // DRAFT
+  waterPlay: 'পানী চলোৱা', // DRAFT
+  waterPause: 'পানী ৰখোৱা', // DRAFT
+  waterSpeedLabel: 'গতি', // DRAFT
+  waterSpeedHint: 'প্ৰকৃত এক ছেকেণ্ডত কিমান ছেকেণ্ডৰ বান। বেগ বেছি হ’লেও সঁচা নহয়।', // DRAFT
+  waterDischargeLabel: 'নদীৰ সোঁত, আপুনি বাছনি কৰা', // DRAFT
+  waterDischargeHint:
+    // DRAFT
+    'এই ছবিৰ বাবে আপুনি বাছনি কৰা মান। জোখ-মাখ বা পূৰ্বাভাস নহয়।', // DRAFT
+  waterReset: 'পানী খালী কৰা', // DRAFT
+  waterWetArea: 'তিতা মাটি', // DRAFT
+  waterMaxDepth: 'গভীৰতম পানী', // DRAFT
+  waterInflowLabel: 'নদী সোমায়, ভূমিৰ পৰা পোৱা', // DRAFT
+  waterOutletLabel: 'নদী পশ্চিমে ওলায়', // DRAFT
+  waterUnsupportedFloat:
+    // DRAFT
+    'এই যন্ত্ৰই পানী দেখাব নোৱাৰে। ভূমি এতিয়াও চাব পাৰি।', // DRAFT
+  waterUnsupportedChannel:
+    // DRAFT
+    'এই ভূমিত একেৰাহে নদীৰ বাট পোৱা নগ’ল, সেয়ে পানী বন্ধ আছে।', // DRAFT
+  legendWaterLabel: 'পানীৰ গভীৰতা, ব্যাখ্যাৰ বাবে', // DRAFT
+  legendRampNote: 'ৰং এই ঠাইৰ মাজৰ ৯৬% ৰংত সূচাইছে।', // DRAFT
+  legendClippedLow: 'তলৰ মাটি আটাই ৰংত দেখুওৱা হয়:', // DRAFT
+  legendClippedHigh: 'ওপৰৰ মাটি আটাই ৰংত দেখুওৱা হয়:', // DRAFT
+  legendClippedBoth: 'এই পৰাৰ বাইৰৰ মাটি দুটা ৰং ব্যৱহাৰ কৰে:', // DRAFT
 };
 
 /**

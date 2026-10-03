@@ -28,6 +28,9 @@ import {
   parseSidecar,
   pickContourInterval,
   pickTickStep,
+  rampRangeFor,
+  rampTickStepFor,
+  rampTicks,
   reliefMeters,
   MAX_EXAGGERATION,
   MIN_EXAGGERATION,
@@ -177,6 +180,121 @@ describe('contour interval picker', () => {
     expect(pickContourInterval(0, 60)).toBe(NICE_CONTOUR_INTERVALS[0]);
     expect(pickContourInterval(-5, 60)).toBe(NICE_CONTOUR_INTERVALS[0]);
     expect(pickContourInterval(100, 0)).toBe(NICE_CONTOUR_INTERVALS[0]);
+  });
+});
+
+describe('percentile ramp range', () => {
+  /** Mostly floodplain at 50..130 m with a few hills, as the overview has. */
+  function valleyWithHills(count: number): Float32Array {
+    const plain = 4000;
+    const out = new Float32Array(plain + count);
+    for (let i = 0; i < plain; i += 1) out[i] = 50 + (i % 80);
+    for (let i = 0; i < count; i += 1) out[plain + i] = 1000 + i * 10;
+    return out;
+  }
+
+  it('stretches to the middle of the data, not the extremes', () => {
+    const heights = valleyWithHills(20);
+    const range = rampRangeFor(heights, 50, 1190);
+    // The 2nd percentile is in the floodplain; the 98th is still floodplain
+    // because the hills are under 2% of the cells.
+    expect(range.min).toBeGreaterThan(50);
+    expect(range.min).toBeLessThan(70);
+    expect(range.max).toBeGreaterThan(100);
+    expect(range.max).toBeLessThan(140);
+    expect(range.clippedHigh).toBe(true);
+    expect(range.degenerate).toBe(false);
+  });
+
+  it('reports which ends are clipped', () => {
+    // Hills are a minority of cells, so the 98th percentile stops below the
+    // true maximum and the highest ground is flagged as clipped.
+    const heights = valleyWithHills(20);
+    const trueMin = Math.min(...heights);
+    const trueMax = Math.max(...heights);
+    const range = rampRangeFor(heights, trueMin, trueMax);
+    // The flags must describe the relationship to the true extremes, whatever
+    // the percentiles happen to land on.
+    expect(range.clippedHigh).toBe(trueMax > range.max + 1e-6);
+    expect(range.clippedLow).toBe(trueMin < range.min - 1e-6);
+    expect(range.clippedHigh).toBe(true);
+
+    // The reverse: a low outlier band clips the bottom end only.
+    // Two cells below the 2nd percentile, so the low end clips.
+    const lowTail = new Float32Array(200);
+    for (let i = 0; i < 200; i += 1) lowTail[i] = 50 + (i % 80);
+    lowTail[0] = 5;
+    lowTail[1] = 6;
+    const clippedLow = rampRangeFor(lowTail, 5, 129);
+    expect(clippedLow.clippedLow).toBe(true);
+  });
+
+  it('falls back to the true range on flat data rather than dividing by zero', () => {
+    const flat = new Float32Array(100).fill(80);
+    const range = rampRangeFor(flat, 79.5, 80.5);
+    expect(range.degenerate).toBe(true);
+    expect(range.max).toBeGreaterThan(range.min);
+    expect(range.min).toBe(79.5);
+  });
+
+  it('survives an all-NaN sample', () => {
+    const bad = new Float32Array([Number.NaN, Number.NaN]);
+    const range = rampRangeFor(bad, 0, 10);
+    expect(Number.isFinite(range.min)).toBe(true);
+    expect(range.max).toBeGreaterThan(range.min);
+  });
+
+  it('keeps the floodplain across the middle of the ramp', () => {
+    // The bug this exists for: with the bbox range 0..7330 m, a 50..130 m
+    // floodplain lands in the bottom 2% of the ramp and renders as one colour.
+    const heights = valleyWithHills(20);
+    const range = rampRangeFor(heights, 0, 7330.79);
+    const at = (m: number): number => (m - range.min) / (range.max - range.min);
+    // The 2nd percentile sits just inside the floodplain, so the very bottom
+    // of it clips; what matters is that the floodplain's working band is no
+    // longer crushed against the low end.
+    expect(at(52)).toBeGreaterThan(0);
+    expect(at(90)).toBeGreaterThan(0.3);
+    expect(at(90)).toBeLessThan(0.7);
+    expect(at(125)).toBeLessThan(1);
+    expect(range.max).toBeLessThan(200);
+  });
+});
+
+describe('legend tick spacing for the ramp', () => {
+  const range = {
+    min: 0,
+    max: 7330,
+    clippedLow: true,
+    clippedHigh: true,
+    degenerate: false,
+  };
+
+  it('coarsens the step until labels would not collide', () => {
+    // A 320px panel fits about six 46px labels; a cramped width forces a
+    // coarser step, which is what stops tick labels overlapping.
+    const roomy = rampTickStepFor(range, 320, 46);
+    const cramped = rampTickStepFor(range, 120, 46);
+    expect(cramped).toBeGreaterThanOrEqual(roomy);
+    expect(legendTicks(range.min, range.max, roomy).length).toBeLessThanOrEqual(8);
+  });
+
+  it('always returns ticks inside the displayed range, ends included', () => {
+    const narrow = {
+      min: 68,
+      max: 2089,
+      clippedLow: false,
+      clippedHigh: true,
+      degenerate: false,
+    };
+    const ticks = rampTicks(narrow, rampTickStepFor(narrow, 320, 46));
+    expect(ticks.length).toBeGreaterThanOrEqual(2);
+    for (const t of ticks) {
+      expect(t).toBeGreaterThanOrEqual(narrow.min - 1e-6);
+      expect(t).toBeLessThanOrEqual(narrow.max + 1e-6);
+    }
+    expect(ticks[0]).toBeCloseTo(narrow.min, 6);
+    expect(ticks[ticks.length - 1]).toBeCloseTo(narrow.max, 6);
   });
 });
 

@@ -87,6 +87,40 @@ export function clampSpherical(s: Spherical, minM: number, maxM: number): Spheri
  * south toward the east, which puts the opening view of a north-south river
  * valley looking up the valley.
  */
+/**
+ * Orbit distance at which a horizontal extent fills the viewport.
+ *
+ * The old opening distance was `diagonal * 0.95`, which is a geometric guess:
+ * it fits the area's diagonal regardless of how the box sits against the
+ * viewport's aspect, so a wide valley either overflowed the sides or sat small
+ * in the middle. This solves the actual fit — the half-extent the camera must
+ * cover on its near and far edges, with the vertical FOV widened by the aspect
+ * ratio on wide screens — then adds a small margin so nothing touches the edge.
+ *
+ * Pure and unit-tested (`tests/terrain-camera.test.ts`).
+ */
+export function framingDistance(
+  widthM: number,
+  heightM: number,
+  fovDeg: number,
+  aspect: number,
+  polarDeg: number,
+  margin = 1.06,
+): number {
+  const w = Math.max(widthM, 1);
+  const h = Math.max(heightM, 1);
+  const fov = (fovDeg * Math.PI) / 180;
+  const polar = (polarDeg * Math.PI) / 180;
+  // Project the near corners: tilt foreshortens the vertical extent, while
+  // perspective moves the near edge toward the camera by h/2 * sin(polar).
+  const nearOffset = (h / 2) * Math.sin(polar);
+  const depthNeeded =
+    ((h / 2) * Math.cos(polar)) / Math.max(Math.tan(fov / 2), 1e-3) + nearOffset;
+  const hfov = 2 * Math.atan(Math.tan(fov / 2) * Math.max(aspect, 0.2));
+  const widthNeeded = w / 2 / Math.max(Math.tan(hfov / 2), 1e-3) + nearOffset;
+  return Math.max(depthNeeded, widthNeeded) * Math.max(margin, 1);
+}
+
 export function sphericalToCartesian(s: Spherical): Vec3 {
   const polar = (clampPolar(s.polarDeg) * Math.PI) / 180;
   const azim = (wrapAzimuth(s.azimuthDeg) * Math.PI) / 180;

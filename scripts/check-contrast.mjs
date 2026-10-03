@@ -23,6 +23,8 @@ const TOKENS = {
   'water-deep': '#0E5A73',
   'seismic-amber': '#FFB547',
   'seismic-hot': '#FF5A3C',
+  'seismic-light': '#ff968a',
+  'seismic-red': '#ff4f64',
   'plate-line': '#9AA7B4',
   'terrain-1': '#1C3B35',
   'terrain-2': '#3E5B45',
@@ -51,6 +53,14 @@ const DECORATIVE = 0;
  * kind: 'text' | 'large' | 'non-text'
  */
 const PAIRS = [
+  ...['seismic-light', 'seismic-red'].flatMap((fg) =>
+    ['bg', 'surface', 'surface-raised'].map((bg) => ({
+      fg,
+      bg,
+      kind: 'text',
+      use: 'Recorded magnitude band label',
+    })),
+  ),
   // Body and primary text on every surface it can appear on.
   { fg: 'text', bg: 'bg', kind: 'text', use: 'Body text on page background' },
   { fg: 'text', bg: 'surface', kind: 'text', use: 'Body text on HUD panel' },

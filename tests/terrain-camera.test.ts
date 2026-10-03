@@ -19,10 +19,53 @@ import {
   clampPolar,
   clampSpherical,
   dampingFactor,
+  framingDistance,
   hasSettled,
   sphericalToCartesian,
   wrapAzimuth,
 } from '@engine/terrain/index.js';
+
+describe('opening view framing', () => {
+  it('needs less distance on a wide viewport for a wide, shallow area', () => {
+    // Depth-limited (a tall area) the aspect barely matters; width-limited
+    // (a long valley) it is what decides the distance.
+    const shallowWide = framingDistance(900_000, 60_000, CAMERA_FOV_DEG, 21 / 9, 50);
+    const shallowTall = framingDistance(900_000, 60_000, CAMERA_FOV_DEG, 3 / 2, 50);
+    expect(shallowWide).toBeLessThan(shallowTall);
+    expect(Number.isFinite(shallowWide)).toBe(true);
+  });
+
+  it('backs off for a wider area at the same aspect', () => {
+    const wide = framingDistance(699_000, 500_000, CAMERA_FOV_DEG, 16 / 9, 50);
+    const island = framingDistance(114_000, 67_000, CAMERA_FOV_DEG, 16 / 9, 50);
+    expect(wide).toBeGreaterThan(island * 2);
+  });
+
+  it('sits closer when tilted, because ground depth foreshortens', () => {
+    const overhead = framingDistance(500_000, 500_000, CAMERA_FOV_DEG, 16 / 9, 0);
+    const tilted = framingDistance(500_000, 500_000, CAMERA_FOV_DEG, 16 / 9, 60);
+    expect(tilted).toBeLessThan(overhead);
+  });
+
+  it('keeps every projected ground corner inside the viewport', () => {
+    for (const aspect of [390 / 512, 1440 / 560])
+      for (const angle of [0, 50, 75]) {
+        const polar = (angle * Math.PI) / 180;
+        const tan = Math.tan((CAMERA_FOV_DEG * Math.PI) / 360);
+        const distance = framingDistance(699000, 500000, CAMERA_FOV_DEG, aspect, angle);
+        for (const z of [-250000, 250000]) {
+          const depth = distance - z * Math.sin(polar);
+          expect(Math.abs((z * Math.cos(polar)) / (depth * tan))).toBeLessThan(1);
+          expect(349500 / (depth * tan * aspect)).toBeLessThan(1);
+        }
+      }
+  });
+
+  it('never returns zero or NaN for degenerate input', () => {
+    expect(framingDistance(0, 0, CAMERA_FOV_DEG, 0, 90)).toBeGreaterThan(0);
+    expect(framingDistance(1, 1, CAMERA_FOV_DEG, 1.6, 0)).toBeGreaterThan(0);
+  });
+});
 
 describe('polar clamp', () => {
   it('refuses any angle that would put the camera under the terrain', () => {

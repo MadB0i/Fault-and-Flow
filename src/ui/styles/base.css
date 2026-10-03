@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import './tokens.css';
+@import './atlas.css';
 
 /* Self-hosted fonts only. No CDN, ever. See AGENTS.md section 2. */
 @import '@fontsource/fraunces/400.css';

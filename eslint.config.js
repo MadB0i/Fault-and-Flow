@@ -15,6 +15,7 @@ export default tseslint.config(
       'data/raw/**',
       'data/processed/**',
       'docs/screenshots/**',
+      '.cache/**',
     ],
   },
 

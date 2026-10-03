@@ -28,8 +28,9 @@ usable build, and every dataset is about the Brahmaputra valley and NE India spe
 ## 2. Goals
 
 1. **Make the coupling visible.** The Himalaya rises; the Brahmaputra carries the debris;
-   the delta floods. One plate pushes, one river answers. The three modes are three
-   windows onto a single coupled system, and the user should be able to feel that.
+   the delta floods. One plate pushes, one river answers. The two primary experiences, FLOW and FAULT, are
+   supported by the secondary "Why Assam shakes" plate explainer. The visitor can
+   explore the connections without three competing primary navigation choices.
 2. **Run on a phone.** A student on a ₹8,000 Android in Guwahati has the same access as
    someone on a laptop. Target: usable at 390px, 60fps on mid-range hardware.
 3. **Zero friction to entry.** A URL. No signup, no backend, no API keys, works offline
@@ -260,3 +261,29 @@ Raise the scenario and watch where the channel migrates.
 | What are the colours, type, and motion values?             | `DESIGN.md`            |
 | What gets built next?                                      | `docs/ROADMAP.md`      |
 | Why is FLOW a scenario sandbox rather than real hydrology? | `docs/DECISIONS.md` §3 |
+
+## Current implementation scope — 2026-10-03
+
+The owner requested a visual Assam atlas spanning the three modes. This expands
+the earlier foundation-only work into an interactive prototype:
+
+- FLOW: real Copernicus terrain, mapped Natural Earth rivers and state outlines,
+  user-chosen starting depth and optional inflow, illustrative GPU water spread.
+- FAULT: a sourced M5+ ComCat subset, dated replay, selectable event records and
+  visual emphasis rings and a separate synthetic motion demonstration. Rings are not shaking or damage footprints.
+- PLATES: an original conceptual collision diagram. Its shapes, strata, progress,
+  movement and relief are schematic, without a measured plate boundary or rate.
+- Historical flood reports: three link-only NASA episodes, separate from the
+  scenario. No historical inundation footprints or calibrated replay is claimed.
+- Both languages, responsive controls, explicit risk framing, official links and
+  local PNG export with notices and attribution inside the image.
+
+Bank erosion, calibrated hydrology, actual shaking effects, a sourced boundary
+map and the geographic camera-flight opener remain outstanding. Native-speaker
+review of Assamese and physical-device performance validation remain open.
+The honesty rules above continue to govern every mode and exported image.
+
+The follow-up depth-view work adds a solver cross-section and labelled depth bands
+to FLOW, with full-Assam-only FAULT controls and terrain-following illustrative
+earthquake waves. The section shows water above resampled DEM heights. It contains
+no surveyed riverbed, subsurface strata, pore-pressure field or calibrated shaking.

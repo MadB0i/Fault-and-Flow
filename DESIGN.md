@@ -51,9 +51,18 @@ copied from there verbatim.
 
   --water: #3fd0e0; /* accent 1 — the river, water, interactive focus */
   --water-deep: #0e5a73; /* deep channel fill */
+  --water-shallow: #7fe3ef; /* the lightest a wet cell ever renders */
+  --water-shoreline: #bff2f8; /* shoreline edge highlight */
+
+  /* Scene sky. Two steps above --bg: the background gradient the terrain's
+     edge fade dissolves into, and the zenith of the same gradient. */
+  --sky-low: #131f28;
+  --sky-high: #1b2c38;
 
   --seismic-amber: #ffb547; /* accent 2 — seismicity, active state */
-  --seismic-hot: #ff5a3c; /* magnitude 6+ / peak intensity only */
+  --seismic-hot: #ff5a3c; /* legacy seismic emphasis */
+  --seismic-light: #ff968a; /* recorded M6–<7 display band */
+  --seismic-red: #ff4f64; /* recorded M7+ display band */
 
   --plate-line: #9aa7b4; /* inactive plate boundary */
 
@@ -106,6 +115,16 @@ copied from there verbatim.
   --dur: 300ms;
   --dur-slow: 600ms;
   --dur-pulse: 1.2s; /* seismic expanding ring, ease-out */
+
+  /* ---- ATLAS LAYOUT -------------------------------------------------- */
+  --control-size: 2.75rem;
+  --atlas-min-height: 48rem;
+  --atlas-header-height: 5rem;
+  --atlas-title-width: 22rem;
+  --atlas-mobile-title: 18rem;
+  --atlas-dialog-width: 38rem;
+  --atlas-mobile-map: clamp(24rem, 52svh, 32rem);
+  --atlas-plates-dock: 36dvh;
 }
 ```
 
@@ -116,19 +135,21 @@ is deliberate: the entire product is one river and one tectonic zone, so the chr
 their hues at the lowest possible chroma. A neutral grey would make the scene look pasted
 onto the page; a blue-green base makes the water look like it belongs there.
 
-| Token              | Role                                             | Why this value                                                                                        |
-| ------------------ | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `--bg`             | Page and scene void                              | Darkest value. The terrain must be the brightest thing on screen.                                     |
-| `--surface`        | HUD panel fill                                   | One step up from bg — enough separation to read as a plane, not so much it reads as a card.           |
-| `--surface-raised` | Controls inside a panel                          | A second step for nested depth. Three steps is the limit; a fourth means hierarchy is unclear.        |
-| `--hairline`       | Decorative 1px borders                           | Deliberately below 3:1. See §4.2 — it is decoration only.                                             |
-| `--text`           | Primary text                                     | Near-white, faintly cool to sit with the blue-green base.                                             |
-| `--text-muted`     | Metadata, labels, units                          | Desaturated to the base hue. Never drops below 4.5:1 (verified §4.1).                                 |
-| `--water`          | **Accent 1** — river, water data, focus ring     | Cyan against a blue-green base reads as _light on water_, not as a UI colour.                         |
-| `--seismic-amber`  | **Accent 2** — seismicity, active mode, warnings | Warm complement. Amber is the colour of instrument caution lamps.                                     |
-| `--seismic-hot`    | Peak intensity only                              | Reserved. If it appears often it stops meaning anything — budget it to magnitude 6+ and nothing else. |
-| `--plate-line`     | Inactive plate boundary                          | Grey-blue, deliberately undesaturated so amber can replace it on activation.                          |
-| terrain ramp       | Elevation, low → high                            | Green → olive → khaki → bone. A hypsometric ramp read from a distance, not a decorative gradient.     |
+| Token              | Role                                             | Why this value                                                                                       |
+| ------------------ | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `--bg`             | Page and scene void                              | Darkest value. The terrain must be the brightest thing on screen.                                    |
+| `--surface`        | HUD panel fill                                   | One step up from bg — enough separation to read as a plane, not so much it reads as a card.          |
+| `--surface-raised` | Controls inside a panel                          | A second step for nested depth. Three steps is the limit; a fourth means hierarchy is unclear.       |
+| `--hairline`       | Decorative 1px borders                           | Deliberately below 3:1. See §4.2 — it is decoration only.                                            |
+| `--text`           | Primary text                                     | Near-white, faintly cool to sit with the blue-green base.                                            |
+| `--text-muted`     | Metadata, labels, units                          | Desaturated to the base hue. Never drops below 4.5:1 (verified §4.1).                                |
+| `--water`          | **Accent 1** — river, water data, focus ring     | Cyan against a blue-green base reads as _light on water_, not as a UI colour.                        |
+| `--seismic-amber`  | **Accent 2** — seismicity, active mode, warnings | Warm complement. Amber is the colour of instrument caution lamps.                                    |
+| `--seismic-hot`    | Legacy seismic emphasis                          | Retained for existing exports; never an assertion of local shaking intensity.                        |
+| `--seismic-light`  | Recorded M6–<7 display band                      | Paired with a magnitude label and larger symbol.                                                     |
+| `--seismic-red`    | Recorded M7+ display band                        | Catalogue magnitude, never a district alert. Also used for a user-chosen strong motion illustration. |
+| `--plate-line`     | Inactive plate boundary                          | Grey-blue, deliberately undesaturated so amber can replace it on activation.                         |
+| terrain ramp       | Elevation, low → high                            | Green → olive → khaki → bone. A hypsometric ramp read from a distance, not a decorative gradient.    |
 
 **Elevation and water depth are never encoded by colour alone.** The `--terrain-*` and
 `--water-deep` ramp values carry meaning, so wherever they represent a value the UI must also
@@ -245,6 +266,12 @@ reporting.
 | `#ffb547` seismic-amber | `#172430` surface-raised |  **8.98:1** | 4.5:1 | PASS   |
 | `#ff5a3c` seismic-hot   | `#0a0f14` bg             |  **6.21:1** | 4.5:1 | PASS   |
 | `#ff5a3c` seismic-hot   | `#111a22` surface        |  **5.67:1** | 4.5:1 | PASS   |
+| `#ff968a` seismic-light | `#0a0f14` bg             |  **9.15:1** | 4.5:1 | PASS   |
+| `#ff968a` seismic-light | `#111a22` surface        |  **8.35:1** | 4.5:1 | PASS   |
+| `#ff968a` seismic-light | `#172430` surface-raised |  **7.50:1** | 4.5:1 | PASS   |
+| `#ff4f64` seismic-red   | `#0a0f14` bg             |  **6.01:1** | 4.5:1 | PASS   |
+| `#ff4f64` seismic-red   | `#111a22` surface        |  **5.49:1** | 4.5:1 | PASS   |
+| `#ff4f64` seismic-red   | `#172430` surface-raised |  **4.92:1** | 4.5:1 | PASS   |
 
 Display title on a panel (`text` on `surface`, large-text threshold 3:1): **14.88:1** PASS.
 

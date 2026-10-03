@@ -467,3 +467,165 @@ Cheap to check, expensive to lose. Each should have a lint rule or a test.
 8. Every shipped string present in both `en` and `as`.
 9. Every `--space-*` value a multiple of the 8px grid; no raw px spacing.
 10. No `outline: none` without a `:focus-visible` replacement.
+
+## Current atlas adapter — 2026-10-03
+
+The earlier `EngineApi` block is a planned facade, not a shipped interface. The
+implemented browser seam is `TerrainView` in `src/engine/terrain/terrain-view.ts`,
+exported from the terrain index, with `useTerrainView` as its React binding.
+`src/shared/atlas.ts` supplies serialisable `AtlasPresentation` (mode, layer flags,
+locale, catalogue year, selected event, schematic collision progress).
+
+This release extends that seam with `setAtlas`, `setWaterLevel` and `captureImage`;
+water-stat fields are nullable when unsupported or unreliable. This is a breaking
+API change. React receives no Three.js object. Atlas controls live in Zustand;
+modal/focus/playback UI lifetimes remain in the HUD.
+
+`atlas-layer.ts` renders sourced geography and earthquake parameters and original
+synthetic plate geometry. `seedRiverScenario` is pure and headlessly tested. It
+leaves DEM heights unchanged and seeds a local initial condition within two cells
+of mapped centrelines. No bathymetry, infiltration, friction calibration or bank
+erosion is held. The virtual-pipes solver runs on a coarser grid; display depth is
+draped on the visible DEM with the same sampling and mesh resolution. Both use
+north-first row order. Widths and rings are labelled visual/cartographic styling.
+
+The GPU checks compare real render-target depth to the independent CPU step,
+including open-edge loss and numerical reset. PNG capture renders synchronously
+before reading the canvas, so it does not rely on preserved drawing buffers.
+The HUD appends framing, scenario context and the sidecar's required credit to the
+export. Browser checks use native Python Playwright, with the npm Playwright
+runner providing the dev server and installed Chromium executable.
+
+### Depth views and sections — 2026-10-03
+
+`AtlasPresentation` now adds `flowView`, `sectionOpen` and `sectionPosition`.
+`WaterLayerState.section` carries a nullable `RiverSection` of serialisable samples.
+These additions extend the typed public contract and are a breaking API change.
+The engine reads the already-throttled GPU statistics buffer, selects a
+north-to-south grid column and centres its slice on that column's deepest wet cell.
+The map draws A–B at the same longitude and latitude bounds. No additional hot-path
+GPU readback or React/Three.js coupling is introduced.
+
+The section shows resampled solver terrain rather than high-resolution display
+terrain; these representations can differ. Missing samples remain gaps. A labelled
+vertical window improves depth readability and can clip high terrain without
+flattening it. Layer switches and section position do not reset the simulation.
+Depth bands use a fixed 0–8 m display scale, saturating deeper values while numeric
+depth readouts retain the solver values. Surface streaks use a separate real-time
+visual clock, follow model flux direction and are static under reduced motion.
+
+FAULT's region picker is removed from both HUD paths, and entering it through
+navigation or browser history selects Assam overview. Its terrain-following wave
+fronts use display choices for radius, timing and brightness. They are not P/S
+arrivals, intensity contours or measured shaking fields.
+
+### District navigation and dated snapshots — 2026-10-03
+
+The typed public contract adds `TerrainView.zoomView(factor)` and
+`focusLocation(lon, lat)`, and `AtlasPresentation.districts` / `selectedDistrict`.
+This is a breaking API extension. The HUD passes numbers and sourced IDs only;
+the engine keeps camera position, damping, ray intersection and screen-label
+layout. Wheel/pinch zoom uses a geographic anchor, Shift-drag pans, and resize
+preserves an already navigated camera. Home/reset returns to the overview.
+Probing resets its temporary intersection plane on every path.
+
+OSM district labels use independently attributed administration-centre anchors.
+Leader lines connect displaced screen labels to their unchanged anchors. Small
+viewports declutter close labels; all 35 names remain in a native button directory.
+Layout is cached while the camera and label state are unchanged, avoiding a
+district collision search on every water frame. Town labels are independently
+available and off by default to keep the initial district view readable.
+
+Shared links validate mode, locale, sourced district ID, historical year, event ID
+and depth-view selection. They never start a water simulation. Clipboard failure
+retains a selectable native text field. The build-time USGS updater atomically
+replaces validated data, and the UI's timeline bounds derive from the snapshot
+cutoff rather than a hard-coded year. See `docs/DATA_UPDATES.md` for activation
+conditions and the distinction between historical refresh and live warnings.
+
+### Map-first layout and share composition — 2026-10-03
+
+The HUD starts with a compact dock and moves geographical layer switches into the
+native modal at both widths. Essential Play and range inputs stay in the document
+and visible while secondary controls collapse. Desktop expansion has a bounded,
+scrollable height; phone expansion remains in normal document flow.
+
+Portrait overview framing uses a 90-degree azimuth and swaps the terrain extents
+passed to the existing pure framing calculation. The orbit API is unchanged.
+District displacements are bounded to nearby candidates (24 screen pixels per
+axis), so decluttering no longer draws long leaders over neighbouring terrain.
+
+`SharedScenario` is a framework-free URL value object, separate from the engine
+contract. Parsing validates the region, finite input ranges and slider increments.
+FAULT/PLATES and district views always resolve to the Assam overview. The React
+binding accepts an initial area to load the shared region directly. Chosen depth
+and inflow live in the HUD and are applied when the visitor presses Run. Shared
+URLs do not restore camera movement, elapsed solver time or automatically enable
+water. Browser history applies the same validation.
+
+`createAtlasStory` composes the engine's capture into a static 1080 × 1920 PNG.
+The portrait uses a labelled central crop, with a preview before local download;
+the original full-viewport export remains separately available. Export credits
+are wrapped, fonts are the already loaded self-hosted faces, and all colours are
+read from CSS tokens. Capture temporarily increases pixel ratio (capped at 3),
+then restores both renderer resolution and the screen-height shader uniform in a
+finally block. The scene camera and simulation state are unchanged. Drawing-buffer
+errors leave the link-sharing path usable. No scientific input, dependency or
+engine API was added.
+
+### Navigation and illustrative settlement contract (2026-10-03)
+
+`AtlasPresentation` now requires `navigation` (`pan` / `orbit`), `buildings`
+and `buildingMotion` (`gentle` / `medium` / `strong`). This is a breaking
+contract extension; hosts should initialise from `INITIAL_ATLAS`. The existing
+motion replay counter also triggers the explicitly synthetic settlement demo.
+The optional palette entries `seismicLight` and `seismicRed` come from CSS tokens.
+
+Default pointer drag pans; the HUD switches to orbit. Shift and right/middle
+drag always pan. Arrow keys follow the chosen mode, Shift-arrows pan, wheel and
+double-click zoom at the pointer, and a two-finger gesture combines midpoint
+translation with pinch zoom. Zoom limits allow close inspection in all regions;
+district focus preserves azimuth. Camera clearance uses the rendered terrain.
+
+Epicentre anchors use the same tessellated surface as the renderer, including
+its triangle diagonal and no-data handling. Screen-sized sphere symbols touch
+that surface; radius and colour are display choices based on recorded magnitude.
+They are not depth markers, local shaking, pressure, damage or hazard zones.
+
+The procedural settlement runs entirely in `src/engine/terrain/`. Its buildings,
+roads, windows, heights and sway are original illustrative geometry. Collision
+progress transforms the existing scene rather than reconstructing it per tick.
+Reduced motion uses a static pose; a normal replay settles after four seconds.
+Building controls and navigation mode are not persisted in share URLs.
+
+### Final exploration contract (2026-10-03)
+
+The two primary entries are FLOW and FAULT. PLATES remains a secondary, explicitly
+schematic "Why Assam shakes" explainer, with the legacy `?mode=plates` route intact.
+
+`AtlasPresentation` adds required `quality`, `comparison`, `comparisonPosition`
+and `minimumMagnitude` fields. This is a breaking typed-contract extension;
+external hosts must initialise from `INITIAL_ATLAS`. Lite caps display DPR at 1,
+compared with the normal cap of 1.5; it does not change terrain data, mesh sampling
+or water-solver resolution. The comparison renders two scissored passes of the
+same scene/camera: dry terrain on the left, chosen scenario water on the right.
+Only water surface visibility changes. Solver stepping and statistics are shared.
+
+`TerrainViewOptions.onQuakeSelect` returns a source event ID after a stationary
+click/tap within 22 CSS pixels of the closest visible historical symbol. A drag
+or multi-pointer gesture never picks. The HUD owns the source-record dialog and
+focus action; the engine never imports React or the HUD store. Filters apply to
+both the map and the accessible record selector. Magnitude filters persist in
+share URLs; comparison, quality, camera and elapsed solver time do not.
+
+District stories derive approximate great-circle distances from the sourced OSM
+administration-centre anchor to catalogue epicentres. They list the nearest five
+records across the complete snapshot, not events inside an administrative polygon
+or estimates of local shaking. Flood links remain regional historical reports.
+
+The optional three-step tour follows the visitor's pace and never automatically
+runs water. Portrait video uses the host-owned canvas capture stream and a local
+2D composition with the already prepared story's labels/credits. It records silent
+720 × 1280 WebM for up to eight seconds, labels the context at recording start,
+and releases all tracks, timers and animation frames on finish/error. Hidden-tab
+recording ends early. No camera, microphone, remote codec or upload is involved.

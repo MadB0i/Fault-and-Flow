@@ -17,14 +17,24 @@
  *   misjudge every slope they see.
  */
 
-import { legendTicksFor, type TerrainSidecar } from '@engine/terrain';
+import {
+  rampTickStepFor,
+  rampTicks,
+  type RampRange,
+  type TerrainSidecar,
+} from '@engine/terrain';
 import { useUiStore } from '../state/useUiStore.js';
 
 type Props = {
   sidecar: TerrainSidecar | null;
+  /** Range the ramp actually displays; drives the elevation axis. */
+  ramp: RampRange | null;
   exaggeration: number;
   contourIntervalM: number | null;
   contoursOn: boolean;
+  /** Water depth section; shown only while the layer runs on a device that can. */
+  waterOn: boolean;
+  waterMaxDepthM: number | null;
 };
 
 /** RAMP_STOPS must stay in DESIGN.md's order: low elevation to high. */
@@ -37,9 +47,12 @@ const RAMP_STOPS = [
 
 export default function TerrainLegend({
   sidecar,
+  ramp,
   exaggeration,
   contourIntervalM,
   contoursOn,
+  waterOn,
+  waterMaxDepthM,
 }: Props) {
   const strings = useUiStore((s) => s.strings());
 
@@ -71,10 +84,29 @@ export default function TerrainLegend({
     );
   }
 
-  const ticks = legendTicksFor(sidecar);
-  const span = sidecar.maxElevation - sidecar.minElevation || 1;
-  const positionOf = (value: number): number =>
-    ((value - sidecar.minElevation) / span) * 100;
+  // The axis spans what the ramp DISPLAYS, which is the 2nd..98th percentile
+  // of this area's elevations - not the sidecar's bbox extremes. On the
+  // overview those extremes are 0..7330 m (the bbox clips the Mishmi Hills),
+  // which squeezed the entire floodplain into the bottom 2% of the ramp.
+  const axis = ramp ?? {
+    min: sidecar.minElevation,
+    max: sidecar.maxElevation,
+    clippedLow: false,
+    clippedHigh: false,
+    degenerate: false,
+  };
+  // 46px is the narrowest gap four mono digits plus a decimal point need at
+  // --step--2, so this is what stops neighbouring tick labels colliding.
+  const candidates = rampTicks(axis, rampTickStepFor(axis, 240, 60));
+  const ticks = candidates.filter(
+    (v, i) =>
+      i === 0 ||
+      i === candidates.length - 1 ||
+      (v - axis.min > (axis.max - axis.min) * 0.18 &&
+        axis.max - v > (axis.max - axis.min) * 0.18),
+  );
+  const span = axis.max - axis.min || 1;
+  const positionOf = (value: number): number => ((value - axis.min) / span) * 100;
 
   return (
     <section
@@ -111,7 +143,7 @@ export default function TerrainLegend({
         className="mt-[var(--space-2xs)] h-[var(--space-xs)] w-full rounded-[2px] border-[length:1px]
                    border-[color:var(--hairline)]"
         style={{
-          backgroundImage: `linear-gradient(to top, ${RAMP_STOPS.join(', ')})`,
+          backgroundImage: `linear-gradient(to right, ${RAMP_STOPS.join(', ')})`,
         }}
       />
 
@@ -125,11 +157,20 @@ export default function TerrainLegend({
                    text-[length:var(--step--2)] tabular-nums text-[color:var(--text-muted)]"
         aria-labelledby="legend-elevation-label"
       >
-        {ticks.map((value) => {
+        {ticks.map((value, index) => {
+          // End labels are pushed inward so they cannot overflow the panel;
+          // interior ones centre on their tick. Clamping the offset rather
+          // than dropping the label keeps both ends of the axis readable.
+          const atEdge = index === 0 || index === ticks.length - 1;
+          const translate = atEdge
+            ? index === 0
+              ? 'translate-x-0'
+              : '-translate-x-full'
+            : '-translate-x-1/2';
           return (
             <li
               key={value}
-              className="absolute -translate-x-1/2 whitespace-nowrap"
+              className={`absolute whitespace-nowrap ${translate}`}
               style={{ left: `${positionOf(value)}%`, top: 0 }}
               data-testid={`legend-tick-${value}`}
             >
@@ -138,6 +179,32 @@ export default function TerrainLegend({
           );
         })}
       </ul>
+
+      <p
+        className="mt-[var(--space-2xs)] font-data text-[length:var(--step--2)] text-[color:var(--text-muted)]"
+        data-testid="legend-ramp-note"
+      >
+        {strings.legendRampNote}
+      </p>
+
+      {/*
+        Clipped ends, stated rather than hidden. Where the ramp is a
+        percentile stretch, real terrain exists outside it, and a legend that
+        silently stops at the 98th percentile invites the reader to believe
+        nothing on screen is higher.
+      */}
+      {(axis.clippedLow || axis.clippedHigh) && (
+        <p
+          className="mt-[var(--space-2xs)] font-data text-[length:var(--step--2)] text-[color:var(--text-muted)]"
+          data-testid="legend-clipped"
+        >
+          {axis.clippedLow && axis.clippedHigh
+            ? `${strings.legendClippedBoth} ${Math.round(sidecar.minElevation)}–${Math.round(sidecar.maxElevation)} m`
+            : axis.clippedLow
+              ? `${strings.legendClippedLow} ${Math.round(sidecar.minElevation)} m`
+              : `${strings.legendClippedHigh} ${Math.round(sidecar.maxElevation)} m`}
+        </p>
+      )}
 
       <dl className="mt-[var(--space-2xs)] space-y-[var(--space-2xs)] font-data text-[length:var(--step--2)]">
         {contoursOn && contourIntervalM !== null && (
@@ -164,7 +231,26 @@ export default function TerrainLegend({
             {strings.exaggerationValueSuffix}
           </dd>
         </div>
+        {waterOn && (
+          <div className="flex justify-between gap-[var(--space-xs)]">
+            <dt className="text-[color:var(--text-muted)]">{strings.legendWaterLabel}</dt>
+            <dd className="text-[color:var(--water)]" data-testid="legend-water-max">
+              {waterMaxDepthM === null ? '—' : `${waterMaxDepthM.toFixed(1)} m`}
+            </dd>
+          </div>
+        )}
       </dl>
+      {waterOn && (
+        <div
+          aria-hidden="true"
+          className="mt-[var(--space-2xs)] h-[var(--space-xs)] w-full rounded-[2px] border-[length:1px]
+                     border-[color:var(--hairline)]"
+          style={{
+            backgroundImage: 'linear-gradient(to right, var(--water), var(--water-deep))',
+          }}
+          data-testid="legend-water-ramp"
+        />
+      )}
     </section>
   );
 }

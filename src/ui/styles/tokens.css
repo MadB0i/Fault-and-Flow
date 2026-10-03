@@ -14,8 +14,19 @@
 
   --water: #3fd0e0;
   --water-deep: #0e5a73;
+  --water-shallow: #7fe3ef;
+  --water-shoreline: #bff2f8;
+
+  /* Scene sky: two steps above --bg. The terrain's edge fade and its depth
+     haze dissolve into these, so the far side of a 699 km area ends in
+     atmosphere rather than in a black void. */
+  --sky-low: #131f28;
+  --sky-high: #1b2c38;
+
   --seismic-amber: #ffb547;
   --seismic-hot: #ff5a3c;
+  --seismic-light: #ff968a;
+  --seismic-red: #ff4f64;
   --plate-line: #9aa7b4;
 
   --terrain-1: #1c3b35;
@@ -73,6 +84,16 @@
   --dur: 300ms;
   --dur-slow: 600ms;
   --dur-pulse: 1.2s;
+
+  /* ---- ATLAS LAYOUT -------------------------------------------------- */
+  --control-size: 2.75rem;
+  --atlas-min-height: 48rem;
+  --atlas-header-height: 5rem;
+  --atlas-title-width: 22rem;
+  --atlas-mobile-title: 18rem;
+  --atlas-dialog-width: 38rem;
+  --atlas-mobile-map: clamp(24rem, 52svh, 32rem);
+  --atlas-plates-dock: 36dvh;
 
   /* A sentinel the glyph-coverage test checks against, so that a weight can
      never be added to the UI without the test being told about it. */

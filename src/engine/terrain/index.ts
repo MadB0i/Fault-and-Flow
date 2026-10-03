@@ -45,11 +45,17 @@ export {
   legendTicks,
   legendTicksFor,
   lonLatToGrid,
+  percentileOf,
   pickContourInterval,
   pickTickStep,
+  rampRangeFor,
+  rampTickStepFor,
+  rampTicks,
   reliefMeters,
+  RAMP_PERCENTILES,
   type ExtentM,
   type GridPoint,
+  type RampRange,
 } from './metrics.js';
 
 export { sampleBilinear, sampleNearest, type SampleResult } from './sampling.js';
@@ -64,6 +70,7 @@ export {
   clampPolar,
   clampSpherical,
   dampingFactor,
+  framingDistance,
   hasSettled,
   sphericalToCartesian,
   wrapAzimuth,
@@ -84,6 +91,7 @@ export {
   createTerrainView,
   MAX_MESH_SEGMENTS,
   MAX_PIXEL_RATIO,
+  DEFAULT_SIM_WIDTH,
   TerrainViewError,
   type AreaSources,
   type ProbeTarget,
@@ -94,4 +102,5 @@ export {
   type TerrainView,
   type TerrainViewOptions,
   type TerrainViewState,
+  type WaterLayerState,
 } from './terrain-view.js';

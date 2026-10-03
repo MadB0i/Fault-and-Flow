@@ -25,19 +25,29 @@ import {
   type TerrainStatus,
   type TerrainView,
   type TerrainViewState,
+  type WaterLayerState,
 } from '@engine/terrain';
 
 import { AREA_SOURCES, prefersReducedMotion, readDocumentPalette } from './assets.js';
+import type { AtlasPresentation } from '../../shared/atlas.js';
 
 const IDLE: TerrainViewState = {
   status: { phase: 'idle' },
   verticalExaggeration: 1,
   contours: false,
   contourIntervalM: null,
+  ramp: null,
   probe: null,
+  water: null,
 };
 
 export type TerrainViewController = {
+  /** Host-owned canvas for local video composition; no scene internals exposed. */
+  getCanvas: () => HTMLCanvasElement | null;
+  pickedQuake: { id: string; sequence: number } | null;
+  captureImage: () => string | null;
+  setAtlas: (presentation: AtlasPresentation) => void;
+  setWaterLevel: (depthM: number) => void;
   /** Attach the canvas. The view is created on the first non-null canvas. */
   attachCanvas: (canvas: HTMLCanvasElement | null) => void;
   state: TerrainViewState;
@@ -48,6 +58,8 @@ export type TerrainViewController = {
   contours: boolean;
   setContours: (on: boolean) => void;
   resetCamera: () => void;
+  zoomView: (factor: number) => void;
+  focusLocation: (lon: number, lat: number) => void;
   retry: () => void;
   /** Elevation at the orbit target, the keyboard equivalent of the pointer. */
   cameraTargetProbe: TerrainViewState['probe'];
@@ -55,21 +67,51 @@ export type TerrainViewController = {
   refreshCameraTarget: () => void;
   /** Fatal construction error, if the device cannot run the renderer at all. */
   fatal: TerrainViewError | null;
+  /** FLOW water layer (engine-owned; this is only the React binding). */
+  water: WaterLayerState | null;
+  waterOn: boolean;
+  setWaterOn: (on: boolean) => void;
+  setWaterPlaying: (playing: boolean) => void;
+  setWaterSpeed: (mult: number) => void;
+  setWaterDischarge: (qM3s: number) => void;
+  resetWater: () => void;
 };
 
-export function useTerrainView(): TerrainViewController {
+/**
+ * Bench/debug hook: `?sim=256` forces the water sim grid width (clamped by
+ * the engine). Absent in production use; present so grid sizes can be
+ * compared on real hardware without a rebuild.
+ */
+function simWidthOverride(): number | undefined {
+  if (typeof window === 'undefined' || typeof window.location === 'undefined')
+    return undefined;
+  const raw = new URLSearchParams(window.location.search).get('sim');
+  if (raw === null) return undefined;
+  const n = Math.floor(Number(raw));
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export function useTerrainView(
+  initialArea: AreaId = 'assam-overview',
+): TerrainViewController {
+  const initialAreaRef = useRef(initialArea);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewRef = useRef<TerrainView | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const [state, setState] = useState<TerrainViewState>(IDLE);
-  const [areaId, setAreaId] = useState<AreaId>('majuli');
+  const [areaId, setAreaId] = useState<AreaId>(initialArea);
   const [exaggeration, setExaggerationState] = useState<number>(
-    areaDefinitionOrFirst('majuli').defaultVerticalExaggeration,
+    areaDefinitionOrFirst(initialArea).defaultVerticalExaggeration,
   );
   const [contours, setContoursState] = useState(false);
   const [fatal, setFatal] = useState<TerrainViewError | null>(null);
   const [targetProbe, setTargetProbe] = useState<TerrainViewState['probe']>(null);
+  const [waterOn, setWaterOnState] = useState(false);
+  const [pickedQuake, setPickedQuake] = useState<{ id: string; sequence: number } | null>(
+    null,
+  );
+  const getCanvas = useCallback(() => canvasRef.current, []);
 
   // --- Create / destroy the view -----------------------------------------
   // Runs once. The view's lifetime is the canvas's lifetime, and re-creating it
@@ -89,7 +131,9 @@ export function useTerrainView(): TerrainViewController {
         palette: readDocumentPalette(),
         sources: AREA_SOURCES,
         reducedMotion: prefersReducedMotion(),
-        initialArea: 'majuli',
+        initialArea: initialAreaRef.current,
+        onQuakeSelect: (id) =>
+          setPickedQuake((previous) => ({ id, sequence: (previous?.sequence ?? 0) + 1 })),
       });
     } catch (error) {
       // A device that cannot run the renderer at all. Recorded as state so the
@@ -165,6 +209,46 @@ export function useTerrainView(): TerrainViewController {
     loadArea(areaId);
   }, [areaId, loadArea, createView]);
 
+  const setWaterOn = useCallback((on: boolean) => {
+    setWaterOnState(on);
+    const view = viewRef.current;
+    if (!view) return;
+    if (on) {
+      const override = simWidthOverride();
+      view.enableWater(override === undefined ? undefined : { simWidth: override });
+    } else {
+      view.disableWater();
+    }
+  }, []);
+
+  const setWaterPlaying = useCallback((playing: boolean) => {
+    viewRef.current?.setWaterPlaying(playing);
+  }, []);
+
+  const setWaterSpeed = useCallback((mult: number) => {
+    viewRef.current?.setWaterSpeed(mult);
+  }, []);
+
+  const setWaterDischarge = useCallback((qM3s: number) => {
+    viewRef.current?.setWaterDischarge(qM3s);
+  }, []);
+
+  const resetWater = useCallback(() => {
+    viewRef.current?.resetWater();
+  }, []);
+  const setAtlas = useCallback((presentation: AtlasPresentation) => {
+    viewRef.current?.setAtlas(presentation);
+  }, []);
+  const captureImage = useCallback(() => viewRef.current?.captureImage() ?? null, []);
+  const zoomView = useCallback((factor: number) => viewRef.current?.zoomView(factor), []);
+  const focusLocation = useCallback(
+    (lon: number, lat: number) => viewRef.current?.focusLocation(lon, lat),
+    [],
+  );
+  const setWaterLevel = useCallback((depthM: number) => {
+    viewRef.current?.setWaterLevel(depthM);
+  }, []);
+
   /**
    * The keyboard equivalent of the pointer readout.
    *
@@ -181,13 +265,22 @@ export function useTerrainView(): TerrainViewController {
       setTargetProbe(null);
       return;
     }
-    const lon = (sidecar.bbox.west + sidecar.bbox.east) / 2;
-    const lat = (sidecar.bbox.south + sidecar.bbox.north) / 2;
-    setTargetProbe(view.probe({ kind: 'lonlat', lon, lat }));
+    setTargetProbe(view.probe({ kind: 'ndc', x: 0, y: 0 }));
   }, [state.status]);
+
+  useEffect(() => {
+    refreshCameraTarget();
+  }, [refreshCameraTarget]);
 
   const controls = useMemo<TerrainViewController>(
     () => ({
+      getCanvas,
+      pickedQuake,
+      captureImage,
+      zoomView,
+      focusLocation,
+      setAtlas,
+      setWaterLevel,
       attachCanvas,
       state,
       areaId,
@@ -201,8 +294,22 @@ export function useTerrainView(): TerrainViewController {
       cameraTargetProbe: targetProbe,
       refreshCameraTarget,
       fatal,
+      water: state.water,
+      waterOn,
+      setWaterOn,
+      setWaterPlaying,
+      setWaterSpeed,
+      setWaterDischarge,
+      resetWater,
     }),
     [
+      getCanvas,
+      pickedQuake,
+      captureImage,
+      zoomView,
+      focusLocation,
+      setAtlas,
+      setWaterLevel,
       attachCanvas,
       state,
       areaId,
@@ -216,6 +323,12 @@ export function useTerrainView(): TerrainViewController {
       targetProbe,
       refreshCameraTarget,
       fatal,
+      waterOn,
+      setWaterOn,
+      setWaterPlaying,
+      setWaterSpeed,
+      setWaterDischarge,
+      resetWater,
     ],
   );
 

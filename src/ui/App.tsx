@@ -1,170 +1,1048 @@
-/**
- * Phase 3: the terrain viewer, inside the phase-1 shell.
- *
- * The HUD shell - mode rail, wordmark, language toggle - is unchanged from
- * phase 1, because the mode rail is still three disabled channels and pretending
- * otherwise would be a claim the product cannot make. What changed is the
- * canvas region: it now holds the real terrain viewer instead of a placeholder.
- *
- * Every value it renders comes from a token in styles/tokens.css. If a number
- * appears here that is not a var(--...) reference, that is a defect.
- */
-
-import { Waves, Mountain, Activity, Info, type LucideIcon } from 'lucide-react';
-
-import { MODE_ENTRIES } from '../shared/i18n/strings.js';
-import { useUiStore } from './state/useUiStore.js';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import {
+  ArrowUpRight,
+  Download,
+  Layers,
+  Maximize2,
+  Minimize2,
+  RotateCcw,
+  ShieldCheck,
+  Waves,
+  MapPin,
+  Plus,
+  Minus,
+  Share2,
+  Check,
+  Move,
+  Rotate3D,
+  BookOpen,
+  X,
+} from 'lucide-react';
+import { ATLAS_COPY } from '../shared/i18n/atlas.js';
+import { FLOOD_HISTORY } from '../shared/flood-history.js';
 import type { Mode } from '../shared/types.js';
+import catalogue from '../data/earthquakes.json';
+import districts from '../data/districts.json';
+import districtDownloadUrl from '../data/districts.json?url';
+import {
+  CATALOGUE_END_YEAR,
+  CATALOGUE_CUTOFF,
+  CATALOGUE_RETRIEVED,
+} from '../shared/catalogue.js';
+import { createViewLink, parseScenarioLink } from '../shared/view-link.js';
+import { useUiStore, initialPresentation } from './state/useUiStore.js';
+import { useTerrainView, type AreaId } from './terrain/useTerrainView.js';
+import TerrainScene from './terrain/TerrainScene.js';
+import TerrainPanel from './terrain/TerrainPanel.js';
+import TerrainLegend from './terrain/TerrainLegend.js';
+import TerrainReadout from './terrain/TerrainReadout.js';
+import TerrainAttribution from './terrain/TerrainAttribution.js';
 import ModeRail from './ModeRail.js';
 import LangToggle from './LangToggle.js';
-import TerrainScene from './terrain/TerrainScene.js';
+import AtlasDialog from './AtlasDialog.js';
+import AtlasDock from './AtlasDock.js';
+import { createAtlasStory, downloadImage, saveAtlasImage } from './saveAtlasImage.js';
+import FlowSection from './FlowSection.js';
+import { DistrictStory, EventRecord } from './ExplorationPanels.js';
+import { recordPortraitVideo, canRecordPortraitVideo } from './recordPortraitVideo.js';
 
-function iconFor(mode: Mode): LucideIcon {
-  switch (mode) {
-    case 'flow':
-      return Waves;
-    case 'fault':
-      return Activity;
-    case 'plates':
-      return Mountain;
-  }
-}
-
+const major = catalogue.events.reduce((a, b) => (a.magnitude > b.magnitude ? a : b));
 export default function App() {
+  const [initialScene] = useState(() => parseScenarioLink(location.search));
+  const view = useTerrainView(initialScene.area);
   const locale = useUiStore((s) => s.locale);
-  const strings = useUiStore((s) => s.strings());
-
+  const copy = ATLAS_COPY[locale];
+  const reduced = useReducedMotion();
+  const atlas = useUiStore((s) => s.atlas);
+  const setAtlas = useUiStore((s) => s.setAtlas);
+  const [drawer, setDrawer] = useState<
+    | 'sources'
+    | 'safety'
+    | 'layers'
+    | 'history'
+    | 'districts'
+    | 'district-story'
+    | 'event'
+    | 'share'
+    | null
+  >(null);
+  const [focus, setFocus] = useState(false);
+  const [level, setLevel] = useState(initialScene.level);
+  const [inflow, setInflow] = useState(initialScene.inflow);
+  const [historyPlaying, setHistoryPlaying] = useState(false);
+  const [collisionPlaying, setCollisionPlaying] = useState(false);
+  const [story, setStory] = useState(2);
+  const [notice, setNotice] = useState('');
+  const [districtSearch, setDistrictSearch] = useState('');
+  const [shareLink, setShareLink] = useState('');
+  const [storyImage, setStoryImage] = useState('');
+  const [storyBusy, setStoryBusy] = useState(false);
+  const [tour, setTour] = useState<number | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [finishVideo, setFinishVideo] = useState<(() => void) | null>(null);
+  useEffect(
+    () => () => finishVideo?.(),
+    [
+      finishVideo,
+      locale,
+      atlas.mode,
+      atlas.selectedDistrict,
+      atlas.flowView,
+      atlas.comparison,
+      atlas.minimumMagnitude,
+      level,
+      inflow,
+      view.areaId,
+    ],
+  );
+  const selectedEvent = catalogue.events.find((e) => e.id === atlas.selectedQuake);
+  const selectedDistrict = districts.districts.find(
+    (d) => d.id === atlas.selectedDistrict,
+  );
+  const ready = view.state.status.phase === 'ready';
+  const districtName = selectedDistrict
+    ? locale === 'as' && selectedDistrict.nameAs
+      ? selectedDistrict.nameAs
+      : selectedDistrict.name
+    : null;
+  const sidecar = view.state.status.phase === 'ready' ? view.state.status.sidecar : null;
+  const mode = atlas.mode;
+  useEffect(() => {
+    if (!view.pickedQuake) return;
+    setHistoryPlaying(false);
+    setAtlas((a) => ({ ...a, selectedQuake: view.pickedQuake!.id }));
+    setDrawer('event');
+  }, [view.pickedQuake, setAtlas]);
+  // FAULT is always the full Assam view, including browser-history navigation.
+  useEffect(() => {
+    if (mode === 'fault' && view.areaId !== 'assam-overview')
+      view.setArea('assam-overview');
+  }, [mode, view.areaId, view.setArea]);
+  useEffect(() => {
+    if (ready) view.setAtlas({ ...atlas, locale });
+  }, [atlas, locale, ready, view.setAtlas]);
+  useEffect(() => {
+    if (
+      ready &&
+      selectedDistrict &&
+      view.areaId === 'assam-overview' &&
+      mode !== 'plates'
+    )
+      view.focusLocation(selectedDistrict.longitude, selectedDistrict.latitude);
+  }, [ready, selectedDistrict, view.areaId, mode, view.focusLocation]);
+  useEffect(() => {
+    const onPop = () => {
+      const restored = initialPresentation();
+      const scenario = parseScenarioLink(location.search);
+      view.setArea(scenario.area);
+      setLevel(scenario.level);
+      setInflow(scenario.inflow);
+      setAtlas(restored);
+      useUiStore.getState().setLocale(restored.locale);
+      setHistoryPlaying(false);
+      setCollisionPlaying(false);
+      view.setWaterOn(false);
+    };
+    addEventListener('popstate', onPop);
+    return () => removeEventListener('popstate', onPop);
+  }, [setAtlas, view.setWaterOn, view.setArea]);
+  useEffect(() => {
+    if (!historyPlaying) return;
+    const id = setInterval(
+      () =>
+        setAtlas((a) => {
+          if (a.quakeYear >= CATALOGUE_END_YEAR) {
+            setHistoryPlaying(false);
+            return a;
+          }
+          const year = a.quakeYear + 1;
+          const latest = catalogue.events
+            .filter((e) => Number(e.time.slice(0, 4)) === year)
+            .sort((a, b) => b.magnitude - a.magnitude)[0];
+          return { ...a, quakeYear: year, selectedQuake: latest?.id ?? a.selectedQuake };
+        }),
+      220,
+    );
+    return () => clearInterval(id);
+  }, [historyPlaying, setAtlas]);
+  useEffect(() => {
+    if (!collisionPlaying) return;
+    if (reduced) {
+      setAtlas((a) => ({ ...a, collision: 1 }));
+      setCollisionPlaying(false);
+      return;
+    }
+    const id = setInterval(
+      () =>
+        setAtlas((a) => {
+          if (a.collision >= 1) {
+            setCollisionPlaying(false);
+            return a;
+          }
+          return { ...a, collision: Math.min(1, a.collision + 0.0125) };
+        }),
+      150,
+    );
+    return () => clearInterval(id);
+  }, [collisionPlaying, reduced, setAtlas]);
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.hidden) {
+        setHistoryPlaying(false);
+        setCollisionPlaying(false);
+        view.setWaterPlaying(false);
+      }
+    };
+    document.addEventListener('visibilitychange', onHidden);
+    return () => document.removeEventListener('visibilitychange', onHidden);
+  }, [view.setWaterPlaying]);
+  const setMode = (next: Mode) => {
+    if (next === mode) return;
+    view.setWaterOn(false);
+    setHistoryPlaying(false);
+    setCollisionPlaying(false);
+    const nextAtlas = {
+      ...atlas,
+      mode: next,
+      selectedQuake: next === 'fault' ? major.id : atlas.selectedQuake,
+      quakeYear: CATALOGUE_END_YEAR,
+    };
+    setAtlas(nextAtlas);
+    if (next !== 'flow') view.setArea('assam-overview');
+    history.pushState(
+      null,
+      '',
+      createViewLink(
+        location.href,
+        { ...nextAtlas, locale },
+        { area: next === 'flow' ? view.areaId : 'assam-overview', level, inflow },
+      ),
+    );
+  };
+  const startVideo = async () => {
+    const canvas = view.getCanvas();
+    if (!canvas || !storyImage) return;
+    if (!canRecordPortraitVideo() || typeof canvas.captureStream !== 'function') {
+      setNotice(copy.videoUnsupported);
+      return;
+    }
+    setRecording(true);
+    setDrawer(null);
+    try {
+      const result = await recordPortraitVideo(
+        canvas,
+        storyImage,
+        copy.videoStart,
+        (stop) => setFinishVideo(() => stop),
+      );
+      const url = URL.createObjectURL(result);
+      downloadImage(url, `fault-and-flow-${mode}-portrait.webm`);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setNotice(copy.videoSaved);
+    } catch {
+      setNotice(copy.videoFailed);
+    } finally {
+      setRecording(false);
+      setFinishVideo(null);
+    }
+  };
+  const save = async () => {
+    try {
+      const png = view.captureImage();
+      if (!png) throw new Error('not-ready');
+      await saveAtlasImage(png, mode, copy, {
+        attribution: sidecar?.attribution ?? '',
+        note:
+          mode === 'plates'
+            ? copy.platesNote
+            : `${[copy.overview, copy.majuli, copy.sadiya][['assam-overview', 'majuli', 'sadiya-dibrugarh'].indexOf(view.areaId)]} · ${copy.height} ${view.exaggeration}× · ${mode === 'flow' ? `${copy.level} ${level.toFixed(1)} m · ${copy.inflowSettings} ${inflow} m³/s${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}` : `${copy.year} ${atlas.quakeYear}`}`,
+      });
+      setNotice(copy.saved);
+    } catch {
+      setNotice(copy.invalidCapture);
+    }
+  };
+  const openShare = () => {
+    setShareLink(
+      createViewLink(
+        location.href,
+        { ...atlas, locale },
+        { area: view.areaId, level, inflow },
+      ),
+    );
+    setNotice('');
+    setStoryImage('');
+    setDrawer('share');
+  };
+  useEffect(() => {
+    if (drawer !== 'share') return;
+    let cancelled = false;
+    setStoryBusy(true);
+    let png: string | null = null;
+    try {
+      png = view.captureImage();
+    } catch {
+      // A lost drawing buffer must leave the share sheet usable for links.
+    }
+    if (!png) {
+      setNotice(copy.invalidCapture);
+      setStoryBusy(false);
+      return;
+    }
+    void createAtlasStory(png, mode, copy, {
+      title:
+        districtName ??
+        (view.areaId === 'majuli'
+          ? copy.majuli
+          : view.areaId === 'sadiya-dibrugarh'
+            ? copy.sadiya
+            : copy.overview),
+      attribution: sidecar?.attribution ?? '',
+      note:
+        mode === 'flow'
+          ? `${copy.level}: ${level.toFixed(1)} m · ${copy.inflowSettings}: ${inflow} m³/s · ${view.waterOn ? copy.scenario : copy.scenarioNotRun}${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}${atlas.comparison && view.waterOn ? ` · ${copy.dryTerrain} | ${copy.chosenWater}` : ''}`
+          : mode === 'fault'
+            ? `${copy.year}: ${atlas.quakeYear} · ${copy.snapshot} ${CATALOGUE_CUTOFF} UTC · ${copy.magnitudeScale}: ${copy.magnitudeSmall} / ${copy.magnitudeMedium} / ${copy.magnitudeLarge}. ${copy.magnitudeHint}.`
+            : copy.platesNote,
+      height: `${copy.height}: ${view.exaggeration}×`,
+    })
+      .then((image) => {
+        if (!cancelled) setStoryImage(image);
+      })
+      .catch(() => {
+        if (!cancelled) setNotice(copy.invalidCapture);
+      })
+      .finally(() => {
+        if (!cancelled) setStoryBusy(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // Capture once when the share sheet opens; its preview and download match.
+  }, [drawer]);
+  const changeArea = (id: AreaId) => {
+    setAtlas((a) => ({ ...a, selectedDistrict: null }));
+    view.setArea(id);
+    setHistoryPlaying(false);
+  };
+  const icon = { size: 18, strokeWidth: 1.5, 'aria-hidden': true as const };
+  const layerControls = (
+    <>
+      <h3>{copy.geography}</h3>
+      {(['districts', 'rivers', 'boundaries', 'places'] as const).map((key) => (
+        <label className="layer-toggle" key={key}>
+          <input
+            type="checkbox"
+            checked={atlas[key]}
+            onChange={(e) => setAtlas((a) => ({ ...a, [key]: e.target.checked }))}
+          />
+          <span>{copy[key]}</span>
+          <span className="layer-indicator" aria-hidden="true" />
+        </label>
+      ))}
+      <p className="fine-print">{copy.riverCredit}</p>
+      <label htmlFor="display-quality">{copy.quality}</label>
+      <select
+        id="display-quality"
+        value={atlas.quality}
+        onChange={(e) =>
+          setAtlas((a) => ({ ...a, quality: e.target.value as 'full' | 'lite' }))
+        }
+      >
+        <option value="full">{copy.fullQuality}</option>
+        <option value="lite">{copy.liteQuality}</option>
+      </select>
+      <p className="fine-print">{copy.qualityNote}</p>
+      <details className="terrain-details">
+        <summary>{copy.terrain}</summary>
+        <TerrainPanel
+          overviewOnly={mode === 'fault'}
+          areaId={view.areaId}
+          onArea={changeArea}
+          exaggeration={view.exaggeration}
+          onExaggeration={view.setExaggeration}
+          contours={view.contours}
+          onContours={view.setContours}
+          onReset={view.resetCamera}
+          disabled={!ready}
+        />
+      </details>
+    </>
+  );
   return (
     <div
-      className="relative flex min-h-[100dvh] flex-col"
+      className={`atlas-app${focus ? ' is-focused' : ''}`}
+      data-mode={mode}
       data-locale={locale}
       data-testid="app"
     >
       <a className="skip-link sr-only" href="#main">
-        Skip to content
+        {copy.skip}
       </a>
-
-      {/*
-        HUD shell.
-
-        On mobile the HUD participates in normal flow so it can never overlap
-        the content or the wordmark. From md up it becomes an absolutely
-        positioned overlay so it floats over the full-bleed canvas, which is
-        the intended arrangement (DESIGN.md 2.4). Children re-enable pointer
-        events because the overlay itself must not swallow clicks meant for
-        the canvas.
-
-        An earlier version positioned the wordmark with a magic
-        `left: calc(var(--space-xl) + 56px)` offset, which silently collided
-        with the rail at 390px and at 1440px. Layout, not arithmetic, is what
-        keeps regions apart.
-      */}
-      <div
-        className="z-20 flex flex-col gap-[var(--space-s)] p-[var(--space-s)]
-                   md:pointer-events-none md:absolute md:inset-0 md:block md:p-0"
-        data-testid="hud"
-      >
-        <div
-          className="flex flex-col gap-[var(--space-s)]
-                     md:flex-row md:items-start md:justify-between"
-        >
-          <div
-            className="pointer-events-auto flex flex-col gap-[var(--space-s)]
-                       md:flex-row md:items-start md:p-[var(--space-l)]"
+      <header className="atlas-header">
+        <a href="#main" className="brand" aria-label="Fault & Flow">
+          <Waves {...icon} />
+          <h1 data-testid="wordmark">
+            Fault <span>&</span> Flow
+          </h1>
+        </a>
+        <ModeRail
+          mode={mode}
+          onMode={(next) => {
+            setTour(null);
+            setMode(next);
+          }}
+          copy={copy}
+        />
+        <div className="header-actions">
+          <LangToggle />
+          <button
+            className="icon-button"
+            type="button"
+            onClick={() => setDrawer('safety')}
+            aria-label={copy.safety}
           >
-            <ModeRail />
-
-            <header className="md:pt-[var(--space-2xs)]">
-              <h1
-                className="font-display text-[length:var(--step-4)] leading-none tracking-[-0.02em]"
-                data-testid="wordmark"
+            <ShieldCheck {...icon} />
+          </button>
+        </div>
+      </header>
+      <main id="main" tabIndex={-1} className="atlas-map" data-testid="terrain-scene">
+        <TerrainScene view={view} copy={copy} />
+        {mode === 'flow' && atlas.comparison && view.waterOn && view.water?.supported && (
+          <>
+            <div
+              className="comparison-line"
+              style={{ left: `${atlas.comparisonPosition * 100}%` }}
+              aria-hidden="true"
+            />
+            <input
+              className="comparison-map-slider"
+              aria-label={copy.dragDivider}
+              type="range"
+              min="0"
+              max="100"
+              value={Math.round(atlas.comparisonPosition * 100)}
+              onChange={(e) =>
+                setAtlas((a) => ({
+                  ...a,
+                  comparisonPosition: Math.max(
+                    0.05,
+                    Math.min(0.95, Number(e.target.value) / 100),
+                  ),
+                }))
+              }
+            />
+          </>
+        )}
+        {!focus && (
+          <div className="atlas-discovery">
+            {mode !== 'plates' && (
+              <button
+                className="district-launch"
+                type="button"
+                disabled={!ready}
+                onClick={() => setDrawer('districts')}
+                aria-label={copy.districtExplore}
               >
-                {strings.wordmark}
-              </h1>
-              <p className="mt-[var(--space-xs)] font-data text-[length:var(--step--1)] text-[color:var(--text-muted)]">
-                {strings.tagline}
-              </p>
-            </header>
+                <MapPin {...icon} />
+                <span>{districtName ?? copy.districtExplore}</span>
+                <ArrowUpRight {...icon} />
+              </button>
+            )}
+            {selectedDistrict && mode !== 'plates' && (
+              <button
+                type="button"
+                className="story-launch"
+                onClick={() => setDrawer('district-story')}
+                aria-label={copy.districtStory}
+              >
+                <BookOpen {...icon} />
+              </button>
+            )}
+            <button
+              className="share-launch"
+              type="button"
+              disabled={!ready}
+              onClick={openShare}
+              aria-label={copy.share}
+            >
+              <Share2 {...icon} />
+              <span>{copy.shareShort}</span>
+            </button>
           </div>
-
-          {/*
-            self-start keeps the toggle hugging its content on mobile. A
-            full-width language bar reads as an unfinished layout rather than
-            a deliberate control.
-          */}
-          <div className="pointer-events-auto self-start md:p-[var(--space-l)]">
-            <LangToggle />
-          </div>
+        )}
+        {!focus && (
+          <>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={mode}
+                className="atlas-intro"
+                initial={{ opacity: 0, y: reduced ? 0 : 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduced ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {mode === 'flow' && atlas.sectionOpen ? (
+                  <FlowSection
+                    copy={copy}
+                    atlas={atlas}
+                    profile={view.water?.section ?? null}
+                    onPosition={(sectionPosition) =>
+                      setAtlas((a) => ({ ...a, sectionPosition }))
+                    }
+                  />
+                ) : (
+                  <>
+                    <p className="eyebrow">{copy.eyebrow}</p>
+                    <h2>
+                      {districtName && mode !== 'plates'
+                        ? districtName
+                        : copy[`${mode}Title`]}
+                    </h2>
+                    <p className="intro-copy">
+                      {districtName && mode !== 'plates'
+                        ? copy.districtInvitation
+                        : copy[`${mode}Description`]}
+                    </p>
+                    {mode === 'fault' && (
+                      <p className="seismic-note">{copy.noPrediction}</p>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
+            {mode !== 'plates' && (
+              <>
+                {mode === 'flow' && (
+                  <div className="region-selector" role="group" aria-label={copy.region}>
+                    {(['assam-overview', 'majuli', 'sadiya-dibrugarh'] as const).map(
+                      (id, i) => (
+                        <button
+                          type="button"
+                          key={id}
+                          aria-pressed={view.areaId === id}
+                          disabled={!ready}
+                          onClick={() => changeArea(id)}
+                          data-testid={`region-${id}`}
+                        >
+                          {[copy.overview, copy.majuli, copy.sadiya][i]}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+        <div className="map-tools" role="group" aria-label={copy.tools}>
+          {
+            <>
+              <button
+                type="button"
+                className="icon-button"
+                disabled={!ready}
+                onClick={() => view.zoomView(0.75)}
+                aria-label={copy.zoomIn}
+              >
+                <Plus {...icon} />
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                disabled={!ready}
+                onClick={() => view.zoomView(1 / 0.75)}
+                aria-label={copy.zoomOut}
+              >
+                <Minus {...icon} />
+              </button>
+            </>
+          }
+          {mode !== 'plates' && (
+            <button
+              type="button"
+              className="icon-button mobile-layers"
+              onClick={() => setDrawer('layers')}
+              aria-label={copy.controls}
+            >
+              <Layers {...icon} />
+            </button>
+          )}
+          <button
+            type="button"
+            className="icon-button"
+            disabled={!ready}
+            onClick={() => {
+              setAtlas((a) => ({ ...a, selectedDistrict: null }));
+              view.resetCamera();
+            }}
+            aria-label={copy.resetView}
+          >
+            <RotateCcw {...icon} />
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setFocus((v) => !v)}
+            aria-label={focus ? copy.exitFull : copy.full}
+          >
+            {focus ? <Minimize2 {...icon} /> : <Maximize2 {...icon} />}
+          </button>
         </div>
-      </div>
-
-      {/*
-        The terrain viewer. It owns the canvas and its own HUD; the shell above
-        stays exactly as phase 1 left it.
-      */}
-      <TerrainScene />
-
-      {/*
-        The honesty banner stays pinned and always visible over the scene. A
-        disclaimer that has to be scrolled to, or that disappears behind a
-        control panel, is a disclaimer most people never read.
-      */}
-      <div
-        className="pointer-events-none fixed inset-x-0 top-[var(--space-xl)] z-30
-                   mx-auto w-[min(100%,520px)] px-[var(--space-s)]
-                   md:top-[var(--space-s)] md:right-[var(--space-s)] md:left-auto"
-        role="note"
-        data-testid="disclaimer-banner"
-      >
+        <div className="map-navigation" role="group" aria-label={copy.navigation}>
+          {(['pan', 'orbit'] as const).map((navigation) => (
+            <button
+              type="button"
+              key={navigation}
+              disabled={!ready}
+              aria-pressed={atlas.navigation === navigation}
+              onClick={() => setAtlas((a) => ({ ...a, navigation }))}
+            >
+              {navigation === 'pan' ? <Move {...icon} /> : <Rotate3D {...icon} />}
+              {navigation === 'pan' ? copy.moveMap : copy.rotateMap}
+            </button>
+          ))}
+        </div>
+        {mode === 'fault' && (
+          <div className="magnitude-legend" role="group" aria-label={copy.magnitudeScale}>
+            <p>{copy.magnitudeScale}</p>
+            <div className="magnitude-bands">
+              {(['amber', 'light', 'red'] as const).map((band, index) => (
+                <span key={band} data-band={band}>
+                  <i aria-hidden="true" />
+                  {
+                    [copy.magnitudeSmall, copy.magnitudeMedium, copy.magnitudeLarge][
+                      index
+                    ]
+                  }
+                </span>
+              ))}
+            </div>
+            <p className="magnitude-hint">{copy.magnitudeHint}</p>
+          </div>
+        )}
         <div
-          className="flex items-start gap-[var(--space-xs)]
-                     rounded-[var(--radius)] border-[length:1px]
-                     border-[color:var(--hairline)] bg-[color:var(--surface)]
-                     p-[var(--space-s)] backdrop-blur-[var(--blur-panel)]"
+          className={`map-caption${mode === 'flow' && atlas.flowView === 'depth' ? ' is-depth' : ''}`}
         >
-          <Info
-            // Optical alignment with the first line's cap height, using a
-            // space token rather than a raw 2px nudge.
-            className="mt-[var(--space-2xs)] shrink-0 text-[color:var(--seismic-amber)]"
-            size={16}
-            strokeWidth={1.5}
-            aria-hidden="true"
-          />
-          <div>
-            {/*
-              Sentence case, not uppercase. DESIGN.md section 5 bans
-              all-caps sentences; this is a disclaimer, and shouting a
-              disclaimer makes it easier to skim past. Only short
-              all-caps labels are acceptable.
-            */}
-            <p
-              className="text-[length:var(--step--1)] font-medium text-[color:var(--seismic-amber)]"
-              data-testid="disclaimer"
-            >
-              {strings.disclaimerShort}
-            </p>
-            {/*
-              The terrain-specific line. PRODUCT.md 4.1 forbids any framing that
-              suggests prediction; "illustrative" is the word that keeps a
-              screenshot of this scene from being mistakable for a forecast.
-            */}
-            <p
-              className="mt-[var(--space-2xs)] text-[length:var(--step--1)] text-[color:var(--text-muted)]"
-              data-testid="terrain-honesty"
-            >
-              {strings.terrainIllustrativeNote}
-            </p>
-          </div>
+          {mode === 'flow' && atlas.flowView === 'depth' && (
+            <span className="depth-ramp" aria-hidden="true" />
+          )}
+          <span className="caption-dot" />
+          {mode === 'fault'
+            ? copy.quakeNote
+            : mode === 'plates'
+              ? copy.platesNote
+              : atlas.flowView === 'depth'
+                ? copy.depthScale
+                : copy.riverNote}
         </div>
-      </div>
-
-      {/* Rendered mode icons once so the rail's icon set is proven present. */}
-      <span className="sr-only" data-testid="mode-icon-set">
-        {MODE_ENTRIES.map(({ mode }) => {
-          const Icon = iconFor(mode);
-          return <Icon key={mode} strokeWidth={1.5} aria-hidden="true" />;
-        })}
-      </span>
+        <div className="map-scale">
+          {mode !== 'plates' && (
+            <>
+              {copy.height} <strong>{view.exaggeration}×</strong>
+            </>
+          )}
+          <span>{copy.mapHint}</span>
+        </div>
+      </main>
+      {tour !== null && (
+        <aside className="guided-tour" aria-label={copy.guidedTour}>
+          <div aria-live="polite">
+            <strong>{[copy.tourRiver, copy.tourWater, copy.tourHistory][tour]}</strong>
+            <p>{[copy.tourRiverBody, copy.tourWaterBody, copy.tourHistoryBody][tour]}</p>
+          </div>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => {
+              if (tour === 2) {
+                setTour(null);
+                return;
+              }
+              setTour(tour + 1);
+              if (tour === 1) setMode('fault');
+            }}
+          >
+            {tour === 2 ? copy.finishTour : copy.nextTour}
+          </button>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={copy.exitTour}
+            onClick={() => setTour(null)}
+          >
+            <X {...icon} />
+          </button>
+        </aside>
+      )}
+      {recording && (
+        <aside className="recording-status" role="status">
+          <span>{copy.recording}</span>
+          <button
+            type="button"
+            className="primary-button"
+            disabled={!finishVideo}
+            onClick={() => finishVideo?.()}
+          >
+            {copy.stopRecording}
+          </button>
+        </aside>
+      )}
+      {!focus && mode === 'flow' && view.waterOn && (
+        <div className="comparison-toolbar">
+          <label title={copy.compareHint}>
+            <input
+              type="checkbox"
+              checked={atlas.comparison}
+              disabled={!view.waterOn || !view.water?.supported}
+              onChange={(e) => setAtlas((a) => ({ ...a, comparison: e.target.checked }))}
+            />
+            {copy.compare}
+          </label>
+          {atlas.comparison && view.waterOn && (
+            <>
+              <span>{copy.dryTerrain}</span>
+              <input
+                aria-label={copy.comparePosition}
+                type="range"
+                min="5"
+                max="95"
+                value={Math.round(atlas.comparisonPosition * 100)}
+                onChange={(e) =>
+                  setAtlas((a) => ({
+                    ...a,
+                    comparisonPosition: Number(e.target.value) / 100,
+                  }))
+                }
+              />
+              <span>{copy.chosenWater}</span>
+            </>
+          )}
+        </div>
+      )}
+      {!focus && (
+        <AtlasDock
+          copy={copy}
+          view={view}
+          atlas={atlas}
+          setAtlas={setAtlas}
+          level={level}
+          setLevel={setLevel}
+          inflow={inflow}
+          setInflow={setInflow}
+          historyPlaying={historyPlaying}
+          setHistoryPlaying={setHistoryPlaying}
+          collisionPlaying={collisionPlaying}
+          setCollisionPlaying={setCollisionPlaying}
+          onHistory={() => setDrawer('history')}
+          onRiver={() => setMode('flow')}
+          onLearn={() => setMode('plates')}
+          onBack={() => setMode('fault')}
+        />
+      )}
+      <footer className="atlas-footer">
+        <p data-testid="disclaimer">
+          <ShieldCheck {...icon} />
+          {copy.disclaimer}
+        </p>
+        {mode !== 'plates' && (
+          <a
+            className="district-credit"
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {copy.districtCredit}
+          </a>
+        )}
+        <button type="button" onClick={() => setDrawer('sources')}>
+          {copy.sources}
+          <ArrowUpRight {...icon} />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode('flow');
+            setTour(0);
+          }}
+        >
+          {copy.guidedTour}
+        </button>
+      </footer>
+      <p className="sr-only" role="status">
+        {drawer === 'share' ? '' : notice}
+      </p>
+      <AtlasDialog
+        open={drawer !== null}
+        onClose={() => setDrawer(null)}
+        title={
+          drawer === 'sources'
+            ? copy.sources
+            : drawer === 'safety'
+              ? copy.safetyTitle
+              : drawer === 'history'
+                ? copy.floodHistory
+                : drawer === 'districts'
+                  ? copy.districtExplore
+                  : drawer === 'district-story'
+                    ? (districtName ?? copy.districtStory)
+                    : drawer === 'event'
+                      ? copy.event
+                      : drawer === 'share'
+                        ? copy.share
+                        : copy.controls
+        }
+        closeLabel={copy.close}
+      >
+        {drawer === 'layers' && layerControls}
+        {drawer === 'event' && selectedEvent && (
+          <EventRecord
+            event={selectedEvent}
+            copy={copy}
+            focus={() => {
+              view.focusLocation(selectedEvent.longitude, selectedEvent.latitude);
+              setDrawer(null);
+            }}
+          />
+        )}
+        {drawer === 'district-story' && selectedDistrict && (
+          <DistrictStory
+            anchor={selectedDistrict}
+            name={districtName ?? selectedDistrict.name}
+            copy={copy}
+            select={(event) => {
+              setMode('fault');
+              setAtlas((a) => ({
+                ...a,
+                selectedDistrict: null,
+                selectedQuake: event.id,
+                quakeYear: CATALOGUE_END_YEAR,
+                minimumMagnitude: 5,
+              }));
+              setDrawer('event');
+            }}
+          />
+        )}
+        {drawer === 'districts' && (
+          <>
+            <p>{copy.districtNote}</p>
+            <label htmlFor="district-search">{copy.districtSearch}</label>
+            <input
+              id="district-search"
+              className="district-search"
+              type="search"
+              value={districtSearch}
+              onChange={(e) => setDistrictSearch(e.target.value)}
+            />
+            <p className="district-count">
+              {copy.allDistricts} · {districts.districts.length}
+            </p>
+            <div className="district-grid">
+              {districts.districts
+                .filter((d) =>
+                  `${d.name} ${d.sourceName} ${d.nameAs}`
+                    .toLowerCase()
+                    .includes(districtSearch.trim().toLowerCase()),
+                )
+                .map((d) => (
+                  <button
+                    type="button"
+                    key={d.id}
+                    aria-pressed={atlas.selectedDistrict === d.id}
+                    onClick={() => {
+                      view.setArea('assam-overview');
+                      setAtlas((a) => ({
+                        ...a,
+                        districts: true,
+                        selectedDistrict: d.id,
+                      }));
+                      view.focusLocation(d.longitude, d.latitude);
+                      setDrawer(null);
+                    }}
+                  >
+                    {atlas.selectedDistrict === d.id ? (
+                      <Check {...icon} />
+                    ) : (
+                      <MapPin {...icon} />
+                    )}
+                    <span>{locale === 'as' && d.nameAs ? d.nameAs : d.name}</span>
+                    <ArrowUpRight {...icon} />
+                  </button>
+                ))}
+            </div>
+            {!districts.districts.some((d) =>
+              `${d.name} ${d.sourceName} ${d.nameAs}`
+                .toLowerCase()
+                .includes(districtSearch.trim().toLowerCase()),
+            ) && <p role="status">{copy.districtEmpty}</p>}
+            <a href={districtDownloadUrl} download="assam-district-names-odbl.json">
+              {copy.districtCredit} <Download {...icon} />
+            </a>
+          </>
+        )}
+        {drawer === 'share' && (
+          <>
+            <div className="share-preview" aria-busy={storyBusy}>
+              {storyImage ? (
+                <img src={storyImage} alt={copy.storyAlt} />
+              ) : (
+                <p role="status">
+                  {storyBusy ? copy.storyPreparing : copy.invalidCapture}
+                </p>
+              )}
+            </div>
+            <div className="share-actions">
+              <button
+                className="primary-button"
+                type="button"
+                disabled={!storyImage || storyBusy}
+                onClick={() => {
+                  downloadImage(
+                    storyImage,
+                    `fault-and-flow-${selectedDistrict?.name.toLowerCase() ?? mode}-story.png`,
+                  );
+                  setNotice(copy.storySaved);
+                }}
+              >
+                <Download {...icon} />
+                {copy.saveStory}
+              </button>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => void save()}
+                disabled={!ready}
+              >
+                <Download {...icon} />
+                {copy.save}
+              </button>
+              <button
+                type="button"
+                className="text-button"
+                disabled={!storyImage || storyBusy || recording}
+                onClick={() => void startVideo()}
+              >
+                {copy.recordVideo}
+              </button>
+            </div>
+            <p className="fine-print">{copy.videoNote}</p>
+            <p>{copy.shareNote}</p>
+            <label htmlFor="view-link">{copy.viewLink}</label>
+            <input
+              id="view-link"
+              className="district-search"
+              value={shareLink}
+              readOnly
+              onFocus={(e) => e.target.select()}
+            />
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() =>
+                void (async () => {
+                  try {
+                    await navigator.clipboard.writeText(shareLink);
+                    setNotice(copy.linkCopied);
+                  } catch {
+                    setNotice(copy.linkFailed);
+                  }
+                })()
+              }
+            >
+              {copy.copyLink}
+            </button>
+            <p role="status">{notice}</p>
+          </>
+        )}
+        {drawer === 'sources' && (
+          <>
+            <p>{copy.riverCredit}</p>
+            <p>{copy.usgsCredit}</p>
+            <p>{copy.catalogueNote}</p>
+            <p className="snapshot-note">
+              {copy.snapshot} <strong>{CATALOGUE_CUTOFF} UTC</strong> · {copy.retrieved}{' '}
+              {CATALOGUE_RETRIEVED}
+            </p>
+            <p>{copy.updateNote}</p>
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noreferrer"
+            >
+              {copy.districtCredit}
+            </a>
+            <p>{copy.noPrediction}</p>
+            <TerrainLegend
+              sidecar={sidecar}
+              ramp={view.state.ramp}
+              exaggeration={view.exaggeration}
+              contourIntervalM={view.state.contourIntervalM}
+              contoursOn={view.contours}
+              waterOn={view.waterOn}
+              waterMaxDepthM={view.water?.maxDepthM ?? null}
+            />
+            <TerrainReadout
+              pointer={view.state.probe}
+              cameraTarget={view.cameraTargetProbe}
+              ready={ready}
+            />
+            <TerrainAttribution sidecar={sidecar} />
+          </>
+        )}
+        {drawer === 'safety' && (
+          <>
+            <p>{copy.safetyBody}</p>
+            <p className="safety-notice">{copy.safetyNow}</p>
+            <p>
+              <strong>{copy.noPrediction}</strong>
+            </p>
+            <h3>{copy.floodLimits}</h3>
+            <p>{copy.floodLimitsBody}</p>
+            <h3>{copy.quakeLimits}</h3>
+            <p>{copy.quakeLimitsBody}</p>
+            <p>{copy.safetyActions}</p>
+            <div className="official-links">
+              {[
+                ['https://asdma.assam.gov.in/', copy.asdma],
+                ['https://seismo.gov.in/', copy.ncs],
+                ['https://mausam.imd.gov.in/', copy.imd],
+              ].map(([url, label]) => (
+                <a key={url} href={url} target="_blank" rel="noreferrer">
+                  {label}
+                  <ArrowUpRight {...icon} />
+                </a>
+              ))}
+            </div>
+          </>
+        )}
+        {drawer === 'history' && (
+          <>
+            <p>{copy.historyNote}</p>
+            <div className="story-tabs">
+              {FLOOD_HISTORY.map((item, i) => (
+                <button
+                  key={item.year}
+                  type="button"
+                  aria-pressed={story === i}
+                  onClick={() => setStory(i)}
+                >
+                  {item.year}
+                </button>
+              ))}
+            </div>
+            <article className="flood-story">
+              <p className="eyebrow">NASA EARTH OBSERVATORY · {copy.historical}</p>
+              <h3>{copy[FLOOD_HISTORY[story]!.title]}</h3>
+              <p>{copy[FLOOD_HISTORY[story]!.body]}</p>
+              <a href={FLOOD_HISTORY[story]!.url} target="_blank" rel="noreferrer">
+                {copy.readReport}
+                <ArrowUpRight {...icon} />
+              </a>
+            </article>
+          </>
+        )}
+      </AtlasDialog>
     </div>
   );
 }

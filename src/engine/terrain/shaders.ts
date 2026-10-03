@@ -152,10 +152,25 @@ uniform float uEdgeFade;        // fraction of the half-extent used to fade out
 uniform vec2 uFogRange;         // (near, far) view distance
 uniform float uFogStrength;
 uniform float uAmbient;
+uniform float uScreenHeight;     // drawing-buffer height in pixels
 
 varying vec2 vGrid;
 varying float vElevation;
 varying vec3 vViewPosition;
+uniform vec3 uSkyLow;            // horizon haze, one step above --surface
+uniform vec3 uSkyHigh;           // zenith, slightly lighter
+
+/**
+ * Vertical background gradient, evaluated from the fragment's own screen
+ * position so it stays put while the camera orbits. Pure #bg behind a
+ * 699 km scene read as a black void; a graded horizon gives the eye somewhere
+ * for the terrain's edge fade to go.
+ */
+vec3 skyColour() {
+  float h = clamp(gl_FragCoord.y / max(uScreenHeight, 1.0), 0.0, 1.0);
+  vec3 sky = mix(uSkyLow, uSkyHigh, pow(h, 1.4));
+  return sky;
+}
 
 /** Four-stop hypsometric ramp. Stops are the DESIGN.md terrain tokens. */
 vec3 rampColour(float t) {
@@ -190,6 +205,10 @@ void main() {
 
   float lambert = max(dot(normal, uLightDirection), 0.0);
   float shade = uAmbient + (1.0 - uAmbient) * lambert;
+  // Sky bounce: light from above, so up-facing ground never sits at the
+  // ambient floor and never reads as a black hole in the middle of the scene.
+  float sky = max(normal.y, 0.0);
+  shade += 0.18 * sky;
 
   // --- Hypsometric tint ---------------------------------------------------
   float span = max(uElevationRange.y - uElevationRange.x, 1.0);
@@ -216,19 +235,33 @@ void main() {
 
   if (!hasData) {
     colour = uNoDataColour;
+  } else {
+    // A hairline lift on the floodplain: GLO-30 flattens water surfaces and
+    // inverts riverbeds, so the water the model runs on is a smooth ribbon at
+    // local water level. Without this the channel the product is about sits
+    // at the very bottom of the ramp and is hard to see against its banks.
+    colour *= 1.22;
   }
 
   // --- Edge fade: no hard cut at the bbox border -------------------------
+  // The fade goes to the SKY colour, not the flat page background, so the far
+  // edge of a 699 km area dissolves into atmosphere instead of into a void.
   vec2 toEdge = min(vGrid, vec2(1.0) - vGrid);
   float edge = min(toEdge.x, toEdge.y);
   float edgeMix = smoothstep(0.0, max(uEdgeFade, 1e-4), edge);
-  colour = mix(uBackground, colour, edgeMix);
+  colour = mix(skyColour(), colour, edgeMix);
+
+  // --- Ground plane below the horizon -------------------------------------
+  // Fills the space under a tilted view with one flat tone instead of the page
+  // background, so the area reads as a slab sitting in a scene rather than as
+  // a shape floating in a void. Never near-black: it is behind the terrain.
 
   // --- Subtle depth haze --------------------------------------------------
   float viewDistance = length(vViewPosition);
   float fog = smoothstep(uFogRange.x, uFogRange.y, viewDistance);
-  colour = mix(colour, uBackground, fog * uFogStrength);
+  colour = mix(colour, skyColour(), fog * uFogStrength);
 
   gl_FragColor = vec4(colour, 1.0);
+  #include <colorspace_fragment>
 }
 `;

@@ -171,6 +171,128 @@ export function legendTicks(min: number, max: number, step: number): readonly nu
   return ticks;
 }
 
+/**
+ * The elevation range the colour ramp actually displays.
+ *
+ * The sidecar's own min/max is the wrong range for a view. On the Assam
+ * overview it is 0..7330 m because the bounding box clips the Mishmi Hills,
+ * which puts the entire Brahmaputra floodplain (roughly 50..130 m) inside the
+ * bottom 2% of the ramp: the entire valley the product is about renders as the
+ * darkest colour. Stretching to the 2nd..98th percentile of the elevations that
+ * actually occupy the area puts the floodplain across the middle of the ramp
+ * and lets the hills clip, which the UI states rather than hides.
+ */
+export type RampRange = {
+  /** Metres; the ramp's low end. */
+  readonly min: number;
+  /** Metres; the ramp's high end. */
+  readonly max: number;
+  /** True when real terrain lies below `min` and is drawn as the low colour. */
+  readonly clippedLow: boolean;
+  /** True when real terrain lies above `max` and is drawn as the high colour. */
+  readonly clippedHigh: boolean;
+  /** True when the data is flat enough that percentiles collapsed the range. */
+  readonly degenerate: boolean;
+};
+
+export const RAMP_PERCENTILES = { low: 0.02, high: 0.98 } as const;
+
+/**
+ * Nearest-rank percentile of a finite sample, no interpolation: a percentile of
+ * a measured elevation should be a measurement, not a value between two.
+ */
+export function percentileOf(heights: ArrayLike<number>, p: number): number {
+  const finite: number[] = [];
+  for (let i = 0; i < heights.length; i += 1) {
+    const v = heights[i];
+    if (v !== undefined && Number.isFinite(v)) finite.push(v);
+  }
+  if (finite.length === 0) return Number.NaN;
+  finite.sort((a, b) => a - b);
+  const clampedP = Math.min(1, Math.max(0, p));
+  const rank = Math.ceil(clampedP * finite.length) - 1;
+  return finite[Math.min(Math.max(rank, 0), finite.length - 1)] ?? Number.NaN;
+}
+
+/**
+ * Ramp range for one area: 2nd..98th percentile, widened to the true min/max
+ * when that would make the range degenerate or inverted.
+ */
+export function rampRangeFor(
+  heights: ArrayLike<number>,
+  trueMin: number,
+  trueMax: number,
+  lowP: number = RAMP_PERCENTILES.low,
+  highP: number = RAMP_PERCENTILES.high,
+): RampRange {
+  let min = percentileOf(heights, lowP);
+  let max = percentileOf(heights, highP);
+
+  // Percentiles can collapse on flat data (a floodplain at one level), which
+  // would divide by ~0 in the shader and hand every cell the same colour.
+  if (!Number.isFinite(min) || !Number.isFinite(max) || !(max - min > 1)) {
+    min = trueMin;
+    max = trueMax;
+    if (!(max - min > 0)) max = min + 1;
+    // Clipping is still reported from the true range: on flat data every cell
+    // renders as one colour, and claiming "nothing is clipped" would be a false
+    // reassurance about terrain the user cannot see.
+    return {
+      min,
+      max,
+      clippedLow: trueMin < min - 1e-6,
+      clippedHigh: trueMax > max + 1e-6,
+      degenerate: true,
+    };
+  }
+
+  return {
+    min,
+    max,
+    clippedLow: trueMin < min - 1e-6,
+    clippedHigh: trueMax > max + 1e-6,
+    degenerate: false,
+  };
+}
+
+/**
+ * Legend tick steps for a ramp range, sized so ticks never collide.
+ *
+ * `legendTicks` alone overflows a narrow panel: a 60 m span with a 20 m step
+ * yields four labels, and at panel width each label can overlap its neighbour.
+ * Dropping to a coarser step until the labels are at least `minGapPx` apart at
+ * `panelWidthPx` keeps the axis readable without changing what the ramp means.
+ */
+export function rampTickStepFor(
+  range: RampRange,
+  panelWidthPx: number,
+  minGapPx: number,
+): number {
+  const span = range.max - range.min;
+  if (!(span > 0) || !(panelWidthPx > 0) || !(minGapPx > 0)) {
+    return pickTickStep(range.min, range.max);
+  }
+  const usable = Math.min(panelWidthPx, 320);
+  const labels = Math.max(2, Math.floor(usable / minGapPx));
+  return pickTickStep(range.min, range.max, labels);
+}
+
+/**
+ * Legend ticks for a ramp range, first and last forced onto the ramp ends so
+ * the axis always spans exactly what is displayed.
+ */
+export function rampTicks(range: RampRange, step: number): readonly number[] {
+  if (!(step > 0) || !(range.max > range.min)) return [range.min, range.max];
+  const ticks = legendTicks(range.min, range.max, step).filter(
+    (t) => t >= range.min - step * 1e-6 && t <= range.max + step * 1e-6,
+  );
+  const hasMin = ticks.some((t) => Math.abs(t - range.min) < step * 1e-6);
+  const hasMax = ticks.some((t) => Math.abs(t - range.max) < step * 1e-6);
+  if (!hasMin) ticks.unshift(range.min);
+  if (!hasMax) ticks.push(range.max);
+  return ticks;
+}
+
 /** Convenience: the ticks a legend for this sidecar should carry. */
 export function legendTicksFor(
   sidecar: TerrainSidecar,

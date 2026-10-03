@@ -1,0 +1,277 @@
+/**
+ * FLOW water shaders: virtual-pipes passes plus the visible surface.
+ *
+ * ESSL1 (no version directive, no raw hex, no preprocessor of our own —
+ * Three.js injects its prefix). The two sim passes implement exactly the
+ * equations in `step.ts`, with the same ghost rules, so the headless tests
+ * assert on the behaviour the GPU executes:
+ *
+ * - texel (i, j): i east, j south from the north edge. Memory row 0 is the
+ *   north edge and uploads unflipped, so texture v = (j + 0.5) / H.
+ * - state texture RG32F: r = terrain metres (NaN = no-data wall), g = depth.
+ * - flux texture RGBA32F: W, E, N, S outflow pipes in m3/s, always >= 0.
+ * - the CPU mirror is double-buffered; the GPU is ping-pong by construction.
+ */
+
+export const WATER_QUAD_VERTEX = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+/**
+ * Flux pass. Reads state + old flux, writes new flux.
+ * uOpen: W, E, N, S edge behaviour, 1 = open ghost, 0 = wall.
+ */
+export const WATER_FLUX_FRAGMENT = /* glsl */ `
+varying vec2 vUv;
+uniform sampler2D uState;
+uniform sampler2D uFlux;
+uniform vec2 uTexSize;
+uniform vec2 uCell;
+uniform float uDt;
+uniform float uGravity;
+uniform float uCellArea;
+uniform vec4 uOpen;
+void main() {
+  vec2 texel = 1.0 / uTexSize;
+  vec2 fcoord = floor(gl_FragCoord.xy);
+  vec4 state = texture2D(uState, vUv);
+  float h = state.r;
+  float d = max(state.g, 0.0);
+  vec4 oldFlux = texture2D(uFlux, vUv);
+  if (h != h) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
+  float w = h + d;
+  vec4 f = vec4(0.0);
+  // W(-x)
+  {
+    vec4 n = texture2D(uState, vUv + vec2(-texel.x, 0.0));
+    bool outside = fcoord.x < 0.5;
+    bool wall = outside ? (uOpen.x < 0.5) : (n.r != n.r);
+    float wN = outside ? h : n.r + max(n.g, 0.0);
+    f.x = wall ? 0.0 : max(0.0, oldFlux.x + uDt * uCellArea * uGravity * (w - wN) / uCell.x);
+  }
+  // E(+x)
+  {
+    vec4 n = texture2D(uState, vUv + vec2(texel.x, 0.0));
+    bool outside = fcoord.x > uTexSize.x - 1.5;
+    bool wall = outside ? (uOpen.y < 0.5) : (n.r != n.r);
+    float wN = outside ? h : n.r + max(n.g, 0.0);
+    f.y = wall ? 0.0 : max(0.0, oldFlux.y + uDt * uCellArea * uGravity * (w - wN) / uCell.x);
+  }
+  // N(-y, north)
+  {
+    vec4 n = texture2D(uState, vUv + vec2(0.0, -texel.y));
+    bool outside = fcoord.y < 0.5;
+    bool wall = outside ? (uOpen.z < 0.5) : (n.r != n.r);
+    float wN = outside ? h : n.r + max(n.g, 0.0);
+    f.z = wall ? 0.0 : max(0.0, oldFlux.z + uDt * uCellArea * uGravity * (w - wN) / uCell.y);
+  }
+  // S(+y, south)
+  {
+    vec4 n = texture2D(uState, vUv + vec2(0.0, texel.y));
+    bool outside = fcoord.y > uTexSize.y - 1.5;
+    bool wall = outside ? (uOpen.w < 0.5) : (n.r != n.r);
+    float wN = outside ? h : n.r + max(n.g, 0.0);
+    f.w = wall ? 0.0 : max(0.0, oldFlux.w + uDt * uCellArea * uGravity * (w - wN) / uCell.y);
+  }
+  // Overshoot guard, in THIS pass for the same reason as the CPU mirror: the
+  // depth pass must only read settled fluxes, or the domain manufactures water.
+  float outSum = f.x + f.y + f.z + f.w;
+  if (outSum > 0.0 && d > 0.0 && outSum * uDt > d * uCellArea) {
+    f *= (d * uCellArea) / (outSum * uDt);
+  } else if (d <= 0.0) {
+    f = vec4(0.0);
+  }
+  gl_FragColor = f;
+}
+`;
+
+/**
+ * Depth pass. Reads the NEW flux field plus old state, writes new state.
+ * uInflow: (cellX, cellY, rateM3s) — the DEM-derived upstream cell.
+ */
+export const WATER_DEPTH_FRAGMENT = /* glsl */ `
+varying vec2 vUv;
+uniform sampler2D uState;
+uniform sampler2D uFluxNew;
+uniform vec2 uTexSize;
+uniform float uDt;
+uniform float uCellArea;
+uniform vec3 uInflow;
+void main() {
+  vec2 texel = 1.0 / uTexSize;
+  vec2 fcoord = floor(gl_FragCoord.xy);
+  vec4 state = texture2D(uState, vUv);
+  float h = state.r;
+  if (h != h) {
+    gl_FragColor = vec4(h, 0.0, 0.0, 0.0);
+    return;
+  }
+  float d = max(state.g, 0.0);
+  vec4 f = texture2D(uFluxNew, vUv);
+  float outSum = f.x + f.y + f.z + f.w;
+  float inSum = 0.0;
+  // Outside neighbours supply no water. Clamp-to-edge texture sampling alone
+  // would import this edge cell's own outgoing pipe and manufacture water.
+  if (fcoord.x < uTexSize.x - 1.0) inSum += texture2D(uFluxNew, vUv + vec2(texel.x, 0.0)).x;
+  if (fcoord.x > 0.0) inSum += texture2D(uFluxNew, vUv + vec2(-texel.x, 0.0)).y;
+  if (fcoord.y < uTexSize.y - 1.0) inSum += texture2D(uFluxNew, vUv + vec2(0.0, texel.y)).z;
+  if (fcoord.y > 0.0) inSum += texture2D(uFluxNew, vUv + vec2(0.0, -texel.y)).w;
+  // No clamp here: the flux pass already limited every exporter to what it
+  // held, so inSum is bounded by construction. Clamping again would silently
+  // delete water.
+  float nd = d + uDt * (inSum - outSum) / uCellArea;
+  if (fcoord.x == uInflow.x && fcoord.y == uInflow.y && uInflow.z > 0.0) {
+    nd += uInflow.z * uDt / uCellArea;
+  }
+  gl_FragColor = vec4(h, max(nd, 0.0), 0.0, 0.0);
+}
+`;
+
+/**
+ * Initialiser: copies an (terrain, 0) texture, or writes zeros for flux.
+ */
+export const WATER_INIT_FRAGMENT = /* glsl */ `
+varying vec2 vUv;
+uniform sampler2D uInit;
+uniform float uZero;
+void main() {
+  if (uZero > 0.5) {
+    gl_FragColor = vec4(0.0);
+  } else {
+    gl_FragColor = texture2D(uInit, vUv);
+  }
+}
+`;
+
+/**
+ * Visible water surface. Displaced by (terrain + depth) from the sim state,
+ * so the sheet sits exactly on the rendered terrain, exaggerated alike.
+ */
+export const WATER_SURFACE_VERTEX = /* glsl */ `
+varying vec2 vUv;
+varying float vDepth;
+varying float vNoData;
+varying vec3 vWorld;
+uniform sampler2D uState;
+uniform vec2 uTexSize;
+uniform vec2 uWorldSize;
+uniform highp sampler2D uGround;
+uniform vec2 uGroundSize;
+uniform float uExaggeration;
+float sampleDepth(vec2 uv, out float terrain) {
+  vec2 g = uv * uTexSize - 0.5;
+  vec2 i0 = floor(g);
+  vec2 fr = fract(g);
+  vec2 b0 = max(i0, vec2(0.0));
+  vec2 b1 = min(i0 + 1.0, uTexSize - 1.0);
+  vec2 t00 = (b0 + 0.5) / uTexSize;
+  vec2 t10 = (vec2(b1.x, b0.y) + 0.5) / uTexSize;
+  vec2 t01 = (vec2(b0.x, b1.y) + 0.5) / uTexSize;
+  vec2 t11 = (b1 + 0.5) / uTexSize;
+  vec4 s00 = texture2D(uState, t00);
+  vec4 s10 = texture2D(uState, t10);
+  vec4 s01 = texture2D(uState, t01);
+  vec4 s11 = texture2D(uState, t11);
+  float top = mix(s00.r, s10.r, fr.x);
+  float bot = mix(s01.r, s11.r, fr.x);
+  terrain = mix(top, bot, fr.y);
+  float dtop = mix(max(s00.g, 0.0), max(s10.g, 0.0), fr.x);
+  float dbot = mix(max(s01.g, 0.0), max(s11.g, 0.0), fr.x);
+  return mix(dtop, dbot, fr.y);
+}
+void main() {
+  vec2 grid = vec2(uv.x, 1.0 - uv.y);
+  vUv = grid;
+  float terrain = 0.0;
+  float depth = sampleDepth(grid, terrain);
+  // Display on the same DEM as the terrain, without changing the solver.
+  vec2 g = grid * uGroundSize - .5;
+  vec2 p = floor(g); vec2 f = fract(g);
+  vec2 a = clamp(p, vec2(0), uGroundSize-1.0);
+  vec2 b = clamp(p+1.0, vec2(0), uGroundSize-1.0);
+  float h00 = texture2D(uGround,(a+.5)/uGroundSize).r;
+  float h10 = texture2D(uGround,(vec2(b.x,a.y)+.5)/uGroundSize).r;
+  float h01 = texture2D(uGround,(vec2(a.x,b.y)+.5)/uGroundSize).r;
+  float h11 = texture2D(uGround,(b+.5)/uGroundSize).r;
+  terrain = mix(mix(h00,h10,f.x),mix(h01,h11,f.x),f.y);
+  vNoData = terrain != terrain ? 1.0 : 0.0;
+  vDepth = depth;
+  float y = (terrain + depth + .02) * uExaggeration;
+  vec3 world = vec3((grid.x - 0.5) * uWorldSize.x, y, (grid.y - 0.5) * uWorldSize.y);
+  vWorld = world;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(world, 1.0);
+}
+`;
+
+export const WATER_SURFACE_FRAGMENT = /* glsl */ `
+varying vec2 vUv;
+varying float vDepth;
+varying float vNoData;
+varying vec3 vWorld;
+uniform sampler2D uFlux;
+uniform vec2 uTexSize;
+uniform vec3 uShallow;
+uniform vec3 uDeep;
+uniform vec3 uShoreline;
+uniform float uDeepDepth;
+uniform vec3 uLightDirection;
+uniform float uVisualTime;
+uniform float uMotion;
+uniform float uDepthView;
+uniform float uOpacity;
+uniform float uMinOpacity;
+void main() {
+  if (vNoData > 0.5 || vDepth <= 0.0) {
+    discard;
+  }
+  // Shore: a wide, bright band over the first half metre, because a metre of
+  // water on a 60 m cell is invisible at valley scale and the waterline is the
+  // thing the eye is actually looking for.
+  float shore = smoothstep(0.0, 0.5, vDepth);
+  float edge = 1.0 - smoothstep(0.5, 1.6, vDepth);
+  float depthMix = clamp(vDepth / uDeepDepth, 0.0, 1.0);
+  vec3 colour = mix(uShallow, uDeep, depthMix);
+  colour = mix(colour, uShoreline, edge * 0.55);
+  // Advected streaks: brightness bands drift along the local flow direction
+  // read from the flux field. Procedural and visibly synthetic — it suggests
+  // motion, it does not track particles.
+  vec4 f = texture2D(uFlux, vUv);
+  vec2 flow = vec2(f.y - f.x, f.w - f.z);
+  float speed = length(flow);
+  vec2 dir = speed > 0.0001 ? flow / speed : vec2(1.0, 0.0);
+  vec2 perp = vec2(-dir.y, dir.x);
+  // Decorative advection follows flow, using real-time display motion rather
+  // than accelerated simulation seconds. These are not tracked particles.
+  float phase = dot(vUv * uTexSize, dir) * 1.8 - uVisualTime * uMotion * 2.0;
+  float lanes = 0.5 + 0.5 * sin(dot(vUv * uTexSize, perp) * 2.4);
+  float streak = pow(0.5 + 0.5 * sin(phase), 10.0) * lanes;
+  colour = mix(colour, uShoreline, streak * 0.28 * (1.0 - uDepthView));
+  // Subtle specular from the same north-west light as the terrain.
+  vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
+  if (n.y < 0.0) n = -n;
+  vec3 v = vec3(0.0, 0.0, 1.0);
+  float spec = pow(max(dot(reflect(-uLightDirection, n), v), 0.0), 24.0);
+  colour += spec * 0.35;
+  if (uDepthView > 0.5) {
+    float band = min(7.0, floor(vDepth));
+    colour = mix(uShoreline, uDeep, (band + 0.5) / 8.0);
+    float edgeWidth = max(fwidth(vDepth), 0.025);
+    float contour = 1.0 - smoothstep(0.0, edgeWidth, min(fract(vDepth), 1.0-fract(vDepth)));
+    colour = mix(colour, uShoreline, contour * 0.5);
+  }
+  // Any wet cell must read as water. A 0.05 m sheet on a 60 m cell is
+  // sub-pixel depth but many pixels wide, so a low alpha floor is what makes
+  // the channel visible at all; deeper water gets more opaque on top of it.
+  float alpha = max(uMinOpacity, mix(0.6, uOpacity, depthMix)) * shore;
+  if (uDepthView > 0.5) alpha = 0.96 * shore;
+  gl_FragColor = vec4(colour, alpha);
+  #include <colorspace_fragment>
+}
+`;

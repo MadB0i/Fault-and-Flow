@@ -53,6 +53,10 @@ export function readPalette(element: Element): TerrainPalette {
   const token = (name: string): string => style.getPropertyValue(name).trim();
 
   return {
+    amber: token('--seismic-amber'),
+    seismicLight: token('--seismic-light'),
+    seismicRed: token('--seismic-red'),
+    text: token('--text'),
     bg: token('--bg'),
     terrain1: token('--terrain-1'),
     terrain2: token('--terrain-2'),
@@ -60,6 +64,11 @@ export function readPalette(element: Element): TerrainPalette {
     terrain4: token('--terrain-4'),
     contour: token('--text-muted'),
     noData: token('--surface-raised'),
+    waterShallow: token('--water-shallow'),
+    waterDeep: token('--water-deep'),
+    waterShoreline: token('--water-shoreline'),
+    skyLow: token('--sky-low'),
+    skyHigh: token('--sky-high'),
   };
 }
 

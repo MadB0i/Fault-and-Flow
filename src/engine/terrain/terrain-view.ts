@@ -32,6 +32,14 @@
  */
 
 import * as THREE from 'three';
+import {
+  INITIAL_ATLAS,
+  type AtlasPresentation,
+  type RiverSection,
+} from '../../shared/atlas.js';
+import geography from '../../data/geography.json';
+import { createAtlasLayer } from './atlas-layer.js';
+import { seedRiverScenario } from '../water/scenario.js';
 
 import {
   AREA_IDS,
@@ -45,6 +53,7 @@ import {
   clampPolar,
   clampSpherical,
   dampingFactor,
+  framingDistance,
   hasSettled,
   sphericalToCartesian,
   wrapAzimuth,
@@ -57,10 +66,21 @@ import {
   extentMeters,
   gridToLonLat,
   lonLatToGrid,
+  rampRangeFor,
+  type RampRange,
 } from './metrics.js';
 import { sampleBilinear } from './sampling.js';
 import { decodeTerrainRgba, NO_DATA_HEIGHT } from './decode-terrain.js';
 import { TERRAIN_FRAGMENT_SHADER, TERRAIN_VERTEX_SHADER } from './shaders.js';
+import { sampleMeshSurface } from './mesh-sampling.js';
+import {
+  buildSimGrid,
+  deriveChannel,
+  createWaterLayer,
+  DEFAULT_WATER_SPEED,
+  DEFAULT_DISCHARGE_M3S,
+  type WaterLayer,
+} from '../water/index.js';
 
 /** Hard cap on mesh subdivision, per the renderer budget. */
 export const MAX_MESH_SEGMENTS = 512;
@@ -69,6 +89,10 @@ export const MAX_MESH_SEGMENTS = 512;
 export const MAX_PIXEL_RATIO = 1.5;
 
 export type TerrainPalette = {
+  readonly amber?: string;
+  readonly seismicLight?: string;
+  readonly seismicRed?: string;
+  readonly text?: string;
   readonly bg: string;
   readonly terrain1: string;
   readonly terrain2: string;
@@ -76,6 +100,16 @@ export type TerrainPalette = {
   readonly terrain4: string;
   readonly noData: string;
   readonly contour: string;
+  /** Shallow water tint, read from --water-shallow. */
+  readonly waterShallow: string;
+  /** Deep water fill, read from --water-deep. */
+  readonly waterDeep: string;
+  /** Shoreline highlight on the water surface; --water-shoreline. */
+  readonly waterShoreline: string;
+  /** Horizon haze the edge fade dissolves into; one step above --bg. */
+  readonly skyLow: string;
+  /** Zenith of the background gradient; slightly lighter than skyLow. */
+  readonly skyHigh: string;
 };
 
 export type AreaSources = Readonly<
@@ -113,8 +147,51 @@ export type TerrainViewState = {
   readonly contours: boolean;
   /** Null until an area has loaded. */
   readonly contourIntervalM: number | null;
+  /**
+   * Elevation range the colour ramp displays (2nd..98th percentile of the
+   * loaded area), and whether real terrain is clipped at either end. The
+   * legend must show this rather than the sidecar's bbox extremes.
+   */
+  readonly ramp: RampRange | null;
   readonly probe: TerrainProbe | null;
+  /** Null until the water layer is enabled; terrain works either way. */
+  readonly water: WaterLayerState | null;
 };
+
+/**
+ * Host-visible water state for the HUD. `supported: false` is not an error
+ * in the terrain — it means this device cannot render to float textures, so
+ * the UI explains that and the terrain view carries on alone.
+ */
+export type WaterLayerState = {
+  readonly section: RiverSection | null;
+  readonly supported: boolean;
+  /** Machine-readable reason when unsupported: no-terrain | float-render-unsupported | channel-failed. */
+  readonly reason: string | null;
+  readonly playing: boolean;
+  readonly speed: number;
+  readonly dischargeM3s: number;
+  readonly wetAreaKm2: number | null;
+  readonly maxDepthM: number | null;
+  readonly inflowLon: number;
+  readonly inflowLat: number;
+  readonly outletLon: number;
+  readonly outletLat: number;
+  readonly simWidth: number;
+  readonly simHeight: number;
+};
+
+/**
+ * Sim grid width. Benched on this machine's software renderer: running fps
+ * is 3.6 at width 256 and 3.2 at 1024, so size is not the bottleneck here —
+ * fixed rasterization cost is. 512 is the largest grid with negligible
+ * marginal cost and modest memory (~10 MB on the overview) that still
+ * resolves the channel (inflow 90 m, outlet 7 m on the real DEM). Re-bench
+ * on real hardware before raising it; `?sim=` overrides it for measurement.
+ */
+export const DEFAULT_SIM_WIDTH = 512;
+const MIN_SIM_WIDTH = 64;
+const MAX_SIM_WIDTH = 1024;
 
 export type TerrainViewOptions = {
   readonly palette: TerrainPalette;
@@ -125,9 +202,14 @@ export type TerrainViewOptions = {
   readonly initialArea?: AreaId;
   /** Notified whenever host-visible state changes, including on error. */
   readonly onStatus?: (status: TerrainStatus) => void;
+  /** A sourced event picked with a click/tap; drags and pinches never select. */
+  readonly onQuakeSelect?: (id: string) => void;
 };
 
 export type TerrainView = {
+  captureImage(): string | null;
+  setAtlas(presentation: AtlasPresentation): void;
+  setWaterLevel(depthM: number): void;
   loadArea(id: AreaId): Promise<void>;
   setVerticalExaggeration(x: number): void;
   setContours(on: boolean): void;
@@ -137,6 +219,22 @@ export type TerrainView = {
   subscribe(listener: (state: TerrainViewState) => void): () => void;
   /** Reset the camera to the area's opening view. */
   resetCamera(): void;
+  /** Zoom around the view centre; pointer gestures use their geographic anchor. */
+  zoomView(factor: number): void;
+  /** Focus a sourced geographic location in the currently loaded DEM. */
+  focusLocation(lon: number, lat: number): void;
+  /**
+   * Build the water layer for the loaded area. False when the device cannot
+   * render to float (see state.water.reason); the terrain is unaffected.
+   * The layer rebuilds per area, so every view runs the same model on its
+   * own DEM: zoomed views of the same flow.
+   */
+  enableWater(opts?: { simWidth?: number }): boolean;
+  disableWater(): void;
+  setWaterPlaying(playing: boolean): void;
+  setWaterSpeed(mult: number): void;
+  setWaterDischarge(qM3s: number): void;
+  resetWater(): void;
   dispose(): void;
 };
 
@@ -176,10 +274,32 @@ export function createTerrainView(
   let contoursOn = false;
   let exaggeration = 1;
   let contourIntervalM: number | null = null;
+  /** Elevation range the ramp actually displays; null until an area loads. */
+  let rampRange: RampRange | null = null;
   let lastProbe: TerrainProbe | null = null;
   let disposed = false;
   let minDistanceM = 1;
   let maxDistanceM = 1e6;
+
+  // --- Water layer (FLOW phase 1) ------------------------------------------
+  // Wanted persists across area loads: every area rebuilds the same model on
+  // its own DEM. The layer is null until enabled, or when this device failed
+  // the float-render probe (terrain keeps working; see WaterLayerState).
+  let waterWanted = false;
+  let waterLayer: WaterLayer | null = null;
+  let waterState: WaterLayerState | null = null;
+  let waterSpeed = DEFAULT_WATER_SPEED;
+  let waterDischarge = DEFAULT_DISCHARGE_M3S;
+  let waterLevel = 2;
+  let atlasPresentation = { ...INITIAL_ATLAS };
+  let channelMarkers: {
+    group: THREE.Group;
+    inflowMesh: THREE.Mesh;
+    outletMesh: THREE.Mesh;
+    geo: THREE.SphereGeometry;
+    mats: THREE.MeshBasicMaterial[];
+  } | null = null;
+  let currentSimWidth = DEFAULT_SIM_WIDTH;
 
   const listeners = new Set<(s: TerrainViewState) => void>();
 
@@ -189,7 +309,9 @@ export function createTerrainView(
       verticalExaggeration: exaggeration,
       contours: contoursOn,
       contourIntervalM,
+      ramp: rampRange,
       probe: lastProbe,
+      water: waterState,
     };
   }
 
@@ -247,6 +369,12 @@ export function createTerrainView(
   const camera = new THREE.PerspectiveCamera(CAMERA_FOV_DEG, 1, 1, 1e7);
   camera.up.set(0, 1, 0);
 
+  // A graded sky rather than a flat clear colour: the horizon sits one step
+  // above --bg and the zenith a little lighter, both passed in from the tokens
+  // so the engine still holds no colour of its own.
+  const skyLow = new THREE.Color(options.palette.skyLow);
+  const skyHigh = new THREE.Color(options.palette.skyHigh);
+
   const material = new THREE.ShaderMaterial({
     vertexShader: TERRAIN_VERTEX_SHADER,
     fragmentShader: TERRAIN_FRAGMENT_SHADER,
@@ -271,7 +399,13 @@ export function createTerrainView(
       uEdgeFade: { value: 0.06 },
       uFogRange: { value: new THREE.Vector2(1, 1) },
       uFogStrength: { value: 0.35 },
-      uAmbient: { value: 0.45 },
+      // Ambient floor. 0.45 left steep faces facing away from the light at a fifth
+      // of the ramp colour, which on the floodplain read as near-black; 0.62 keeps
+      // the hillshade legible while slopes away from the light still separate.
+      uAmbient: { value: 0.62 },
+      uSkyLow: { value: skyLow.clone() },
+      uSkyHigh: { value: skyHigh.clone() },
+      uScreenHeight: { value: 1 },
     },
   });
 
@@ -283,11 +417,33 @@ export function createTerrainView(
   mesh.frustumCulled = false; // displacement happens in the shader
   scene.add(mesh);
 
-  scene.background = new THREE.Color(options.palette.bg);
+  scene.background = skyLow.clone();
+  const atlasLayer = createAtlasLayer(
+    scene,
+    doc,
+    {
+      water: options.palette.waterShallow,
+      text: options.palette.text ?? options.palette.terrain4,
+      amber: options.palette.amber ?? options.palette.terrain3,
+      light:
+        options.palette.seismicLight ?? options.palette.amber ?? options.palette.terrain4,
+      red:
+        options.palette.seismicRed ?? options.palette.amber ?? options.palette.terrain4,
+      muted: options.palette.contour,
+      ground: options.palette.terrain2,
+      high: options.palette.terrain4,
+      surface: options.palette.bg,
+    },
+    reducedMotion,
+    MAX_MESH_SEGMENTS,
+  );
 
   // --- Camera state -------------------------------------------------------
   const current: MutableSpherical = { polarDeg: 40, azimuthDeg: 0, distanceM: 1e5 };
   const target: MutableSpherical = { ...current };
+  const currentCentre = new THREE.Vector3();
+  const targetCentre = new THREE.Vector3();
+  let cameraNavigated = false;
 
   // --- Render on demand ----------------------------------------------------
   let frameHandle: number | null = null;
@@ -322,8 +478,20 @@ export function createTerrainView(
     lastFrameMs = nowMs;
 
     const settled = advanceCamera(deltaSeconds);
+
+    // The water layer drives continuous frames while it plays and costs
+    // nothing when paused: the loop below is what keeps 0fps idle honest.
+    let waterRunning = false;
+    if (waterLayer && waterLayer.isPlaying()) {
+      const before = waterLayer.statsVersion();
+      waterLayer.stepFrame(deltaSeconds);
+      waterRunning = true;
+      if (waterLayer.statsVersion() !== before) refreshWaterSnapshot();
+    }
+
+    const atlasRunning = atlasLayer.step(deltaSeconds);
     render();
-    if (!settled) scheduleFrame();
+    if (!settled || waterRunning || atlasRunning) scheduleFrame();
   }
 
   function invalidateCamera(): void {
@@ -333,9 +501,50 @@ export function createTerrainView(
 
   function render(): void {
     const pos = sphericalToCartesian(current);
-    camera.position.set(pos.x, pos.y, pos.z);
-    camera.lookAt(0, 0, 0);
-    renderer.render(scene, camera);
+    camera.position.set(
+      pos.x + currentCentre.x + atlasLayer.motionOffset(),
+      pos.y + currentCentre.y,
+      pos.z + currentCentre.z,
+    );
+    // The exaggerated hills can rise above a close orbit. Keep the camera
+    // outside the actual rendered surface rather than letting zoom enter it.
+    if (loaded && atlasPresentation.mode !== 'plates') {
+      const extent = extentMeters(loaded.sidecar);
+      const surface = sampleMeshSurface(
+        loaded.heights,
+        loaded.noData,
+        loaded.sidecar,
+        camera.position.x / extent.widthM + 0.5,
+        camera.position.z / extent.heightM + 0.5,
+        MAX_MESH_SEGMENTS,
+      );
+      if (surface !== null)
+        camera.position.y = Math.max(
+          camera.position.y,
+          surface * exaggeration + Math.max(10, current.distanceM * 0.02),
+        );
+    }
+    camera.lookAt(currentCentre);
+    camera.updateMatrixWorld();
+    atlasLayer.layout(camera, canvas.clientWidth, canvas.clientHeight);
+    if (atlasPresentation.mode === 'flow' && atlasPresentation.comparison && waterLayer) {
+      const size = renderer.getSize(new THREE.Vector2());
+      const split = Math.round(
+        size.x * Math.max(0.05, Math.min(0.95, atlasPresentation.comparisonPosition)),
+      );
+      renderer.setScissorTest(true);
+      try {
+        waterLayer.setVisible(false);
+        renderer.setScissor(0, 0, split, size.y);
+        renderer.render(scene, camera);
+        waterLayer.setVisible(true);
+        renderer.setScissor(split, 0, size.x - split, size.y);
+        renderer.render(scene, camera);
+      } finally {
+        waterLayer.setVisible(true);
+        renderer.setScissorTest(false);
+      }
+    } else renderer.render(scene, camera);
   }
 
   /**
@@ -348,6 +557,7 @@ export function createTerrainView(
    */
   function advanceCamera(deltaSeconds: number): boolean {
     if (reducedMotion) {
+      currentCentre.copy(targetCentre);
       current.polarDeg = target.polarDeg;
       current.azimuthDeg = target.azimuthDeg;
       current.distanceM = target.distanceM;
@@ -355,6 +565,7 @@ export function createTerrainView(
     }
 
     const f = dampingFactor(DEFAULT_DAMPING_RATE, deltaSeconds);
+    currentCentre.lerp(targetCentre, f);
     current.polarDeg += (target.polarDeg - current.polarDeg) * f;
     // Azimuth is angular, so a fixed fraction of a degree is the right step
     // regardless of zoom.
@@ -367,9 +578,11 @@ export function createTerrainView(
     const settled =
       hasSettled(current.polarDeg, target.polarDeg) &&
       hasSettled(current.azimuthDeg, target.azimuthDeg) &&
-      hasSettled(current.distanceM, target.distanceM);
+      hasSettled(current.distanceM, target.distanceM) &&
+      currentCentre.distanceTo(targetCentre) < 0.01;
 
     if (settled) {
+      currentCentre.copy(targetCentre);
       current.polarDeg = target.polarDeg;
       current.azimuthDeg = target.azimuthDeg;
       current.distanceM = target.distanceM;
@@ -379,6 +592,7 @@ export function createTerrainView(
 
   // --- Camera interaction --------------------------------------------------
   function setCamera(polarDeg: number, azimuthDeg: number, distanceM: number): void {
+    cameraNavigated = true;
     const clamped = clampSpherical(
       { polarDeg, azimuthDeg, distanceM },
       minDistanceM,
@@ -390,13 +604,60 @@ export function createTerrainView(
     invalidateCamera();
   }
 
-  /** Move the orbit target. Not exposed: the target is always the origin. */
+  /** Orbit around the selected geographic centre. */
   function nudge(dPolar: number, dAzimuth: number): void {
     setCamera(target.polarDeg + dPolar, target.azimuthDeg + dAzimuth, target.distanceM);
   }
 
-  function zoom(factor: number): void {
+  function zoom(factor: number, point?: { x: number; y: number }): void {
+    if (!Number.isFinite(factor) || factor <= 0) return;
+    const distance = clampDistance(target.distanceM * factor, minDistanceM, maxDistanceM);
+    const ratio = distance / target.distanceM;
+    if (point && loaded && atlasPresentation.mode !== 'plates') {
+      const grid = gridFromNdc(
+        (point.x / canvas.clientWidth) * 2 - 1,
+        1 - (point.y / canvas.clientHeight) * 2,
+      );
+      if (grid) {
+        const extent = extentMeters(loaded.sidecar);
+        const sample = sampleBilinear(
+          loaded.heights,
+          loaded.noData,
+          loaded.sidecar,
+          grid.u,
+          grid.v,
+        );
+        if (!sample.noData) {
+          const anchor = new THREE.Vector3(
+            (grid.u - 0.5) * extent.widthM,
+            sample.elevationM * exaggeration,
+            (grid.v - 0.5) * extent.heightM,
+          );
+          targetCentre.sub(anchor).multiplyScalar(ratio).add(anchor);
+        }
+      }
+    }
     setCamera(target.polarDeg, target.azimuthDeg, target.distanceM * factor);
+  }
+
+  function focusLocation(lon: number, lat: number): void {
+    if (!loaded || !Number.isFinite(lon) || !Number.isFinite(lat)) return;
+    const grid = lonLatToGrid(loaded.sidecar.bbox, lon, lat);
+    const sample = sampleBilinear(
+      loaded.heights,
+      loaded.noData,
+      loaded.sidecar,
+      grid.u,
+      grid.v,
+    );
+    if (grid.u < 0 || grid.u > 1 || grid.v < 0 || grid.v > 1 || sample.noData) return;
+    const extent = extentMeters(loaded.sidecar);
+    targetCentre.set(
+      (grid.u - 0.5) * extent.widthM,
+      sample.elevationM * exaggeration,
+      (grid.v - 0.5) * extent.heightM,
+    );
+    setCamera(35, target.azimuthDeg, extent.diagonalM * 0.12);
   }
 
   const KEY_ORBIT: Record<string, [number, number]> = {
@@ -410,7 +671,24 @@ export function createTerrainView(
     const orbit = KEY_ORBIT[event.key];
     if (orbit) {
       event.preventDefault();
-      nudge(orbit[0], orbit[1]);
+      if (atlasPresentation.navigation === 'orbit' && !event.shiftKey) {
+        nudge(orbit[0], orbit[1]);
+      } else {
+        const centre = { x: canvas.clientWidth / 2, y: canvas.clientHeight / 2 };
+        const offset = 48;
+        pan(centre, {
+          x:
+            centre.x +
+            (event.key === 'ArrowLeft'
+              ? offset
+              : event.key === 'ArrowRight'
+                ? -offset
+                : 0),
+          y:
+            centre.y +
+            (event.key === 'ArrowUp' ? offset : event.key === 'ArrowDown' ? -offset : 0),
+        });
+      }
       return;
     }
     if (event.key === '+' || event.key === '=') {
@@ -432,6 +710,8 @@ export function createTerrainView(
   // Pointer, covering mouse, pen and touch through one path.
   const pointers = new Map<number, { x: number; y: number }>();
   let lastPinchDistance = 0;
+  let clickStart: { id: number; x: number; y: number } | null = null;
+  let pickTimer: ReturnType<typeof setTimeout> | null = null;
 
   function localPoint(event: PointerEvent): { x: number; y: number } {
     const rect = canvas.getBoundingClientRect();
@@ -439,8 +719,15 @@ export function createTerrainView(
   }
 
   function onPointerDown(event: PointerEvent): void {
+    if (pickTimer !== null) clearTimeout(pickTimer);
+    if (event.pointerType === 'mouse' && event.button > 2) return;
+    canvas.focus({ preventScroll: true });
     canvas.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, localPoint(event));
+    clickStart =
+      pointers.size === 1 && event.button === 0
+        ? { id: event.pointerId, ...localPoint(event) }
+        : null;
     if (pointers.size === 2) lastPinchDistance = pinchDistance();
   }
 
@@ -452,6 +739,9 @@ export function createTerrainView(
       return;
     }
     const now = localPoint(event);
+    if (clickStart && Math.hypot(now.x - clickStart.x, now.y - clickStart.y) > 6)
+      clickStart = null;
+    const previousMidpoint = pinchMidpoint();
     pointers.set(event.pointerId, now);
 
     if (pointers.size === 1) {
@@ -459,18 +749,102 @@ export function createTerrainView(
       // viewport size rather than scaling with it.
       const dx = now.x - prev.x;
       const dy = now.y - prev.y;
+      if (
+        atlasPresentation.navigation === 'pan' ||
+        event.shiftKey ||
+        (event.buttons & 6) !== 0
+      ) {
+        pan(prev, now);
+        return;
+      }
       const perDeg = 0.4;
       nudge(dy * perDeg, -dx * perDeg);
     } else if (pointers.size === 2) {
       const d = pinchDistance();
+      const midpoint = pinchMidpoint();
+      if (previousMidpoint && midpoint) pan(previousMidpoint, midpoint);
       if (lastPinchDistance > 0 && d > 0) {
-        zoom(lastPinchDistance / d);
+        zoom(lastPinchDistance / d, midpoint ?? undefined);
       }
       lastPinchDistance = d;
     }
   }
 
+  function pan(previous: { x: number; y: number }, next: { x: number; y: number }): void {
+    if (!loaded) return;
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentCentre.y);
+    const project = (point: { x: number; y: number }) => {
+      raycaster.setFromCamera(
+        new THREE.Vector2(
+          (point.x / canvas.clientWidth) * 2 - 1,
+          1 - (point.y / canvas.clientHeight) * 2,
+        ),
+        camera,
+      );
+      return raycaster.ray.intersectPlane(plane, new THREE.Vector3());
+    };
+    const before = project(previous);
+    const after = project(next);
+    if (!before || !after) return;
+    targetCentre.add(before.sub(after));
+    const extent = extentMeters(loaded.sidecar);
+    targetCentre.x = Math.max(
+      -extent.widthM / 2,
+      Math.min(extent.widthM / 2, targetCentre.x),
+    );
+    targetCentre.z = Math.max(
+      -extent.heightM / 2,
+      Math.min(extent.heightM / 2, targetCentre.z),
+    );
+    if (atlasPresentation.mode !== 'plates') {
+      const sample = sampleBilinear(
+        loaded.heights,
+        loaded.noData,
+        loaded.sidecar,
+        targetCentre.x / extent.widthM + 0.5,
+        targetCentre.z / extent.heightM + 0.5,
+      );
+      if (!sample.noData) targetCentre.y = sample.elevationM * exaggeration;
+    }
+    cameraNavigated = true;
+    invalidateCamera();
+  }
+
+  function pinchMidpoint(): { x: number; y: number } | null {
+    const [a, b] = [...pointers.values()];
+    return a && b ? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } : null;
+  }
+
+  function onDoubleClick(event: MouseEvent): void {
+    if (pickTimer !== null) clearTimeout(pickTimer);
+    const rect = canvas.getBoundingClientRect();
+    zoom(0.5, { x: event.clientX - rect.left, y: event.clientY - rect.top });
+  }
+
+  function onContextMenu(event: Event): void {
+    event.preventDefault();
+  }
+
   function onPointerUp(event: PointerEvent): void {
+    if (
+      event.type === 'pointerup' &&
+      clickStart?.id === event.pointerId &&
+      pointers.size === 1
+    ) {
+      const picked = atlasLayer.pickQuake(
+        camera,
+        canvas.clientWidth,
+        canvas.clientHeight,
+        localPoint(event),
+      );
+      // Wait for a possible second click so double-click remains camera zoom.
+      if (picked)
+        pickTimer = setTimeout(() => {
+          pickTimer = null;
+          options.onQuakeSelect?.(picked);
+        }, 250);
+    }
+    clickStart = null;
     pointers.delete(event.pointerId);
     if (pointers.size < 2) lastPinchDistance = 0;
     if (canvas.hasPointerCapture(event.pointerId))
@@ -487,7 +861,14 @@ export function createTerrainView(
 
   function onWheel(event: WheelEvent): void {
     event.preventDefault();
-    zoom(Math.exp(event.deltaY * 0.0012));
+    const rect = canvas.getBoundingClientRect();
+    const delta =
+      event.deltaY *
+      (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? rect.height : 1);
+    zoom(Math.exp(Math.max(-1, Math.min(1, delta * 0.0012))), {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    });
   }
 
   function onVisibilityChange(): void {
@@ -506,6 +887,7 @@ export function createTerrainView(
 
   function onResize(): void {
     applySize();
+    if (!cameraNavigated) resetCamera();
     scheduleFrame();
   }
 
@@ -515,6 +897,8 @@ export function createTerrainView(
   canvas.addEventListener('pointerup', onPointerUp);
   canvas.addEventListener('pointercancel', onPointerUp);
   canvas.addEventListener('wheel', onWheel, { passive: false });
+  canvas.addEventListener('dblclick', onDoubleClick);
+  canvas.addEventListener('contextmenu', onContextMenu);
   doc.addEventListener('visibilitychange', onVisibilityChange);
   doc.defaultView?.addEventListener('resize', onResize);
 
@@ -526,13 +910,16 @@ export function createTerrainView(
     const width = Math.max(1, Math.floor(rect.width));
     const height = Math.max(1, Math.floor(rect.height));
     const dpr = Math.min(
-      MAX_PIXEL_RATIO,
+      atlasPresentation.quality === 'lite' ? 1 : MAX_PIXEL_RATIO,
       typeof devicePixelRatio === 'number' && devicePixelRatio > 0 ? devicePixelRatio : 1,
     );
     renderer.setPixelRatio(dpr);
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    // The background gradient is sized off the drawing buffer, so it has to
+    // follow both the CSS size and the DPR.
+    material.uniforms['uScreenHeight']!.value = Math.max(1, height * dpr);
   }
 
   if (typeof ResizeObserver !== 'undefined') {
@@ -560,6 +947,7 @@ export function createTerrainView(
     if (!loaded) return null;
     ndc.set(x, y);
     raycaster.setFromCamera(ndc, camera);
+    planeXZ.constant = 0;
     if (!raycaster.ray.intersectPlane(planeXZ, hit)) return null;
 
     const extent = extentMeters(loaded.sidecar);
@@ -574,7 +962,10 @@ export function createTerrainView(
       if (raycaster.ray.intersectPlane(planeXZ, hit)) {
         const u2 = hit.x / extent.widthM + 0.5;
         const v2 = hit.z / extent.heightM + 0.5;
-        if (u2 >= 0 && u2 <= 1 && v2 >= 0 && v2 <= 1) return { u: u2, v: v2 };
+        if (u2 >= 0 && u2 <= 1 && v2 >= 0 && v2 <= 1) {
+          planeXZ.constant = 0;
+          return { u: u2, v: v2 };
+        }
       }
       planeXZ.constant = 0;
     }
@@ -716,11 +1107,12 @@ export function createTerrainView(
       sidecar.pixelSizeMy,
     );
     (u['uWorldSizeM']!.value as THREE.Vector2).set(extent.widthM, extent.heightM);
-    (u['uElevationRange']!.value as THREE.Vector2).set(
-      sidecar.minElevation,
-      sidecar.maxElevation,
-    );
     u['uNoDataLevel']!.value = sidecar.minElevation;
+
+    // The ramp shows this area's own 2nd..98th percentile, not its bbox extremes.
+    const range = rampRangeFor(next.heights, sidecar.minElevation, sidecar.maxElevation);
+    rampRange = range;
+    (u['uElevationRange']!.value as THREE.Vector2).set(range.min, range.max);
 
     // Fog and the fade are proportional to the area's own size, so the overview
     // does not fade across 700 km while Majuli does not fade at all.
@@ -747,18 +1139,62 @@ export function createTerrainView(
 
     resetCamera();
     lastProbe = null;
+    atlasLayer.rebuild(next, exaggeration);
+    atlasLayer.update(atlasPresentation);
+    mesh.visible = atlasPresentation.mode !== 'plates';
+
+    // A new DEM means a new river: rebuild the same model on this area's own
+    // grid when water is wanted, so the reaches read as zoomed views of the
+    // same flow rather than a stale sheet from elsewhere.
+    if (waterWanted) refreshWaterLayer();
   }
 
   function resetCamera(): void {
+    cameraNavigated = false;
+    targetCentre.set(0, 0, 0);
     if (!loaded) {
       invalidateCamera();
       return;
     }
     const def = areaDefinitionOrFirst(loaded.sidecar.area);
     const extent = extentMeters(loaded.sidecar);
-    target.polarDeg = clampPolar(def.defaultPolarDeg);
-    target.azimuthDeg = wrapAzimuth(def.defaultAzimuthDeg);
-    target.distanceM = clampDistance(extent.diagonalM * 0.95, minDistanceM, maxDistanceM);
+    const portrait = camera.aspect < 1 && atlasPresentation.mode !== 'plates';
+    target.polarDeg =
+      atlasPresentation.mode === 'plates'
+        ? 62
+        : portrait
+          ? 28
+          : clampPolar(def.defaultPolarDeg);
+    target.azimuthDeg =
+      atlasPresentation.mode === 'plates'
+        ? 22
+        : portrait
+          ? 90
+          : wrapAzimuth(def.defaultAzimuthDeg);
+    // Fit the area to the viewport rather than guessing from its diagonal, so
+    // the whole area is visible and centred at any aspect ratio. Reset returns
+    // here because this is the opening view.
+    const aspect = camera.aspect > 0 ? camera.aspect : 1;
+    target.distanceM = clampDistance(
+      framingDistance(
+        portrait ? extent.heightM : extent.widthM,
+        portrait ? extent.widthM : extent.heightM,
+        CAMERA_FOV_DEG,
+        aspect,
+        target.polarDeg,
+        atlasPresentation.mode === 'plates'
+          ? aspect < 1
+            ? 1.05
+            : aspect > 2.8
+              ? 1.6
+              : 1.2
+          : portrait
+            ? 1.15
+            : 1.25,
+      ),
+      minDistanceM,
+      maxDistanceM,
+    );
 
     if (reducedMotion) {
       current.polarDeg = target.polarDeg;
@@ -774,9 +1210,290 @@ export function createTerrainView(
     if (next === exaggeration) return;
     exaggeration = next;
     material.uniforms['uExaggeration']!.value = next;
+    waterLayer?.setExaggeration(next);
+    if (loaded) atlasLayer.rebuild(loaded, exaggeration);
     emit();
     // No geometry to rebuild, but the hillshade depends on the exaggeration, so
     // the pixels are stale until the next frame.
+    scheduleFrame();
+  }
+
+  // --- Water layer -----------------------------------------------------------
+  function clampSimWidth(value: number | undefined): number {
+    if (value === undefined || !Number.isFinite(value)) return currentSimWidth;
+    return Math.min(MAX_SIM_WIDTH, Math.max(MIN_SIM_WIDTH, Math.floor(value)));
+  }
+
+  function unsupportedWater(reason: string): false {
+    waterLayer = null;
+    waterState = {
+      section: null,
+      supported: false,
+      reason,
+      playing: false,
+      speed: waterSpeed,
+      dischargeM3s: waterDischarge,
+      wetAreaKm2: null,
+      maxDepthM: null,
+      inflowLon: 0,
+      inflowLat: 0,
+      outletLon: 0,
+      outletLat: 0,
+      simWidth: 0,
+      simHeight: 0,
+    };
+    emit();
+    return false;
+  }
+
+  /**
+   * Where the model puts the river: two small markers on the terrain, so the
+   * entry and the outflow are visible rather than only printed as coordinates
+   * in a panel. Drawn from the same cells the sim uses.
+   */
+  function placeChannelMarkers(
+    sim: { width: number; height: number; heights: Float32Array },
+    channel: { inflow: number; outlet: number },
+    extent: { widthM: number; heightM: number; diagonalM: number },
+  ): void {
+    const scale = Math.max(1, extent.diagonalM * 0.004);
+    if (!channelMarkers) {
+      const geo = new THREE.SphereGeometry(1, 16, 12);
+      const inMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(options.palette.waterShallow),
+        depthTest: false,
+        transparent: true,
+        opacity: 0.95,
+      });
+      const outMat = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(options.palette.waterShallow),
+        depthTest: false,
+        transparent: true,
+        opacity: 0.95,
+      });
+      const inflowMesh = new THREE.Mesh(geo, inMat);
+      const outletMesh = new THREE.Mesh(geo, outMat);
+      inflowMesh.renderOrder = 10;
+      outletMesh.renderOrder = 10;
+      const group = new THREE.Group();
+      group.add(inflowMesh, outletMesh);
+      scene.add(group);
+      channelMarkers = { group, inflowMesh, outletMesh, geo, mats: [inMat, outMat] };
+    }
+    const at = (cell: number): THREE.Vector3 => {
+      const x = cell % sim.width;
+      const y = Math.floor(cell / sim.width);
+      return new THREE.Vector3(
+        ((x + 0.5) / sim.width - 0.5) * extent.widthM,
+        (sim.heights[cell] ?? 0) * exaggeration + scale * 3,
+        ((y + 0.5) / sim.height - 0.5) * extent.heightM,
+      );
+    };
+    channelMarkers.inflowMesh.position.copy(at(channel.inflow));
+    channelMarkers.outletMesh.position.copy(at(channel.outlet));
+    channelMarkers.geo.scale(scale, scale, scale);
+  }
+
+  function removeChannelMarkers(): void {
+    if (!channelMarkers) return;
+    scene.remove(channelMarkers.group);
+    channelMarkers.geo.dispose();
+    for (const m of channelMarkers.mats) m.dispose();
+    channelMarkers = null;
+  }
+
+  function refreshWaterSnapshot(): void {
+    if (!waterLayer || !waterState?.supported) return;
+    const stats = waterLayer.getStats();
+    waterState = {
+      ...waterState,
+      wetAreaKm2: stats.wetAreaKm2,
+      maxDepthM: stats.maxDepthM,
+      playing: waterLayer.isPlaying(),
+      reason: waterLayer.hasDiverged() ? 'unstable' : null,
+      section:
+        atlasPresentation.sectionOpen && loaded
+          ? waterLayer.getSection(loaded.sidecar.bbox, atlasPresentation.sectionPosition)
+          : null,
+    };
+    atlasLayer.setSection(waterState.section);
+    emit();
+  }
+
+  function refreshWaterLayer(simWidthOpt?: number): boolean {
+    waterLayer?.dispose();
+    waterLayer = null;
+    if (!loaded) return unsupportedWater('no-terrain');
+    currentSimWidth = clampSimWidth(simWidthOpt);
+    let channel: { inflow: number; outlet: number; path: readonly number[] };
+    let sim: {
+      width: number;
+      height: number;
+      dxM: number;
+      dyM: number;
+      heights: Float32Array;
+      noData: Uint8Array;
+    };
+    try {
+      const extent = extentMeters(loaded.sidecar);
+      sim = buildSimGrid(
+        loaded.heights,
+        loaded.noData,
+        loaded.sidecar.width,
+        loaded.sidecar.height,
+        extent.widthM,
+        extent.heightM,
+        currentSimWidth,
+      );
+      channel = deriveChannel(sim.heights, sim.noData, sim.width, sim.height);
+      // Keep the measured terrain unchanged. Starting water is an explicit
+      // user-chosen depth near mapped river centrelines, not a fabricated bed.
+    } catch {
+      return unsupportedWater('channel-failed');
+    }
+    const extent = extentMeters(loaded.sidecar);
+    const layer = createWaterLayer({
+      reducedMotion,
+      renderer,
+      scene,
+      sim,
+      channel,
+      initialDepth: seedRiverScenario(
+        sim,
+        loaded.sidecar.bbox,
+        geography.rivers,
+        waterLevel,
+      ),
+      ...(heightTexture
+        ? {
+            displayTerrain: {
+              texture: heightTexture,
+              width: loaded.sidecar.width,
+              height: loaded.sidecar.height,
+              segments: MAX_MESH_SEGMENTS,
+            },
+          }
+        : {}),
+      extentWM: extent.widthM,
+      extentHM: extent.heightM,
+      exaggeration,
+      shallowColor: options.palette.waterShallow,
+      deepColor: options.palette.waterDeep,
+      shorelineColor: options.palette.waterShoreline,
+    });
+    if (!layer) return unsupportedWater('float-render-unsupported');
+    layer.setSpeed(waterSpeed);
+    layer.setDischargeM3s(waterDischarge);
+    layer.setDepthView(atlasPresentation.flowView === 'depth');
+    const inflow = gridToLonLat(
+      loaded.sidecar.bbox,
+      ((channel.inflow % sim.width) + 0.5) / sim.width,
+      (Math.floor(channel.inflow / sim.width) + 0.5) / sim.height,
+    );
+    const outlet = gridToLonLat(
+      loaded.sidecar.bbox,
+      ((channel.outlet % sim.width) + 0.5) / sim.width,
+      (Math.floor(channel.outlet / sim.width) + 0.5) / sim.height,
+    );
+    waterLayer = layer;
+    waterState = {
+      section: null,
+      supported: true,
+      reason: null,
+      playing: layer.isPlaying(),
+      speed: waterSpeed,
+      dischargeM3s: waterDischarge,
+      wetAreaKm2: 0,
+      maxDepthM: 0,
+      inflowLon: inflow.lon,
+      inflowLat: inflow.lat,
+      outletLon: outlet.lon,
+      outletLat: outlet.lat,
+      simWidth: sim.width,
+      simHeight: sim.height,
+    };
+    placeChannelMarkers(sim, channel, extent);
+    refreshWaterSnapshot();
+    emit();
+    scheduleFrame();
+    return true;
+  }
+
+  function enableWater(opts?: { simWidth?: number }): boolean {
+    if (waterWanted && waterLayer && opts?.simWidth === undefined) return true;
+    waterWanted = true;
+    return refreshWaterLayer(opts?.simWidth);
+  }
+
+  function disableWater(): void {
+    waterWanted = false;
+    waterLayer?.dispose();
+    waterLayer = null;
+    removeChannelMarkers();
+    waterState = null;
+    atlasLayer.setSection(null);
+    emit();
+    scheduleFrame();
+  }
+
+  function setWaterLevel(depthM: number): void {
+    if (!Number.isFinite(depthM)) return;
+    waterLevel = Math.min(8, Math.max(0, depthM));
+    if (waterWanted) refreshWaterLayer();
+  }
+
+  function setAtlas(next: AtlasPresentation): void {
+    const changed = next.mode !== atlasPresentation.mode;
+    const qualityChanged = next.quality !== atlasPresentation.quality;
+    const sectionChanged =
+      next.sectionOpen !== atlasPresentation.sectionOpen ||
+      next.sectionPosition !== atlasPresentation.sectionPosition;
+    atlasPresentation = { ...next };
+    if (qualityChanged) applySize();
+    atlasLayer.update(next);
+    waterLayer?.setDepthView(next.flowView === 'depth');
+    if (sectionChanged) refreshWaterSnapshot();
+    mesh.visible = next.mode !== 'plates';
+    if (next.mode !== 'flow') {
+      disableWater();
+    }
+    if (changed) resetCamera();
+    scheduleFrame();
+  }
+
+  function setWaterPlaying(playing: boolean): void {
+    waterLayer?.setPlaying(playing);
+    if (waterState?.supported) {
+      waterState = { ...waterState, playing: waterLayer?.isPlaying() ?? false };
+      emit();
+    }
+    // Kicks the render loop while playing; silence resumes when paused.
+    if (playing) scheduleFrame();
+  }
+
+  function setWaterSpeed(mult: number): void {
+    if (!Number.isFinite(mult) || mult <= 0) return;
+    waterSpeed = mult;
+    waterLayer?.setSpeed(mult);
+    if (waterState?.supported) {
+      waterState = { ...waterState, speed: mult };
+      emit();
+    }
+  }
+
+  function setWaterDischarge(qM3s: number): void {
+    if (!Number.isFinite(qM3s) || qM3s < 0) return;
+    waterDischarge = qM3s;
+    waterLayer?.setDischargeM3s(qM3s);
+    if (waterState?.supported) {
+      waterState = { ...waterState, dischargeM3s: qM3s };
+      emit();
+    }
+  }
+
+  function resetWater(): void {
+    waterLayer?.reset();
+    refreshWaterSnapshot();
     scheduleFrame();
   }
 
@@ -833,13 +1550,20 @@ export function createTerrainView(
     canvas.removeEventListener('pointerdown', onPointerDown);
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerup', onPointerUp);
+    if (pickTimer !== null) clearTimeout(pickTimer);
     canvas.removeEventListener('pointercancel', onPointerUp);
+    canvas.removeEventListener('dblclick', onDoubleClick);
+    canvas.removeEventListener('contextmenu', onContextMenu);
     canvas.removeEventListener('wheel', onWheel);
     doc.removeEventListener('visibilitychange', onVisibilityChange);
     doc.defaultView?.removeEventListener('resize', onResize);
     observers?.disconnect();
     observers = null;
     heightTexture?.dispose();
+    waterLayer?.dispose();
+    waterLayer = null;
+    removeChannelMarkers();
+    atlasLayer.dispose();
     geometry.dispose();
     material.dispose();
     renderer.dispose();
@@ -853,6 +1577,28 @@ export function createTerrainView(
   });
 
   return {
+    captureImage() {
+      if (!loaded || disposed) return null;
+      const ratio = renderer.getPixelRatio();
+      const screenHeight = material.uniforms['uScreenHeight']!.value as number;
+      const exportRatio = Math.max(
+        ratio,
+        Math.min(3, 1080 / Math.max(1, canvas.clientWidth)),
+      );
+      try {
+        // One sharper frame for sharing; idle/mobile rendering keeps its cap.
+        renderer.setPixelRatio(exportRatio);
+        material.uniforms['uScreenHeight']!.value = canvas.height;
+        render();
+        return canvas.toDataURL('image/png');
+      } finally {
+        renderer.setPixelRatio(ratio);
+        material.uniforms['uScreenHeight']!.value = screenHeight;
+        render();
+      }
+    },
+    setAtlas,
+    setWaterLevel,
     loadArea,
     setVerticalExaggeration,
     setContours,
@@ -863,6 +1609,14 @@ export function createTerrainView(
       return () => listeners.delete(listener);
     },
     resetCamera,
+    zoomView: zoom,
+    focusLocation,
+    enableWater,
+    disableWater,
+    setWaterPlaying,
+    setWaterSpeed,
+    setWaterDischarge,
+    resetWater,
     dispose,
   };
 }

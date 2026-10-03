@@ -60,7 +60,7 @@ Fraunces, Instrument Sans, JetBrains Mono, and correct Assamese.
       GLO-30 self-consistency and two loose plausibility checks; a real check needs benchmark
       levelling from the Survey of India or GSI, which we do not hold and have not verified a
       licence for (`DATA.md` §13, open gap)
-- [ ] Fetch a quake subset for NE India and compile to `src/data/quakes.ts`
+- [x] Fetch a cited M5+ earthquake subset for NE India into `src/data/earthquakes.json`
 - **ComCat is unblocked** — terms read by the owner 2026-10-01, public domain with credit
   requested (`DATA.md` §3, `DECISIONS.md` §2). Bundle **event parameters only** (time,
   lat, lon, depth, magnitude, id): no ShakeMap or PAGER imagery, nothing from a
@@ -268,3 +268,35 @@ These apply in every phase, not just one:
 | Assamese copy unreviewed                       | Phase 7        | **Open** — owner native-speaker review required, `DECISIONS.md` §5                                                                                                                                                          |
 | GLO-30 is a DSM, not a DTM                     | Phase 3, 4     | **Settled: accepted and documented.** Canopy and buildings sit on the eroded surface; no riverbed bathymetry. `DATA.md` §12, `limitations` in every sidecar, `DECISIONS.md` §8                                              |
 | No independent elevation validation            | Phase 2, 4     | **Open gap.** Terrain tests are GLO-30 self-consistency plus two loose plausibility checks, one on a tertiary source. Needs Survey of India / GSI benchmark levelling, licence unverified. `DATA.md` §13, `DECISIONS.md` §8 |
+
+## Atlas prototype delivered — 2026-10-03
+
+Owner-authorised expansion beyond foundation work (`PRODUCT.md`, current scope).
+The three modes now work in one responsive atlas. This is a partial delivery of
+phases 4–8, not a claim that every item in those phases is complete.
+
+Completed: real river/boundary/place layers, documented ComCat extraction,
+user-set starting water depth and optional inflow, earthquake timeline and record
+links, original schematic plate collision, reduced-motion behaviour, keyboard
+controls, native source/risk/history dialogs and attributed PNG capture.
+The water layer no longer cuts an artificial channel into the terrain. GPU
+boundary flux, world-size uniform, grid orientation and reset were corrected.
+Screenshots now show all three modes at 1440px and 390px in both languages.
+
+Remaining: riverbed bathymetry and independent terrain validation; bank erosion;
+historical flood footprints; physical-device performance; measured plate boundary,
+convergence rates and the geographic fly-down opener; Assamese native-speaker
+review; public deployment. No live alert service has been added.
+
+## Final release preparation — 2026-10-03
+
+The owner authorised a final feature/polish pass and local GitHub presentation
+assets. FLOW/FAULT remain primary; PLATES is now a secondary educational explainer.
+Clickable source records, magnitude filtering, district context, same-camera dry
+terrain/scenario comparison, display-only Lite mode, an optional paced tour and
+local portrait WebM recording are included. Reproducible release captures and a
+professional README prepare the repository for a later GitHub push.
+
+Public publishing, physical Android performance, native-speaker Assamese review,
+manual screen-reader review, measured bathymetry, erosion and local hazard layers
+remain outside the completed release preparation. No prediction feature is added.
