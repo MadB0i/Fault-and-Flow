@@ -68,6 +68,21 @@ with sync_playwright() as p:
                             animations="disabled", caret="hide", full_page=True)
             page.get_by_role("radio",name="ইংৰাজী").check()
         if args.shots:
+            page.get_by_test_id("mode-flow").click()
+            ready(page)
+            page.get_by_test_id("region-majuli").click()
+            ready(page)
+            page.get_by_test_id("scenario-play").click()
+            page.get_by_test_id("scenario-play").click()
+            page.get_by_role("button",name="Reset scenario",exact=True).click()
+            page.get_by_role("button",name="Depth bands",exact=True).click()
+            page.get_by_role("button",name="River cross-section",exact=True).click()
+            expect(page.get_by_test_id("section-depth")).to_contain_text("2.00 m")
+            scan(page,name+" depth section")
+            page.screenshot(path=str(OUT/("depth-section-"+name+"-en.png")),full_page=True)
+            page.get_by_role("radio",name="অসমীয়া").check()
+            scan(page,name+" depth section Assamese")
+            page.screenshot(path=str(OUT/("depth-section-"+name+"-as.png")),full_page=True)
             assert not errors, errors
             context.close()
             continue
@@ -109,6 +124,29 @@ with sync_playwright() as p:
         assert snapshot==page.get_by_test_id("scenario-wet").inner_text()
         record(name+" flood run pause reset and stable layer controls")
         page.screenshot(path=str(OUT/("majuli-water-"+name+".png")),full_page=True)
+        # Depth styling reads the same solver field; it must not reset water.
+        surface_paint=canvas.screenshot()
+        page.get_by_role("button",name="Depth bands",exact=True).click()
+        expect(page.get_by_role("button",name="Depth bands",exact=True)).to_have_attribute("aria-pressed","true")
+        page.wait_for_timeout(500)
+        assert surface_paint!=canvas.screenshot(), "depth shader did not change paint"
+        assert snapshot==page.get_by_test_id("scenario-wet").inner_text()
+        page.get_by_role("button",name="River cross-section",exact=True).click()
+        expect(page.get_by_test_id("section-depth")).to_contain_text("2.00 m")
+        scan(page,name+" depth section")
+        page.screenshot(path=str(OUT/("depth-section-"+name+"-en.png")),full_page=True)
+        page.get_by_role("radio",name="অসমীয়া").check()
+        scan(page,name+" depth section Assamese")
+        page.screenshot(path=str(OUT/("depth-section-"+name+"-as.png")),full_page=True)
+        page.get_by_role("radio",name="ইংৰাজী").check()
+        old_location=page.locator(".section-location").inner_text()
+        page.locator("#section-position").fill("0.7")
+        expect(page.locator(".section-location")).not_to_have_text(old_location)
+        page.locator("#scenario-depth").fill("4")
+        expect(page.get_by_test_id("section-depth")).to_contain_text("4.00 m")
+        page.get_by_role("button",name="River cross-section",exact=True).click()
+        page.get_by_role("button",name="Surface motion",exact=True).click()
+        record(name+" depth styling and moving solver cross-section")
         page.get_by_role("button",name="Floods in the record",exact=True).click()
         dialog=page.get_by_role("dialog")
         expect(dialog).to_be_visible()
@@ -136,6 +174,16 @@ with sync_playwright() as p:
         assert target.stat().st_size>10000
         record(name+" attributed image export")
         page.get_by_test_id("mode-fault").click()
+        expect(page.get_by_test_id("region-majuli")).to_have_count(0)
+        expect(page.get_by_test_id("region-sadiya-dibrugarh")).to_have_count(0)
+        if name=="mobile":
+            page.get_by_role("button",name="Explore & layers",exact=True).click()
+        terrain_controls=page.get_by_role("dialog") if name=="mobile" else page.locator(".atlas-layer-panel")
+        terrain_controls.get_by_text("Terrain settings",exact=True).click()
+        expect(page.locator("input[name=terrain-area]")).to_have_count(0)
+        if name=="mobile":
+            page.get_by_role("button",name="Close",exact=True).click()
+        record(name+" FAULT only exposes Assam terrain")
         page.get_by_role("button",name="Explore the 1950 earthquake",exact=True).click()
         expect(page.locator("#quake-year")).to_have_value("1950")
         expect(page.locator(".quake-magnitude")).to_contain_text("8.6")
@@ -146,12 +194,28 @@ with sync_playwright() as p:
         page.wait_for_timeout(700)
         page.get_by_role("button",name="Pause history",exact=True).click()
         assert int(page.locator("#quake-year").input_value())>1900
+        page.get_by_role("button",name="Explore the 1950 earthquake",exact=True).click()
         page.get_by_role("button",name="Illustrate ground motion",exact=True).click()
         expect(page.locator(".motion-note")).to_contain_text("synthetic")
         record(name+" earthquake records, empty state and replay")
         assert not errors, errors
         context.close()
     if not args.shots:
+        # Normal motion produces terrain-following waves; reduced motion above
+        # keeps the same selected-event context without animation.
+        normal=browser.new_context(viewport={"width":1440,"height":900},reduced_motion="no-preference")
+        motion_page=normal.new_page()
+        motion_page.goto(args.url+"?mode=fault")
+        motion_page.wait_for_load_state("networkidle")
+        motion_page.get_by_role("button",name="Explore the 1950 earthquake",exact=True).click()
+        motion_page.wait_for_timeout(4700)
+        before=motion_page.get_by_test_id("terrain-canvas").screenshot()
+        motion_page.get_by_role("button",name="Illustrate ground motion",exact=True).click()
+        motion_page.wait_for_timeout(650)
+        assert before!=motion_page.get_by_test_id("terrain-canvas").screenshot()
+        motion_page.screenshot(path=str(OUT/"quake-motion-desktop.png"),full_page=True)
+        record("earthquake illustration animates on real terrain")
+        normal.close()
         # Compare the GPU update to its independent headless CPU mirror. Edge
         # clamping used to manufacture water, even while every HUD check passed.
         page=browser.new_page()

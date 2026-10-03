@@ -30,11 +30,14 @@ and 390 × 844, with all three modes in both languages.
 
 ## Verification
 
-- `npm run verify`: formatting, lint, TypeScript, 152 unit tests and production build.
-- Native Python Playwright: 32 desktop/mobile checks, including both languages,
+- `npm run verify`: formatting, lint, TypeScript, 155 unit tests and production build.
+- Native Python Playwright: 41 desktop/mobile checks, including both languages,
   axe, keyboard camera input, dialog focus, failed-load retry, flood reset,
-  earthquake replay, attributed PNG download and GPU/CPU conservation.
-- `npm run shots`: 12 mode/language/viewport combinations. Actual PNGs reviewed,
+  earthquake replay, attributed PNG download and GPU/CPU conservation. New checks
+  verify depth paint without resetting the solver, a moving cross-section,
+  updated depth after a scenario change, full-Assam-only FAULT controls and normal
+  earthquake animation alongside reduced-motion coverage.
+- `npm run shots`: 16 mode/language/viewport and depth-section combinations. Actual PNGs reviewed,
   including the exported map with embedded notice and required DEM credit.
 - Existing palette contrast results remain unchanged. Decorative terrain/water
   exceptions remain documented in `DESIGN.md`; no palette substitution was made.
@@ -50,6 +53,16 @@ synthetic. The geographic camera-flight opener remains outstanding.
 Assamese glyph coverage passes; native-speaker copy review is pending. Browser QA
 used headless Chromium with software WebGL, so physical-device frame-rate claims
 are unverified. The production build still warns about JavaScript chunks above
-300 kB (approximately 386 kB app and 496 kB Three.js, before gzip). No current
+300 kB (approximately 397 kB app and 495 kB Three.js, before gzip). No current
 official alert was verified or asserted. Downloads and temporary profiles for this
 work were kept on the project drive.
+
+## Follow-up visual inspection
+
+Depth-section PNGs at both widths and in both languages show the same A–B markers
+and model column. The mobile chart sits below the 3D map, rather than obstructing
+it. Essential desktop depth/height values remain above the region controls;
+method notes are reachable by scrolling the section. A mobile depth legend
+overlap with the region selector was fixed by separating their vertical anchors.
+The normal-motion earthquake capture confirms wave-front geometry changes on the
+terrain; radius/timing remain synthetic. No new scientific dataset was added.

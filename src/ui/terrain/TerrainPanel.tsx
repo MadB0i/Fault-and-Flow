@@ -26,6 +26,7 @@ type Props = {
   onContours: (on: boolean) => void;
   onReset: () => void;
   disabled?: boolean;
+  overviewOnly?: boolean;
 };
 
 const TITLE_KEYS = {
@@ -46,6 +47,7 @@ export default function TerrainPanel({
   onContours,
   onReset,
   disabled = false,
+  overviewOnly = false,
 }: Props) {
   const strings = useUiStore((s) => s.strings());
 
@@ -60,60 +62,62 @@ export default function TerrainPanel({
         A fieldset with a legend, not a div with a role. The legend is what tells
         a screen-reader user what the three radios are radios OF.
       */}
-      <fieldset className="border-0 p-0" disabled={disabled}>
-        <legend
-          className="mb-[var(--space-2xs)] font-data text-[length:var(--step--2)]
+      {!overviewOnly && (
+        <fieldset className="border-0 p-0" disabled={disabled}>
+          <legend
+            className="mb-[var(--space-2xs)] font-data text-[length:var(--step--2)]
                      uppercase tracking-[0.14em] text-[color:var(--text-muted)]"
-        >
-          {strings.areaPickerLabel}
-        </legend>
+          >
+            {strings.areaPickerLabel}
+          </legend>
 
-        <div className="flex flex-col gap-[var(--space-2xs)]" role="none">
-          {AREA_IDS.map((id) => {
-            const def = areaDefinition(id);
-            if (!def) return null;
-            const selected = id === areaId;
-            return (
-              <label
-                key={id}
-                className="flex min-h-[44px] cursor-pointer items-center gap-[var(--space-xs)]
+          <div className="flex flex-col gap-[var(--space-2xs)]" role="none">
+            {AREA_IDS.map((id) => {
+              const def = areaDefinition(id);
+              if (!def) return null;
+              const selected = id === areaId;
+              return (
+                <label
+                  key={id}
+                  className="flex min-h-[44px] cursor-pointer items-center gap-[var(--space-xs)]
                            rounded-[var(--radius-sm)] px-[var(--space-xs)]
                            transition-colors duration-150
                            ease-[cubic-bezier(0.22,1,0.36,1)]
                            hover:bg-[color:var(--surface-raised)]
                            has-[:focus-visible]:bg-[color:var(--surface-raised)]"
-              >
-                <input
-                  type="radio"
-                  name="terrain-area"
-                  value={id}
-                  checked={selected}
-                  onChange={() => onArea(id)}
-                  className="size-[16px] shrink-0 accent-[color:var(--water)]"
-                  data-testid={`area-${id}`}
-                />
-                <span className="text-[length:var(--step--1)]">
-                  {strings[TITLE_KEYS[id]]}
-                </span>
-                {/*
+                >
+                  <input
+                    type="radio"
+                    name="terrain-area"
+                    value={id}
+                    checked={selected}
+                    onChange={() => onArea(id)}
+                    className="size-[16px] shrink-0 accent-[color:var(--water)]"
+                    data-testid={`area-${id}`}
+                  />
+                  <span className="text-[length:var(--step--1)]">
+                    {strings[TITLE_KEYS[id]]}
+                  </span>
+                  {/*
                   The default exaggeration is shown next to the area rather than
                   only in the slider, because it changes with the area and a
                   user who did not touch the slider still needs to know the
                   heights on screen are not true scale.
                 */}
-                <span
-                  className="ml-auto font-data text-[length:var(--step--2)]
+                  <span
+                    className="ml-auto font-data text-[length:var(--step--2)]
                              text-[color:var(--text-muted)]"
-                  aria-hidden="true"
-                >
-                  {def.defaultVerticalExaggeration}
-                  {strings.exaggerationValueSuffix}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
+                    aria-hidden="true"
+                  >
+                    {def.defaultVerticalExaggeration}
+                    {strings.exaggerationValueSuffix}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
 
       <div className="mt-[var(--space-s)] border-t-[length:1px] border-[color:var(--hairline)] pt-[var(--space-s)]">
         <label

@@ -15,6 +15,8 @@
  */
 
 import * as THREE from 'three';
+import type { RiverSection } from '../../shared/atlas.js';
+import { readRiverSection } from './section.js';
 
 import { stableDt, REFERENCE_MAX_DEPTH_M, type SimGrid } from './index.js';
 import type { ChannelCells } from './channel.js';
@@ -65,6 +67,7 @@ export interface WaterStats {
 }
 
 export interface WaterLayerOptions {
+  readonly reducedMotion?: boolean;
   /** Visible DEM texture, borrowed and never disposed here. */
   readonly displayTerrain?: {
     texture: THREE.Texture;
@@ -89,6 +92,11 @@ export interface WaterLayerOptions {
 }
 
 export interface WaterLayer {
+  setDepthView(on: boolean): void;
+  getSection(
+    bbox: { west: number; east: number; north: number; south: number },
+    position: number,
+  ): RiverSection | null;
   setPlaying(playing: boolean): void;
   isPlaying(): boolean;
   setSpeed(mult: number): void;
@@ -298,7 +306,9 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
       uShoreline: { value: new THREE.Color(options.shorelineColor) },
       uDeepDepth: { value: DEEP_DEPTH_M },
       uLightDirection: { value: LIGHT_DIRECTION.clone() },
-      uSimTime: { value: 0 },
+      uVisualTime: { value: 0 },
+      uDepthView: { value: 0 },
+      uMotion: { value: options.reducedMotion ? 0 : 1 },
       uOpacity: { value: 0.92 },
       uMinOpacity: { value: MIN_WATER_ALPHA },
     },
@@ -403,6 +413,14 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
   }
 
   const layer: WaterLayer = {
+    setDepthView(on) {
+      surfaceMat.uniforms['uDepthView']!.value = on ? 1 : 0;
+    },
+    getSection(bbox, position) {
+      return diverged
+        ? null
+        : readRiverSection(sim, readback, bbox, position, stats.simTimeS);
+    },
     simWidth: sim.width,
     simHeight: sim.height,
     inflowCell: channel.inflow,
@@ -440,7 +458,7 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
       refreshStats();
       surfaceMat.uniforms['uState']!.value = stateRead.texture;
       surfaceMat.uniforms['uFlux']!.value = fluxRead.texture;
-      surfaceMat.uniforms['uSimTime']!.value = 0;
+      surfaceMat.uniforms['uVisualTime']!.value = 0;
       version += 1;
     },
     stepFrame(realDtS: number): void {
@@ -458,7 +476,7 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
       if (acc >= dt) acc = 0;
       surfaceMat.uniforms['uState']!.value = stateRead.texture;
       surfaceMat.uniforms['uFlux']!.value = fluxRead.texture;
-      surfaceMat.uniforms['uSimTime']!.value = simTime;
+      surfaceMat.uniforms['uVisualTime']!.value += clamped;
       framesSinceStats += 1;
       if (framesSinceStats >= STATS_EVERY_FRAMES) {
         framesSinceStats = 0;

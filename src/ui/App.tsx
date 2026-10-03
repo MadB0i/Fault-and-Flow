@@ -27,6 +27,7 @@ import LangToggle from './LangToggle.js';
 import AtlasDialog from './AtlasDialog.js';
 import AtlasDock from './AtlasDock.js';
 import { saveAtlasImage } from './saveAtlasImage.js';
+import FlowSection from './FlowSection.js';
 
 const major = catalogue.events.reduce((a, b) => (a.magnitude > b.magnitude ? a : b));
 export default function App() {
@@ -48,6 +49,11 @@ export default function App() {
   const ready = view.state.status.phase === 'ready';
   const sidecar = view.state.status.phase === 'ready' ? view.state.status.sidecar : null;
   const mode = atlas.mode;
+  // FAULT is always the full Assam view, including browser-history navigation.
+  useEffect(() => {
+    if (mode === 'fault' && view.areaId !== 'assam-overview')
+      view.setArea('assam-overview');
+  }, [mode, view.areaId, view.setArea]);
   useEffect(() => {
     if (ready) view.setAtlas({ ...atlas, locale });
   }, [atlas, locale, ready, view.setAtlas]);
@@ -136,7 +142,7 @@ export default function App() {
         note:
           mode === 'plates'
             ? copy.platesNote
-            : `${[copy.overview, copy.majuli, copy.sadiya][['assam-overview', 'majuli', 'sadiya-dibrugarh'].indexOf(view.areaId)]} · ${copy.height} ${view.exaggeration}× · ${mode === 'flow' ? `${copy.level} ${level.toFixed(1)} m · ${copy.inflowSettings} ${view.water?.dischargeM3s ?? 0} m³/s` : `${copy.year} ${atlas.quakeYear}`}`,
+            : `${[copy.overview, copy.majuli, copy.sadiya][['assam-overview', 'majuli', 'sadiya-dibrugarh'].indexOf(view.areaId)]} · ${copy.height} ${view.exaggeration}× · ${mode === 'flow' ? `${copy.level} ${level.toFixed(1)} m · ${copy.inflowSettings} ${view.water?.dischargeM3s ?? 0} m³/s${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}` : `${copy.year} ${atlas.quakeYear}`}`,
       });
       setNotice(copy.saved);
     } catch {
@@ -166,6 +172,7 @@ export default function App() {
       <details className="terrain-details">
         <summary>{copy.terrain}</summary>
         <TerrainPanel
+          overviewOnly={mode === 'fault'}
           areaId={view.areaId}
           onArea={changeArea}
           exaggeration={view.exaggeration}
@@ -221,20 +228,35 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: reduced ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
               >
-                <p className="eyebrow">{copy.eyebrow}</p>
-                <h2>{copy[`${mode}Title`]}</h2>
-                <p className="intro-copy">{copy[`${mode}Description`]}</p>
-                {mode === 'flow' && (
-                  <button
-                    type="button"
-                    className="text-button"
-                    onClick={() => changeArea('majuli')}
-                  >
-                    {copy.explore}
-                    <ArrowDownRight {...icon} />
-                  </button>
+                {mode === 'flow' && atlas.sectionOpen ? (
+                  <FlowSection
+                    copy={copy}
+                    atlas={atlas}
+                    profile={view.water?.section ?? null}
+                    onPosition={(sectionPosition) =>
+                      setAtlas((a) => ({ ...a, sectionPosition }))
+                    }
+                  />
+                ) : (
+                  <>
+                    <p className="eyebrow">{copy.eyebrow}</p>
+                    <h2>{copy[`${mode}Title`]}</h2>
+                    <p className="intro-copy">{copy[`${mode}Description`]}</p>
+                    {mode === 'flow' && (
+                      <button
+                        type="button"
+                        className="text-button"
+                        onClick={() => changeArea('majuli')}
+                      >
+                        {copy.explore}
+                        <ArrowDownRight {...icon} />
+                      </button>
+                    )}
+                    {mode === 'fault' && (
+                      <p className="seismic-note">{copy.noPrediction}</p>
+                    )}
+                  </>
                 )}
-                {mode === 'fault' && <p className="seismic-note">{copy.noPrediction}</p>}
               </motion.div>
             </AnimatePresence>
             {mode !== 'plates' && (
@@ -242,22 +264,24 @@ export default function App() {
                 <aside className="atlas-layer-panel" aria-label={copy.geography}>
                   {layerControls}
                 </aside>
-                <div className="region-selector" role="group" aria-label={copy.region}>
-                  {(['assam-overview', 'majuli', 'sadiya-dibrugarh'] as const).map(
-                    (id, i) => (
-                      <button
-                        type="button"
-                        key={id}
-                        aria-pressed={view.areaId === id}
-                        disabled={!ready}
-                        onClick={() => changeArea(id)}
-                        data-testid={`region-${id}`}
-                      >
-                        {[copy.overview, copy.majuli, copy.sadiya][i]}
-                      </button>
-                    ),
-                  )}
-                </div>
+                {mode === 'flow' && (
+                  <div className="region-selector" role="group" aria-label={copy.region}>
+                    {(['assam-overview', 'majuli', 'sadiya-dibrugarh'] as const).map(
+                      (id, i) => (
+                        <button
+                          type="button"
+                          key={id}
+                          aria-pressed={view.areaId === id}
+                          disabled={!ready}
+                          onClick={() => changeArea(id)}
+                          data-testid={`region-${id}`}
+                        >
+                          {[copy.overview, copy.majuli, copy.sadiya][i]}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
               </>
             )}
           </>
@@ -300,13 +324,20 @@ export default function App() {
             <Download {...icon} />
           </button>
         </div>
-        <div className="map-caption">
+        <div
+          className={`map-caption${mode === 'flow' && atlas.flowView === 'depth' ? ' is-depth' : ''}`}
+        >
+          {mode === 'flow' && atlas.flowView === 'depth' && (
+            <span className="depth-ramp" aria-hidden="true" />
+          )}
           <span className="caption-dot" />
           {mode === 'fault'
             ? copy.quakeNote
             : mode === 'plates'
               ? copy.platesNote
-              : copy.riverNote}
+              : atlas.flowView === 'depth'
+                ? copy.depthScale
+                : copy.riverNote}
         </div>
         <div className="map-scale">
           {mode !== 'plates' && (

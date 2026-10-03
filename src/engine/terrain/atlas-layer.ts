@@ -2,7 +2,11 @@
 import * as THREE from 'three';
 import geography from '../../data/geography.json';
 import catalogue from '../../data/earthquakes.json';
-import { INITIAL_ATLAS, type AtlasPresentation } from '../../shared/atlas.js';
+import {
+  INITIAL_ATLAS,
+  type AtlasPresentation,
+  type RiverSection,
+} from '../../shared/atlas.js';
 import { ATLAS_COPY } from '../../shared/i18n/atlas.js';
 import { sampleBilinear } from './sampling.js';
 import { extentMeters } from './metrics.js';
@@ -31,18 +35,22 @@ export function createAtlasLayer(
   const places = new THREE.Group();
   const quakes = new THREE.Group();
   const plates = new THREE.Group();
-  map.add(rivers, borders, places, quakes);
+  const section = new THREE.Group();
+  map.add(rivers, borders, places, quakes, section);
   scene.add(map, plates);
   let presentation = { ...INITIAL_ATLAS };
   let ground: Ground | null = null;
   let exaggeration = 1;
   let span = 1;
   let markers: THREE.InstancedMesh | null = null;
-  let ring: THREE.Mesh | null = null;
+  let waves: THREE.LineSegments[] = [];
+  let epicentre: THREE.Vector3 | null = null;
+  let eventVisible = false;
   let selectedAge = 2;
   let motionAge = 2;
   const dummy = new THREE.Object3D();
   const labelMetrics = new WeakMap<THREE.Sprite, { height: number; ratio: number }>();
+  const riverOpacity = new WeakMap<THREE.MeshBasicMaterial, number>();
   const positionFor = (lon: number, lat: number, lift = 0): THREE.Vector3 | null => {
     if (!ground) return null;
     const { sidecar: s } = ground;
@@ -130,6 +138,7 @@ export function createAtlasLayer(
       depthWrite: false,
     });
     const mesh = new THREE.Mesh(geo, m);
+    riverOpacity.set(m, opacity);
     mesh.renderOrder = 2;
     rivers.add(mesh);
   }
@@ -339,21 +348,27 @@ export function createAtlasLayer(
     );
     markers.frustumCulled = false;
     quakes.add(markers);
-    const ringGeo = new THREE.RingGeometry(0.9, 1, 96);
-    ringGeo.rotateX(-Math.PI / 2);
-    ring = new THREE.Mesh(
-      ringGeo,
-      new THREE.MeshBasicMaterial({
-        color: palette.amber,
-        transparent: true,
-        opacity: 0.8,
-        side: THREE.DoubleSide,
-        depthTest: false,
-        depthWrite: false,
-      }),
-    );
-    ring.renderOrder = 4;
-    quakes.add(ring);
+    waves = Array.from({ length: 3 }, (_, i) => {
+      const wave = new THREE.LineSegments(
+        new THREE.BufferGeometry().setAttribute(
+          'position',
+          new THREE.BufferAttribute(new Float32Array(96 * 6), 3).setUsage(
+            THREE.DynamicDrawUsage,
+          ),
+        ),
+        new THREE.LineBasicMaterial({
+          color: i === 0 ? palette.text : palette.amber,
+          transparent: true,
+          opacity: 0.8,
+          depthTest: false,
+          depthWrite: false,
+        }),
+      );
+      wave.frustumCulled = false;
+      wave.renderOrder = 4;
+      quakes.add(wave);
+      return wave;
+    });
     buildPlates();
     update(presentation);
   }
@@ -366,6 +381,15 @@ export function createAtlasLayer(
     map.visible = next.mode !== 'plates';
     plates.visible = next.mode === 'plates';
     rivers.visible = next.rivers;
+    rivers.children.forEach((child) => {
+      if (
+        child instanceof THREE.Mesh &&
+        child.material instanceof THREE.MeshBasicMaterial
+      )
+        child.material.opacity =
+          (riverOpacity.get(child.material) ?? 1) *
+          (next.mode === 'flow' && next.flowView === 'depth' ? 0.2 : 1);
+    });
     borders.visible = next.boundaries;
     places.visible = next.places;
     quakes.visible = next.mode === 'fault';
@@ -381,42 +405,100 @@ export function createAtlasLayer(
         dummy.scale.setScalar(size);
         dummy.updateMatrix();
         markers!.setMatrixAt(i, dummy.matrix);
-        if (event.id === next.selectedQuake && ring && p) {
-          ring.position.copy(p);
-          ring.position.y += span * 0.002;
-        }
+        if (event.id === next.selectedQuake && p) epicentre = p;
       });
       markers.instanceMatrix.needsUpdate = true;
     }
-    if (ring)
-      ring.visible =
-        next.mode === 'fault' &&
-        catalogue.events.some(
-          (e) =>
-            e.id === next.selectedQuake &&
-            Number(e.time.slice(0, 4)) <= next.quakeYear &&
-            positionFor(e.longitude, e.latitude) !== null,
-        );
+    eventVisible =
+      next.mode === 'fault' &&
+      catalogue.events.some(
+        (e) =>
+          e.id === next.selectedQuake &&
+          Number(e.time.slice(0, 4)) <= next.quakeYear &&
+          positionFor(e.longitude, e.latitude) !== null,
+      );
+    section.visible = next.mode === 'flow' && next.sectionOpen;
     if (changed) selectedAge = 0;
   }
   function step(dt: number) {
     selectedAge += dt;
     motionAge += dt;
-    if (ring) {
-      const t = reducedMotion ? 1 : Math.min(1, selectedAge / 1.2);
-      ring.scale.setScalar(span * (0.014 + 0.04 * t));
-      (ring.material as THREE.MeshBasicMaterial).opacity = 0.85 - 0.5 * t;
-    }
+    // Concentric, terrain-following display waves. Their radius, timing and
+    // brightness are synthetic; none represents P/S arrival or shaking intensity.
+    const age = Math.min(selectedAge, motionAge);
+    if (!eventVisible)
+      waves.forEach((wave) => {
+        wave.visible = false;
+      });
+    if (eventVisible && ground && epicentre)
+      waves.forEach((wave, i) => {
+        const t = reducedMotion ? 1 : Math.min(1, Math.max(0, (age - i * 0.45) / 3.2));
+        const radius = span * (0.008 + t * (0.055 + i * 0.02));
+        const extent = extentMeters(ground!.sidecar);
+        const vertices: THREE.Vector3[] = [];
+        const at = (angle: number) => {
+          const x = epicentre!.x + Math.cos(angle) * radius;
+          const z = epicentre!.z + Math.sin(angle) * radius;
+          const s = ground!.sidecar;
+          return positionFor(
+            s.bbox.west + (x / extent.widthM + 0.5) * (s.bbox.east - s.bbox.west),
+            s.bbox.north - (z / extent.heightM + 0.5) * (s.bbox.north - s.bbox.south),
+            span * 0.002,
+          );
+        };
+        for (let j = 0; j < 96; j++) {
+          const a = at((j / 96) * Math.PI * 2);
+          const b = at(((j + 1) / 96) * Math.PI * 2);
+          if (a && b) vertices.push(a, b);
+        }
+        const attribute = wave.geometry.getAttribute('position') as THREE.BufferAttribute;
+        vertices.forEach((v, index) => attribute.setXYZ(index, v.x, v.y, v.z));
+        attribute.needsUpdate = true;
+        wave.geometry.setDrawRange(0, vertices.length);
+        wave.visible = eventVisible && (reducedMotion || age >= i * 0.45);
+        (wave.material as THREE.LineBasicMaterial).opacity = reducedMotion
+          ? 0.6
+          : 0.8 - t * 0.5;
+      });
     return (
       !reducedMotion &&
       presentation.mode === 'fault' &&
-      (selectedAge < 1.2 || motionAge < 1.5)
+      eventVisible &&
+      (selectedAge < 4.2 || motionAge < 4.2)
     );
   }
   return {
     rebuild,
     update,
     step,
+    setSection(profile: RiverSection | null) {
+      clear(section);
+      if (!profile || !ground) return;
+      for (const path of points(
+        [
+          [profile.longitude, profile.northLatitude],
+          [profile.longitude, profile.southLatitude],
+        ],
+        span * 0.003,
+      )) {
+        const line = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints(path),
+          new THREE.LineDashedMaterial({
+            color: palette.text,
+            dashSize: span * 0.003,
+            gapSize: span * 0.0015,
+            depthTest: false,
+            transparent: true,
+            opacity: 0.9,
+          }),
+        );
+        line.computeLineDistances();
+        line.renderOrder = 6;
+        section.add(line);
+        if (path[0]) label('A', palette.text, span * 0.04, path[0], section);
+        if (path.at(-1)) label('B', palette.text, span * 0.04, path.at(-1)!, section);
+      }
+    },
     /** Suppress overlapping labels without moving their geographic anchors. */
     layout(camera: THREE.Camera, width: number, height: number) {
       const rectangles: { left: number; right: number; top: number; bottom: number }[] =
@@ -460,7 +542,7 @@ export function createAtlasLayer(
         ? 0
         : span * 0.002 * Math.sin(motionAge * 44) * Math.exp(-motionAge * 2),
     dispose() {
-      for (const g of [rivers, borders, places, quakes, plates]) clear(g);
+      for (const g of [rivers, borders, places, quakes, plates, section]) clear(g);
       scene.remove(map, plates);
     },
   };

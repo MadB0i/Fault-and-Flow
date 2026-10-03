@@ -1,4 +1,11 @@
-import { ArrowDownRight, ArrowUpRight, Pause, Play, RotateCcw } from 'lucide-react';
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Check,
+  Pause,
+  Play,
+  RotateCcw,
+} from 'lucide-react';
 import { useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import type { AtlasPresentation } from '../shared/atlas.js';
@@ -73,6 +80,31 @@ export default function AtlasDock({
             <p className="eyebrow">01 / FLOW</p>
             <h2>{copy.scenario}</h2>
             <p>{copy.scenarioNote}</p>
+            <div
+              className="water-view-controls"
+              role="group"
+              aria-label={copy.waterViews}
+            >
+              {(['surface', 'depth'] as const).map((flowView) => (
+                <button
+                  type="button"
+                  key={flowView}
+                  aria-pressed={atlas.flowView === flowView}
+                  onClick={() => setAtlas((a) => ({ ...a, flowView }))}
+                >
+                  {atlas.flowView === flowView && <Check {...icon} />}
+                  {flowView === 'surface' ? copy.surfaceView : copy.depthView}
+                </button>
+              ))}
+              <button
+                type="button"
+                aria-pressed={atlas.sectionOpen}
+                onClick={() => setAtlas((a) => ({ ...a, sectionOpen: !a.sectionOpen }))}
+              >
+                {atlas.sectionOpen && <Check {...icon} />}
+                {copy.sectionToggle}
+              </button>
+            </div>
           </div>
           <div className="scenario-controls">
             <label htmlFor="scenario-depth">
@@ -149,6 +181,7 @@ export default function AtlasDock({
                 }}
               />
               <p className="fine-print">{strings.waterDischargeHint}</p>
+              <p className="fine-print">{copy.headNote}</p>
             </details>
           </div>
           <div className="scenario-results">
@@ -258,6 +291,7 @@ export default function AtlasDock({
               <button
                 type="button"
                 className="text-button"
+                disabled={!selected || !ready}
                 onClick={() =>
                   setAtlas((a) => ({
                     ...a,

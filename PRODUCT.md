@@ -281,3 +281,8 @@ Bank erosion, calibrated hydrology, actual shaking effects, a sourced boundary
 map and the geographic camera-flight opener remain outstanding. Native-speaker
 review of Assamese and physical-device performance validation remain open.
 The honesty rules above continue to govern every mode and exported image.
+
+The follow-up depth-view work adds a solver cross-section and labelled depth bands
+to FLOW, with full-Assam-only FAULT controls and terrain-following illustrative
+earthquake waves. The section shows water above resampled DEM heights. It contains
+no surveyed riverbed, subsurface strata, pore-pressure field or calibrated shaking.

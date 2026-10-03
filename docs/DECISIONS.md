@@ -338,6 +338,28 @@ rendering are verified independently of linguistic approval.
 
 ---
 
+## 12. Depth inspection and Assam-only FAULT navigation
+
+The owner asked to remove Majuli and Sadiya–Dibrugarh from earthquake mode and to
+make flood/earthquake animation more legible, including depth during increasing
+inflow. FAULT now always loads Assam overview; the close-up pickers remain FLOW
+controls only.
+
+FLOW inspection uses the existing numerical field, without a second simulation.
+Depth bands have a labelled 0–8 m display scale. A north–south A–B slice moves
+west–east across the solver grid and follows the deepest wet cell in that column.
+Its terrain is the resampled DEM. An expanded vertical window can clip high
+terrain; no missing sample is substituted with zero and no bathymetric trench is
+cut. Pressure, subsurface flow and geological strata are outside this model.
+Surface-height differences drive its virtual pipes; scenario inflow is never
+presented as a pressure reading.
+
+Decorative surface streaks now advance along local model flux using a real-time
+display clock. FAULT wave fronts follow the terrain rather than float as a flat
+ring. Their spacing, radius, timing and brightness are explicitly synthetic;
+they are not measured arrivals or intensity contours. Reduced motion preserves
+static context, and animation stops when the demonstration settles.
+
 ## Superseded
 
 _(none yet — this is the first decisions record)_

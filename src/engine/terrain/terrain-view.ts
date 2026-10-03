@@ -32,7 +32,11 @@
  */
 
 import * as THREE from 'three';
-import { INITIAL_ATLAS, type AtlasPresentation } from '../../shared/atlas.js';
+import {
+  INITIAL_ATLAS,
+  type AtlasPresentation,
+  type RiverSection,
+} from '../../shared/atlas.js';
 import geography from '../../data/geography.json';
 import { createAtlasLayer } from './atlas-layer.js';
 import { seedRiverScenario } from '../water/scenario.js';
@@ -157,6 +161,7 @@ export type TerrainViewState = {
  * the UI explains that and the terrain view carries on alone.
  */
 export type WaterLayerState = {
+  readonly section: RiverSection | null;
   readonly supported: boolean;
   /** Machine-readable reason when unsupported: no-terrain | float-render-unsupported | channel-failed. */
   readonly reason: string | null;
@@ -969,6 +974,7 @@ export function createTerrainView(
   function unsupportedWater(reason: string): false {
     waterLayer = null;
     waterState = {
+      section: null,
       supported: false,
       reason,
       playing: false,
@@ -1052,7 +1058,12 @@ export function createTerrainView(
       maxDepthM: stats.maxDepthM,
       playing: waterLayer.isPlaying(),
       reason: waterLayer.hasDiverged() ? 'unstable' : null,
+      section:
+        atlasPresentation.sectionOpen && loaded
+          ? waterLayer.getSection(loaded.sidecar.bbox, atlasPresentation.sectionPosition)
+          : null,
     };
+    atlasLayer.setSection(waterState.section);
     emit();
   }
 
@@ -1089,6 +1100,7 @@ export function createTerrainView(
     }
     const extent = extentMeters(loaded.sidecar);
     const layer = createWaterLayer({
+      reducedMotion,
       renderer,
       scene,
       sim,
@@ -1119,6 +1131,7 @@ export function createTerrainView(
     if (!layer) return unsupportedWater('float-render-unsupported');
     layer.setSpeed(waterSpeed);
     layer.setDischargeM3s(waterDischarge);
+    layer.setDepthView(atlasPresentation.flowView === 'depth');
     const inflow = gridToLonLat(
       loaded.sidecar.bbox,
       ((channel.inflow % sim.width) + 0.5) / sim.width,
@@ -1131,6 +1144,7 @@ export function createTerrainView(
     );
     waterLayer = layer;
     waterState = {
+      section: null,
       supported: true,
       reason: null,
       playing: layer.isPlaying(),
@@ -1164,6 +1178,7 @@ export function createTerrainView(
     waterLayer = null;
     removeChannelMarkers();
     waterState = null;
+    atlasLayer.setSection(null);
     emit();
     scheduleFrame();
   }
@@ -1176,8 +1191,13 @@ export function createTerrainView(
 
   function setAtlas(next: AtlasPresentation): void {
     const changed = next.mode !== atlasPresentation.mode;
+    const sectionChanged =
+      next.sectionOpen !== atlasPresentation.sectionOpen ||
+      next.sectionPosition !== atlasPresentation.sectionPosition;
     atlasPresentation = { ...next };
     atlasLayer.update(next);
+    waterLayer?.setDepthView(next.flowView === 'depth');
+    if (sectionChanged) refreshWaterSnapshot();
     mesh.visible = next.mode !== 'plates';
     if (next.mode !== 'flow') {
       disableWater();

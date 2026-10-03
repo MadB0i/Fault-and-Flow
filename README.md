@@ -8,8 +8,12 @@ Assamese controls, no backend, accounts or telemetry.
 - **FLOW:** Copernicus terrain with mapped rivers, state outlines and places.
   Choose a starting depth or scenario inflow and watch illustrative water spread.
   Explore the Assam overview, Majuli and Sadiya–Dibrugarh.
+  Switch surface motion/depth bands and move an A–B cross-section through the
+  actual solver depth field. The slice does not claim surveyed bathymetry,
+  underground geology or pressure readings.
 - **FAULT:** replay 289 recorded M5+ earthquakes from the documented USGS subset,
-  scrub years, open an event's original catalogue record and try a clearly labelled synthetic ground-motion illustration.
+  scrub years, open an event's original catalogue record and try a clearly labelled synthetic ground-motion illustration with terrain-following waves.
+  FAULT uses the full Assam view only.
 - **PLATES:** explore an original schematic India–Eurasia collision diagram.
 - Open source, risk and historical flood-report panels; save an attributed map PNG.
 

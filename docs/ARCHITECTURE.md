@@ -495,3 +495,26 @@ before reading the canvas, so it does not rely on preserved drawing buffers.
 The HUD appends framing, scenario context and the sidecar's required credit to the
 export. Browser checks use native Python Playwright, with the npm Playwright
 runner providing the dev server and installed Chromium executable.
+
+### Depth views and sections — 2026-10-03
+
+`AtlasPresentation` now adds `flowView`, `sectionOpen` and `sectionPosition`.
+`WaterLayerState.section` carries a nullable `RiverSection` of serialisable samples.
+These additions extend the typed public contract and are a breaking API change.
+The engine reads the already-throttled GPU statistics buffer, selects a
+north-to-south grid column and centres its slice on that column's deepest wet cell.
+The map draws A–B at the same longitude and latitude bounds. No additional hot-path
+GPU readback or React/Three.js coupling is introduced.
+
+The section shows resampled solver terrain rather than high-resolution display
+terrain; these representations can differ. Missing samples remain gaps. A labelled
+vertical window improves depth readability and can clip high terrain without
+flattening it. Layer switches and section position do not reset the simulation.
+Depth bands use a fixed 0–8 m display scale, saturating deeper values while numeric
+depth readouts retain the solver values. Surface streaks use a separate real-time
+visual clock, follow model flux direction and are static under reduced motion.
+
+FAULT's region picker is removed from both HUD paths, and entering it through
+navigation or browser history selects Assam overview. Its terrain-following wave
+fronts use display choices for radius, timing and brightness. They are not P/S
+arrivals, intensity contours or measured shaking fields.

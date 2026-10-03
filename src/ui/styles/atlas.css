@@ -875,6 +875,170 @@
   color: var(--text-muted);
   margin-top: calc(var(--space-s) * -1);
 }
+
+.water-view-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin-top: var(--space-xs);
+}
+.water-view-controls button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-height: var(--control-size);
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--border);
+  border-radius: var(--radius);
+  font-size: var(--step--2);
+}
+.water-view-controls button[aria-pressed='true'] {
+  border-color: var(--water);
+  color: var(--text);
+  background: var(--surface-raised);
+}
+.depth-ramp {
+  display: inline-block;
+  width: var(--space-2xl);
+  height: var(--space-xs);
+  margin-right: var(--space-xs);
+  background: linear-gradient(to right, var(--water-shoreline), var(--water-deep));
+}
+.atlas-intro:has(.flow-section) {
+  top: var(--space-s);
+  bottom: calc(var(--space-xl) + var(--control-size) + var(--space-s) + var(--space-xs));
+  overflow: visible;
+  pointer-events: auto;
+}
+.flow-section {
+  height: 100%;
+  overflow: auto;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  padding: var(--space-s);
+}
+.atlas-intro .flow-section h2 {
+  font-size: var(--step-1);
+  margin-top: 0;
+  margin-bottom: var(--space-s);
+}
+.flow-section label {
+  font-size: var(--step--2);
+}
+.flow-section input {
+  width: 100%;
+  min-height: var(--control-size);
+  accent-color: var(--water);
+}
+.flow-section svg {
+  width: 100%;
+  overflow: hidden;
+}
+.section-location,
+.section-axis {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+  fill: var(--text-muted);
+  color: var(--text-muted);
+}
+.section-grid {
+  stroke: var(--hairline);
+  stroke-dasharray: 3 6;
+}
+.section-ground {
+  fill: var(--terrain-1);
+}
+.section-terrain-line {
+  stroke: var(--text-muted);
+  fill: none;
+}
+.section-water-line {
+  stroke: var(--water-shoreline);
+  fill: none;
+  stroke-width: 2;
+}
+.section-column {
+  stroke: var(--text);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+.water-gradient-top {
+  stop-color: var(--water-shallow);
+}
+.water-gradient-bottom {
+  stop-color: var(--water-deep);
+}
+.section-values {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs);
+}
+.section-values dt {
+  font-size: var(--step--2);
+  color: var(--text-muted);
+}
+.section-values dd {
+  font-family: var(--font-data);
+  color: var(--water);
+  font-size: var(--step-1);
+}
+.section-key {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  font-size: var(--step--2);
+}
+.section-key span:last-child {
+  color: var(--water-shoreline);
+}
+.flow-section .fine-print {
+  margin-top: var(--space-xs);
+}
+.section-empty {
+  font-size: var(--step--1);
+  padding-block: var(--space-l);
+}
+
+@media (max-width: 48rem) {
+  .atlas-map:has(.flow-section) {
+    height: auto;
+  }
+  .atlas-map:has(.flow-section) .atlas-canvas {
+    height: var(--atlas-mobile-map);
+  }
+  .atlas-intro:has(.flow-section) {
+    position: relative;
+    top: auto;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    margin-top: var(--atlas-mobile-map);
+    padding: var(--space-s);
+    overflow: visible;
+  }
+  .flow-section {
+    height: auto;
+    overflow: visible;
+  }
+  .atlas-map:has(.flow-section) .region-selector {
+    top: calc(var(--atlas-mobile-map) - var(--control-size) - var(--space-s));
+    bottom: auto;
+  }
+  .atlas-map:has(.flow-section) .map-caption {
+    top: calc(
+      var(--atlas-mobile-map) - var(--control-size) - var(--space-l) - var(--space-l)
+    );
+    bottom: auto;
+  }
+  .atlas-map:has(.flow-section) .map-tools {
+    top: var(--space-2xl);
+    bottom: auto;
+  }
+  .map-caption.is-depth {
+    bottom: calc(var(--control-size) + var(--space-l));
+  }
+}
 @media (max-width: 64rem) {
   .motion-note {
     grid-column: 1/-1;

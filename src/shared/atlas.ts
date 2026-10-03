@@ -7,6 +7,11 @@ export interface AtlasPresentation {
   rivers: boolean;
   boundaries: boolean;
   places: boolean;
+  /** Display only: the simulation is identical in both views. */
+  flowView: 'surface' | 'depth';
+  sectionOpen: boolean;
+  /** West-to-east column of the simulation grid, normalised to 0..1. */
+  sectionPosition: number;
   quakeYear: number;
   selectedQuake: string | null;
   /** Replay counter for synthetic ground motion, not a recorded shaking field. */
@@ -21,8 +26,23 @@ export const INITIAL_ATLAS: AtlasPresentation = {
   rivers: true,
   boundaries: true,
   places: true,
+  flowView: 'surface',
+  sectionOpen: false,
+  sectionPosition: 0.5,
   quakeYear: 2026,
   selectedQuake: null,
   motionIllustration: 0,
   collision: 0.65,
 };
+
+export interface RiverSection {
+  longitude: number;
+  northLatitude: number;
+  southLatitude: number;
+  simTimeS: number;
+  samples: readonly {
+    distanceM: number;
+    terrainM: number | null;
+    depthM: number | null;
+  }[];
+}

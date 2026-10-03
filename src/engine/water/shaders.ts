@@ -222,7 +222,9 @@ uniform vec3 uDeep;
 uniform vec3 uShoreline;
 uniform float uDeepDepth;
 uniform vec3 uLightDirection;
-uniform float uSimTime;
+uniform float uVisualTime;
+uniform float uMotion;
+uniform float uDepthView;
 uniform float uOpacity;
 uniform float uMinOpacity;
 void main() {
@@ -245,18 +247,30 @@ void main() {
   float speed = length(flow);
   vec2 dir = speed > 0.0001 ? flow / speed : vec2(1.0, 0.0);
   vec2 perp = vec2(-dir.y, dir.x);
-  float streak = sin(dot(vUv * uTexSize, perp) * 0.9 - uSimTime * (0.6 + min(speed * 4.0, 3.0)));
-  colour *= 0.94 + 0.06 * streak;
+  // Decorative advection follows flow, using real-time display motion rather
+  // than accelerated simulation seconds. These are not tracked particles.
+  float phase = dot(vUv * uTexSize, dir) * 1.8 - uVisualTime * uMotion * 2.0;
+  float lanes = 0.5 + 0.5 * sin(dot(vUv * uTexSize, perp) * 2.4);
+  float streak = pow(0.5 + 0.5 * sin(phase), 10.0) * lanes;
+  colour = mix(colour, uShoreline, streak * 0.28 * (1.0 - uDepthView));
   // Subtle specular from the same north-west light as the terrain.
   vec3 n = normalize(cross(dFdx(vWorld), dFdy(vWorld)));
   if (n.y < 0.0) n = -n;
   vec3 v = vec3(0.0, 0.0, 1.0);
   float spec = pow(max(dot(reflect(-uLightDirection, n), v), 0.0), 24.0);
   colour += spec * 0.35;
+  if (uDepthView > 0.5) {
+    float band = min(7.0, floor(vDepth));
+    colour = mix(uShoreline, uDeep, (band + 0.5) / 8.0);
+    float edgeWidth = max(fwidth(vDepth), 0.025);
+    float contour = 1.0 - smoothstep(0.0, edgeWidth, min(fract(vDepth), 1.0-fract(vDepth)));
+    colour = mix(colour, uShoreline, contour * 0.5);
+  }
   // Any wet cell must read as water. A 0.05 m sheet on a 60 m cell is
   // sub-pixel depth but many pixels wide, so a low alpha floor is what makes
   // the channel visible at all; deeper water gets more opaque on top of it.
   float alpha = max(uMinOpacity, mix(0.6, uOpacity, depthMix)) * shore;
+  if (uDepthView > 0.5) alpha = 0.96 * shore;
   gl_FragColor = vec4(colour, alpha);
   #include <colorspace_fragment>
 }
