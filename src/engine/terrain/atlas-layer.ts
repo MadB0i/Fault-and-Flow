@@ -18,6 +18,7 @@ import {
   syntheticBuildingSway,
 } from '../../shared/seismic-display.js';
 import { extentMeters } from './metrics.js';
+import { pickRecord } from '../../shared/exploration.js';
 import type { TerrainSidecar } from './sidecar.js';
 
 type Palette = {
@@ -537,7 +538,10 @@ export function createAtlasLayer(
       markerAnchors = [];
       catalogue.events.forEach((event, i) => {
         const p = positionFor(event.longitude, event.latitude, 0, true);
-        const shown = Number(event.time.slice(0, 4)) <= next.quakeYear && p !== null;
+        const shown =
+          Number(event.time.slice(0, 4)) <= next.quakeYear &&
+          event.magnitude >= next.minimumMagnitude &&
+          p !== null;
         markerAnchors.push(shown ? p : null);
         dummy.position.copy(p ?? new THREE.Vector3());
         const size = shown ? span * 0.001 : 0;
@@ -555,6 +559,7 @@ export function createAtlasLayer(
         (e) =>
           e.id === next.selectedQuake &&
           Number(e.time.slice(0, 4)) <= next.quakeYear &&
+          e.magnitude >= next.minimumMagnitude &&
           positionFor(e.longitude, e.latitude) !== null,
       );
     section.visible = next.mode === 'flow' && next.sectionOpen;
@@ -623,6 +628,28 @@ export function createAtlasLayer(
     rebuild,
     update,
     step,
+    pickQuake(
+      camera: THREE.Camera,
+      width: number,
+      height: number,
+      point: { x: number; y: number },
+    ) {
+      if (presentation.mode !== 'fault') return null;
+      const matrix = new THREE.Matrix4();
+      const position = new THREE.Vector3();
+      const candidates: { id: string; x: number; y: number }[] = [];
+      markerAnchors.forEach((anchor, index) => {
+        if (!anchor || !markers) return;
+        markers.getMatrixAt(index, matrix);
+        position.setFromMatrixPosition(matrix).project(camera);
+        if (position.z < -1 || position.z > 1) return;
+        const x = ((position.x + 1) * width) / 2;
+        const y = ((1 - position.y) * height) / 2;
+        if (x >= 0 && x <= width && y >= 0 && y <= height)
+          candidates.push({ id: catalogue.events[index]!.id, x, y });
+      });
+      return pickRecord(point, candidates);
+    },
     setSection(profile: RiverSection | null) {
       clear(section);
       if (!profile || !ground) return;

@@ -92,6 +92,8 @@ export interface WaterLayerOptions {
 }
 
 export interface WaterLayer {
+  /** Visibility affects display only, never simulation stepping. */
+  setVisible(on: boolean): void;
   setDepthView(on: boolean): void;
   getSection(
     bbox: { west: number; east: number; north: number; south: number },
@@ -413,6 +415,9 @@ export function createWaterLayer(options: WaterLayerOptions): WaterLayer | null 
   }
 
   const layer: WaterLayer = {
+    setVisible(on) {
+      surface.visible = on;
+    },
     setDepthView(on) {
       surfaceMat.uniforms['uDepthView']!.value = on ? 1 : 0;
     },

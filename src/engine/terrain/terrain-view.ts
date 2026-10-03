@@ -202,6 +202,8 @@ export type TerrainViewOptions = {
   readonly initialArea?: AreaId;
   /** Notified whenever host-visible state changes, including on error. */
   readonly onStatus?: (status: TerrainStatus) => void;
+  /** A sourced event picked with a click/tap; drags and pinches never select. */
+  readonly onQuakeSelect?: (id: string) => void;
 };
 
 export type TerrainView = {
@@ -525,7 +527,24 @@ export function createTerrainView(
     camera.lookAt(currentCentre);
     camera.updateMatrixWorld();
     atlasLayer.layout(camera, canvas.clientWidth, canvas.clientHeight);
-    renderer.render(scene, camera);
+    if (atlasPresentation.mode === 'flow' && atlasPresentation.comparison && waterLayer) {
+      const size = renderer.getSize(new THREE.Vector2());
+      const split = Math.round(
+        size.x * Math.max(0.05, Math.min(0.95, atlasPresentation.comparisonPosition)),
+      );
+      renderer.setScissorTest(true);
+      try {
+        waterLayer.setVisible(false);
+        renderer.setScissor(0, 0, split, size.y);
+        renderer.render(scene, camera);
+        waterLayer.setVisible(true);
+        renderer.setScissor(split, 0, size.x - split, size.y);
+        renderer.render(scene, camera);
+      } finally {
+        waterLayer.setVisible(true);
+        renderer.setScissorTest(false);
+      }
+    } else renderer.render(scene, camera);
   }
 
   /**
@@ -691,6 +710,8 @@ export function createTerrainView(
   // Pointer, covering mouse, pen and touch through one path.
   const pointers = new Map<number, { x: number; y: number }>();
   let lastPinchDistance = 0;
+  let clickStart: { id: number; x: number; y: number } | null = null;
+  let pickTimer: ReturnType<typeof setTimeout> | null = null;
 
   function localPoint(event: PointerEvent): { x: number; y: number } {
     const rect = canvas.getBoundingClientRect();
@@ -698,10 +719,15 @@ export function createTerrainView(
   }
 
   function onPointerDown(event: PointerEvent): void {
+    if (pickTimer !== null) clearTimeout(pickTimer);
     if (event.pointerType === 'mouse' && event.button > 2) return;
     canvas.focus({ preventScroll: true });
     canvas.setPointerCapture(event.pointerId);
     pointers.set(event.pointerId, localPoint(event));
+    clickStart =
+      pointers.size === 1 && event.button === 0
+        ? { id: event.pointerId, ...localPoint(event) }
+        : null;
     if (pointers.size === 2) lastPinchDistance = pinchDistance();
   }
 
@@ -713,6 +739,8 @@ export function createTerrainView(
       return;
     }
     const now = localPoint(event);
+    if (clickStart && Math.hypot(now.x - clickStart.x, now.y - clickStart.y) > 6)
+      clickStart = null;
     const previousMidpoint = pinchMidpoint();
     pointers.set(event.pointerId, now);
 
@@ -788,6 +816,7 @@ export function createTerrainView(
   }
 
   function onDoubleClick(event: MouseEvent): void {
+    if (pickTimer !== null) clearTimeout(pickTimer);
     const rect = canvas.getBoundingClientRect();
     zoom(0.5, { x: event.clientX - rect.left, y: event.clientY - rect.top });
   }
@@ -797,6 +826,25 @@ export function createTerrainView(
   }
 
   function onPointerUp(event: PointerEvent): void {
+    if (
+      event.type === 'pointerup' &&
+      clickStart?.id === event.pointerId &&
+      pointers.size === 1
+    ) {
+      const picked = atlasLayer.pickQuake(
+        camera,
+        canvas.clientWidth,
+        canvas.clientHeight,
+        localPoint(event),
+      );
+      // Wait for a possible second click so double-click remains camera zoom.
+      if (picked)
+        pickTimer = setTimeout(() => {
+          pickTimer = null;
+          options.onQuakeSelect?.(picked);
+        }, 250);
+    }
+    clickStart = null;
     pointers.delete(event.pointerId);
     if (pointers.size < 2) lastPinchDistance = 0;
     if (canvas.hasPointerCapture(event.pointerId))
@@ -862,7 +910,7 @@ export function createTerrainView(
     const width = Math.max(1, Math.floor(rect.width));
     const height = Math.max(1, Math.floor(rect.height));
     const dpr = Math.min(
-      MAX_PIXEL_RATIO,
+      atlasPresentation.quality === 'lite' ? 1 : MAX_PIXEL_RATIO,
       typeof devicePixelRatio === 'number' && devicePixelRatio > 0 ? devicePixelRatio : 1,
     );
     renderer.setPixelRatio(dpr);
@@ -1396,10 +1444,12 @@ export function createTerrainView(
 
   function setAtlas(next: AtlasPresentation): void {
     const changed = next.mode !== atlasPresentation.mode;
+    const qualityChanged = next.quality !== atlasPresentation.quality;
     const sectionChanged =
       next.sectionOpen !== atlasPresentation.sectionOpen ||
       next.sectionPosition !== atlasPresentation.sectionPosition;
     atlasPresentation = { ...next };
+    if (qualityChanged) applySize();
     atlasLayer.update(next);
     waterLayer?.setDepthView(next.flowView === 'depth');
     if (sectionChanged) refreshWaterSnapshot();
@@ -1500,6 +1550,7 @@ export function createTerrainView(
     canvas.removeEventListener('pointerdown', onPointerDown);
     canvas.removeEventListener('pointermove', onPointerMove);
     canvas.removeEventListener('pointerup', onPointerUp);
+    if (pickTimer !== null) clearTimeout(pickTimer);
     canvas.removeEventListener('pointercancel', onPointerUp);
     canvas.removeEventListener('dblclick', onDoubleClick);
     canvas.removeEventListener('contextmenu', onContextMenu);

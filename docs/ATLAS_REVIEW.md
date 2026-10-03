@@ -166,3 +166,59 @@ and updates 28 PNGs. Actual 1440px and 390px English/Assamese renders were inspe
 including the expanded building controls. The updated earthquake portrait's text
 fits its 1080 × 1920 frame in both languages. Temporary browser caches are kept on
 D: and excluded from lint; no cache or reference PDF is committed.
+
+## Final exploration and release pass
+
+First impression: the terrain reads as the main exhibit; FLOW/FAULT provide two
+clear starting choices. Run scenario or Play history is the primary action.
+Fraunces headings, restrained water/seismic accents and the data typography retain
+the field-atlas identity. The collision diagram now has a secondary educational
+entry, "Why Assam shakes", rather than competing in the primary rail.
+
+Confirmed improvements from actual 1440px and 390px renders:
+
+- **P1 — dots without a direct inspection path:** stationary clicks/taps now open
+  the sourced event record. A closest-symbol 44 CSS pixel target helps touch use;
+  double-clicks remain zoom, drags and pinches do not select. Magnitude filtering
+  affects both the scene and its accessible record selector. The keyboard path
+  remains available, and focusing an epicentre closes the native dialog.
+- **P1 — unclear scenario comparison:** one-camera scissored rendering keeps the
+  wet right side unchanged and removes scenario water from the left. Browser
+  pixel checks exclude the divider handle and confirm both behaviours. The native
+  map handle and companion slider support dragging and keyboard input, bounded
+  to 5–95 percent. Dry/scenario labels name the two views.
+- **P2 — district discovery ending at a name:** district context now links the
+  nearest five original records and regional flood reports. Approximate distances
+  explicitly use administration-centre anchors, not district boundaries or risk.
+- **P2 — weak record hierarchy:** the event magnitude uses `--step-3`/data type.
+  Computed values at both widths are **31.248px**, JetBrains Mono/Noto Sans Bengali,
+  with the full-red token **rgb(255, 79, 100)** for the selected M7+ example. The
+  modal radius is the established **10px** token; no new palette was introduced.
+- **P2 — export without a moving share format:** a local silent WebM preserves
+  the portrait labels/credits while the map moves. Decoded browser frames at two
+  timestamps differ, and dimensions are 720 × 1280. Context is labelled at the
+  recording start. Missing MediaRecorder or WebM codecs preserve PNG/link sharing.
+
+The paced tour never starts water automatically. Lite is a display-resolution
+choice, not a different simulation. A real-browser GIF is encoded with reserved
+semantic accents so compression retains the earthquake colours; its file stays
+below 5 MB. Release screenshots, source attribution and the professional README
+are prepared locally. No dependency, fabricated scientific dataset, forecast,
+live alert, public deployment or GitHub push was added.
+
+Validation: `npm run verify` passes **170 tests across 16 files**. The core native
+browser suite passes **64 checks**; the release suite passes **14 checks** for
+comparison, direct symbol selection, source/district dialogs in both languages,
+Lite resolution, the paced tour, actual changing WebM frames and recording
+fallbacks. Screenshot generation passes **26 layout/axe checks**. Eight additional
+feature screenshots document the comparison, picked events and district context.
+All three portrait modes fit within 1080 × 1920 in English and Assamese; measured
+text bounds stay within the export frame. Actual pixels were inspected, including
+mobile controls, Assamese labels, source panels and decoded video frames.
+
+Native-speaker Assamese review, physical Android performance and manual
+screen-reader review remain outstanding. Automated viewport tests do not claim
+physical-phone performance. Existing decorative terrain/deep-water contrast
+exceptions and build-size warnings remain documented; no palette adjustment was
+made in this pass. One transient browser execution-context/navigation interruption
+was followed by a clean full core-suite run with the application sources stable.

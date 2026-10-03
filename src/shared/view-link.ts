@@ -43,6 +43,7 @@ export function parseViewLink(search: string): AtlasPresentation {
   const district = Number(p.get('district'));
   const year = Number(p.get('year'));
   const event = p.get('event');
+  const magnitude = Number(p.get('magnitude'));
   return {
     ...INITIAL_ATLAS,
     mode: mode === 'fault' || mode === 'plates' ? mode : 'flow',
@@ -59,6 +60,7 @@ export function parseViewLink(search: string): AtlasPresentation {
         : CATALOGUE_END_YEAR,
     selectedQuake: catalogue.events.some((e) => e.id === event) ? event : null,
     flowView: p.get('water') === 'depth' ? 'depth' : 'surface',
+    minimumMagnitude: magnitude === 6 || magnitude === 7 ? magnitude : 5,
   };
 }
 
@@ -75,6 +77,7 @@ export function createViewLink(
   if (view.mode !== 'plates' && view.selectedDistrict !== null)
     url.searchParams.set('district', String(view.selectedDistrict));
   if (view.mode === 'fault') {
+    url.searchParams.set('magnitude', String(view.minimumMagnitude));
     url.searchParams.set('year', String(view.quakeYear));
     if (view.selectedQuake) url.searchParams.set('event', view.selectedQuake);
   }

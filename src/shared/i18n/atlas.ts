@@ -1,5 +1,52 @@
 /** English and Assamese atlas copy. Assamese remains an owner-review draft. */
 const en = {
+  coordinates: 'Catalogue coordinates',
+  dragDivider: 'Drag the map divider',
+  videoStart: 'Context at recording start · animations are illustrative',
+  whyShakes: 'Why Assam shakes',
+  backHistory: 'Back to earthquakes',
+  magnitudeFilter: 'Show recorded magnitudes',
+  compare: 'Compare dry terrain / scenario',
+  comparePosition: 'Comparison split',
+  dryTerrain: 'Dry terrain',
+  chosenWater: 'Your scenario',
+  compareHint:
+    'Same camera. Left: terrain without scenario water. Right: your chosen water. Not a historical flood footprint.',
+  quality: 'Display quality',
+  fullQuality: 'Full detail',
+  liteQuality: 'Lite · lower pixel resolution',
+  qualityNote:
+    'Lite reduces display resolution on high-density screens. The solver and source data stay the same.',
+  districtStory: 'Explore this place',
+  nearbyRecords: 'Nearest catalogue records',
+  nearbyNote:
+    'Distances are approximate great-circle distances from the sourced administration-centre anchor, not district boundaries. Nearby records do not describe local shaking or risk. All years in this snapshot are included.',
+  anchorDistance: 'from name anchor',
+  focusEvent: 'Focus this epicentre',
+  tapQuake: 'Tap a dot to open its recorded event. Zoom to separate nearby dots.',
+  guidedTour: 'Take a short tour',
+  tourRiver: '01 · Follow the river',
+  tourRiverBody:
+    'Explore Assam’s terrain and mapped rivers. Pan, pinch or zoom into a place.',
+  tourWater: '02 · Choose your water',
+  tourWaterBody:
+    'Run a chosen scenario, then drag the comparison split. Surface depth and the A–B slice show solver output, not a forecast.',
+  tourHistory: '03 · Explore recorded history',
+  tourHistoryBody:
+    'Open a dot or a catalogue record. Magnitude colours describe the event, not shaking at your home.',
+  nextTour: 'Next',
+  finishTour: 'Explore on your own',
+  exitTour: 'Close tour',
+  recordVideo: 'Record 8-second portrait video',
+  recording: 'Recording portrait video…',
+  stopRecording: 'Finish video now',
+  videoUnsupported:
+    'Video recording is unavailable in this browser. Save the portrait PNG instead.',
+  videoFailed: 'Could not record this view. Try again, or save the portrait PNG.',
+  videoSaved: 'Portrait video saved. Includes scenario labels and source credits.',
+  videoNote:
+    'Records the current map animation as a local 9:16 WebM. Start playback before recording. No camera or microphone is used.',
+
   navigation: 'Map navigation',
   moveMap: 'Move map',
   rotateMap: 'Rotate 3D',
@@ -202,6 +249,51 @@ const en = {
 };
 type Copy = { [K in keyof typeof en]: string };
 const as: Copy = {
+  coordinates: 'তালিকাৰ স্থানাংক',
+  dragDivider: 'মানচিত্ৰৰ বিভাজন সৰাওক',
+  videoStart: 'ৰখাৰ আৰম্ভণিৰ বাছনি · চলনবোৰ দৃষ্টান্তমূলক',
+  whyShakes: 'অসমত কিয় ভূমিকম্প হয়',
+  backHistory: 'ভূমিকম্পলৈ উভতি যাওক',
+  magnitudeFilter: 'নথিভুক্ত মাত্ৰা বাছক',
+  compare: 'শুকান ভূমি / দৃষ্টান্ত তুলনা',
+  comparePosition: 'তুলনাৰ বিভাজন',
+  dryTerrain: 'শুকান ভূমি',
+  chosenWater: 'আপোনাৰ দৃষ্টান্ত',
+  compareHint:
+    'একে দৃষ্টিকোণ। বাওঁফালে দৃষ্টান্তৰ পানী নথকা ভূমি, সোঁফালে আপোনাৰ বাছনি কৰা পানী। অতীতৰ বানৰ সীমা নহয়।',
+  quality: 'দৃশ্যৰ মান',
+  fullQuality: 'সম্পূৰ্ণ দৃশ্য',
+  liteQuality: 'লঘু · কম পিক্সেল',
+  qualityNote:
+    'লঘু দৃশ্যই অধিক পিক্সেল থকা পৰ্দাত ৰিজলিউচন কমায়। গণনা আৰু উৎসৰ তথ্য একে থাকে।',
+  districtStory: 'এই ঠাই অন্বেষণ কৰক',
+  nearbyRecords: 'ওচৰৰ তালিকাভুক্ত ঘটনা',
+  nearbyNote:
+    'দূৰত্ব প্ৰশাসনিক কেন্দ্ৰৰ নামৰ স্থানৰ পৰা আনুমানিক গোলকীয় দূৰত্ব, জিলাৰ সীমাৰ পৰা নহয়। ওচৰৰ ঘটনাই স্থানীয় কঁপনি বা বিপদ নেদেখুৱায়। এই তালিকাৰ সকলো বছৰ অন্তৰ্ভুক্ত।',
+  anchorDistance: 'নামৰ স্থানৰ পৰা',
+  focusEvent: 'এই অভিকেন্দ্ৰলৈ যাওক',
+  tapQuake: 'নথি খুলিবলৈ বিন্দুত টিপক। ওচৰৰ বিন্দু পৃথক কৰিবলৈ জুম কৰক।',
+  guidedTour: 'চুটি ভ্ৰমণ কৰক',
+  tourRiver: '০১ · নদী অনুসৰণ কৰক',
+  tourRiverBody: 'অসমৰ ভূমি আৰু নদী অন্বেষণ কৰক। ঠাই চাবলৈ মানচিত্ৰ সৰাওক বা জুম কৰক।',
+  tourWater: '০২ · পানী বাছক',
+  tourWaterBody:
+    'বাছনি কৰা দৃষ্টান্ত চলাওক আৰু তুলনাৰ বিভাজন সৰাওক। পানীৰ গভীৰতা আৰু A–B অংশই গণনাৰ ফল দেখুৱায়, পূৰ্বানুমান নহয়।',
+  tourHistory: '০৩ · নথিভুক্ত ইতিহাস চাওক',
+  tourHistoryBody:
+    'বিন্দু বা তালিকাৰ নথি খোলক। মাত্ৰাৰ ৰঙে ঘটনাটো বুজায়, আপোনাৰ ঘৰৰ কঁপনি নহয়।',
+  nextTour: 'পৰৱৰ্তী',
+  finishTour: 'নিজে অন্বেষণ কৰক',
+  exitTour: 'ভ্ৰমণ বন্ধ কৰক',
+  recordVideo: '৮ ছেকেণ্ডৰ উলম্ব ভিডিঅ’ ৰাখক',
+  recording: 'উলম্ব ভিডিঅ’ ৰখা হৈছে…',
+  stopRecording: 'এতিয়াই ভিডিঅ’ শেষ কৰক',
+  videoUnsupported: 'এই ব্ৰাউজাৰত ভিডিঅ’ ৰখাৰ সুবিধা নাই। উলম্ব PNG ছবি ৰাখক।',
+  videoFailed: 'ভিডিঅ’ ৰাখিব নোৱাৰিলে। পুনৰ চেষ্টা কৰক বা উলম্ব PNG ছবি ৰাখক।',
+  videoSaved: 'দৃষ্টান্তৰ নাম আৰু উৎসৰ সৈতে উলম্ব ভিডিঅ’ ৰখা হ’ল।',
+  videoNote:
+    'বৰ্তমানৰ মানচিত্ৰৰ চলন 9:16 WebM হিচাপে নিজৰ ডিভাইচত ৰাখে। ৰখাৰ আগতে চলাওক। কেমেৰা বা মাইক ব্যৱহাৰ নকৰে।',
+
   navigation: 'মানচিত্ৰত চলাচল',
   moveMap: 'মানচিত্ৰ সৰাওক',
   rotateMap: '3D ঘূৰাওক',

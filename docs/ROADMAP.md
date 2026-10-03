@@ -287,3 +287,16 @@ Remaining: riverbed bathymetry and independent terrain validation; bank erosion;
 historical flood footprints; physical-device performance; measured plate boundary,
 convergence rates and the geographic fly-down opener; Assamese native-speaker
 review; public deployment. No live alert service has been added.
+
+## Final release preparation — 2026-10-03
+
+The owner authorised a final feature/polish pass and local GitHub presentation
+assets. FLOW/FAULT remain primary; PLATES is now a secondary educational explainer.
+Clickable source records, magnitude filtering, district context, same-camera dry
+terrain/scenario comparison, display-only Lite mode, an optional paced tour and
+local portrait WebM recording are included. Reproducible release captures and a
+professional README prepare the repository for a later GitHub push.
+
+Public publishing, physical Android performance, native-speaker Assamese review,
+manual screen-reader review, measured bathymetry, erosion and local hazard layers
+remain outside the completed release preparation. No prediction feature is added.

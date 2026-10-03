@@ -42,6 +42,9 @@ const IDLE: TerrainViewState = {
 };
 
 export type TerrainViewController = {
+  /** Host-owned canvas for local video composition; no scene internals exposed. */
+  getCanvas: () => HTMLCanvasElement | null;
+  pickedQuake: { id: string; sequence: number } | null;
   captureImage: () => string | null;
   setAtlas: (presentation: AtlasPresentation) => void;
   setWaterLevel: (depthM: number) => void;
@@ -105,6 +108,10 @@ export function useTerrainView(
   const [fatal, setFatal] = useState<TerrainViewError | null>(null);
   const [targetProbe, setTargetProbe] = useState<TerrainViewState['probe']>(null);
   const [waterOn, setWaterOnState] = useState(false);
+  const [pickedQuake, setPickedQuake] = useState<{ id: string; sequence: number } | null>(
+    null,
+  );
+  const getCanvas = useCallback(() => canvasRef.current, []);
 
   // --- Create / destroy the view -----------------------------------------
   // Runs once. The view's lifetime is the canvas's lifetime, and re-creating it
@@ -125,6 +132,8 @@ export function useTerrainView(
         sources: AREA_SOURCES,
         reducedMotion: prefersReducedMotion(),
         initialArea: initialAreaRef.current,
+        onQuakeSelect: (id) =>
+          setPickedQuake((previous) => ({ id, sequence: (previous?.sequence ?? 0) + 1 })),
       });
     } catch (error) {
       // A device that cannot run the renderer at all. Recorded as state so the
@@ -265,6 +274,8 @@ export function useTerrainView(
 
   const controls = useMemo<TerrainViewController>(
     () => ({
+      getCanvas,
+      pickedQuake,
       captureImage,
       zoomView,
       focusLocation,
@@ -292,6 +303,8 @@ export function useTerrainView(
       resetWater,
     }),
     [
+      getCanvas,
+      pickedQuake,
       captureImage,
       zoomView,
       focusLocation,

@@ -1068,3 +1068,21 @@ on **2026-10-03**. Licence of the page as a whole: **UNVERIFIED**; individual me
 have different notices and none are bundled. Attribution: U.S. Geological Survey.
 The atlas's M5–<6 / M6–<7 / M7+ colours are chosen display bins, not official alert
 thresholds. No pressure, local shaking or building vulnerability data was added.
+
+### Derived district context (2026-10-03)
+
+Nearest-event cards reuse the documented OSM district-name anchors and the USGS
+historical catalogue. Distances use a spherical great-circle calculation with
+radius **6371 km**, from [NASA NSSDCA Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html)
+(retrieved and resolved 2026-10-03), which lists "Volumetric mean radius (km)"
+as "6371.000". These are rounded approximate anchor-to-epicentre distances,
+not distances from district boundaries, shaking estimates or a hazard analysis.
+NASA page redistribution/modification licence: **UNVERIFIED**; no page or media
+is redistributed. Attribution: NASA Goddard Space Flight Center, NSSDCA, David R.
+Williams. The numerical constant is used in a calculation; no new data extract
+has been added. Original OSM/USGS attribution and licences continue to apply.
+
+Release screenshots and the demo GIF are captures of the app. The GIF carries
+educational wording and source credits; the README retains the full adapted
+Copernicus DEM attribution. Recording frames are genuine browser renders; chosen
+scenario inputs and synthetic motion are never represented as measurements.

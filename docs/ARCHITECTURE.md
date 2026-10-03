@@ -597,3 +597,35 @@ roads, windows, heights and sway are original illustrative geometry. Collision
 progress transforms the existing scene rather than reconstructing it per tick.
 Reduced motion uses a static pose; a normal replay settles after four seconds.
 Building controls and navigation mode are not persisted in share URLs.
+
+### Final exploration contract (2026-10-03)
+
+The two primary entries are FLOW and FAULT. PLATES remains a secondary, explicitly
+schematic "Why Assam shakes" explainer, with the legacy `?mode=plates` route intact.
+
+`AtlasPresentation` adds required `quality`, `comparison`, `comparisonPosition`
+and `minimumMagnitude` fields. This is a breaking typed-contract extension;
+external hosts must initialise from `INITIAL_ATLAS`. Lite caps display DPR at 1,
+compared with the normal cap of 1.5; it does not change terrain data, mesh sampling
+or water-solver resolution. The comparison renders two scissored passes of the
+same scene/camera: dry terrain on the left, chosen scenario water on the right.
+Only water surface visibility changes. Solver stepping and statistics are shared.
+
+`TerrainViewOptions.onQuakeSelect` returns a source event ID after a stationary
+click/tap within 22 CSS pixels of the closest visible historical symbol. A drag
+or multi-pointer gesture never picks. The HUD owns the source-record dialog and
+focus action; the engine never imports React or the HUD store. Filters apply to
+both the map and the accessible record selector. Magnitude filters persist in
+share URLs; comparison, quality, camera and elapsed solver time do not.
+
+District stories derive approximate great-circle distances from the sourced OSM
+administration-centre anchor to catalogue epicentres. They list the nearest five
+records across the complete snapshot, not events inside an administrative polygon
+or estimates of local shaking. Flood links remain regional historical reports.
+
+The optional three-step tour follows the visitor's pace and never automatically
+runs water. Portrait video uses the host-owned canvas capture stream and a local
+2D composition with the already prepared story's labels/credits. It records silent
+720 × 1280 WebM for up to eight seconds, labels the context at recording start,
+and releases all tracks, timers and animation frames on finish/error. Hidden-tab
+recording ends early. No camera, microphone, remote codec or upload is involved.

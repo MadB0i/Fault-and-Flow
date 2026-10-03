@@ -991,6 +991,7 @@
   gap: var(--space-xs);
 }
 .share-launch,
+.story-launch,
 .dock-toggle {
   display: inline-flex;
   align-items: center;
@@ -1005,6 +1006,7 @@
   background: var(--surface);
 }
 .share-launch svg,
+.story-launch svg,
 .dock-toggle svg {
   flex-shrink: 0;
 }
@@ -1422,4 +1424,191 @@
     bottom: auto;
     transform: translateY(-100%);
   }
+}
+
+/* Final exploration tools share the atlas's hairlines and compact data rhythm. */
+.comparison-toolbar,
+.guided-tour,
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-xs) var(--space-l);
+  border-top: var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  font-size: var(--step--1);
+}
+.comparison-toolbar input[type='checkbox'] {
+  accent-color: var(--water);
+}
+.comparison-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: var(--control-size);
+  cursor: pointer;
+}
+.comparison-toolbar input[type='range'] {
+  accent-color: var(--water);
+  flex: 1;
+  min-width: 0;
+}
+.comparison-toolbar span {
+  font-family: var(--font-data);
+  font-size: var(--step--2);
+}
+.comparison-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: var(--border);
+  border-color: var(--water-shoreline);
+  pointer-events: none;
+}
+.guided-tour > div {
+  flex: 1;
+}
+.guided-tour p {
+  color: var(--text-muted);
+  margin-top: var(--space-2xs);
+}
+.guided-tour strong {
+  color: var(--accent);
+}
+.event-detail > a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: var(--space-m);
+}
+.event-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-l);
+  margin-block: var(--space-m);
+}
+.event-detail .event-magnitude {
+  display: block;
+  font-family: var(--font-data);
+  font-size: var(--step-3);
+  line-height: 1.2;
+  color: var(--band);
+  margin-block: var(--space-xs) var(--space-s);
+}
+.event-detail .event-magnitude small {
+  font-size: var(--step-0);
+  color: var(--text-muted);
+}
+.event-facts dt {
+  color: var(--text-muted);
+  font-size: var(--step--1);
+}
+.event-facts dd {
+  font-family: var(--font-data);
+  margin: 0;
+}
+.nearby-records {
+  display: grid;
+  gap: var(--space-xs);
+}
+.nearby-records button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-s);
+  min-height: var(--control-size);
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  text-align: left;
+}
+.nearby-records button > span:nth-child(2) {
+  flex: 1;
+}
+.nearby-records small {
+  display: block;
+  color: var(--text-muted);
+  margin-top: var(--space-2xs);
+}
+.record-dot {
+  width: var(--space-xs);
+  height: var(--space-xs);
+  border-radius: 50%;
+  background: var(--band);
+}
+.district-story h3 {
+  margin-block: var(--space-m) var(--space-xs);
+}
+@media (max-width: 600px) {
+  .comparison-toolbar,
+  .guided-tour,
+  .recording-status {
+    flex-wrap: wrap;
+    padding-inline: var(--space-s);
+  }
+  .comparison-toolbar input[type='checkbox'] {
+    accent-color: var(--water);
+  }
+  .comparison-toolbar label {
+    width: 100%;
+  }
+  .comparison-toolbar input[type='range'] {
+    flex-basis: 40%;
+  }
+  .guided-tour > div {
+    flex-basis: 100%;
+  }
+  .dock-heading {
+    flex-wrap: wrap;
+  }
+  .dock-heading > div {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.comparison-map-slider[type='range'] {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--control-size) / -2);
+  width: calc(100% + var(--control-size));
+  max-width: none;
+  height: var(--control-size);
+  transform: translateY(-50%);
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.comparison-map-slider::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.comparison-map-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: var(--control-size);
+  height: var(--control-size);
+  border: var(--border);
+  border-color: var(--water-shoreline);
+  border-radius: var(--radius);
+  background: linear-gradient(
+    90deg,
+    var(--surface) 45%,
+    var(--water-shoreline) 45% 55%,
+    var(--surface) 55%
+  );
+  pointer-events: auto;
+  cursor: col-resize;
+}
+.comparison-map-slider::-moz-range-track {
+  background: transparent;
+}
+.comparison-map-slider::-moz-range-thumb {
+  width: var(--control-size);
+  height: var(--control-size);
+  border: var(--border);
+  border-color: var(--water-shoreline);
+  border-radius: var(--radius);
+  background: var(--surface);
+  pointer-events: auto;
+  cursor: col-resize;
 }

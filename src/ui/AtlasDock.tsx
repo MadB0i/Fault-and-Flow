@@ -40,6 +40,8 @@ type Props = {
   setCollisionPlaying: Dispatch<SetStateAction<boolean>>;
   onHistory: () => void;
   onRiver: () => void;
+  onLearn: () => void;
+  onBack: () => void;
 };
 export default function AtlasDock({
   copy,
@@ -56,6 +58,8 @@ export default function AtlasDock({
   setCollisionPlaying,
   onHistory,
   onRiver,
+  onLearn,
+  onBack,
 }: Props) {
   const strings = useUiStore((s) => s.strings());
   const [expanded, setExpanded] = useState(false);
@@ -65,6 +69,7 @@ export default function AtlasDock({
   const events = catalogue.events.filter(
     (e) =>
       Number(e.time.slice(0, 4)) <= atlas.quakeYear &&
+      e.magnitude >= atlas.minimumMagnitude &&
       (!bbox ||
         (e.longitude >= bbox.west &&
           e.longitude <= bbox.east &&
@@ -96,6 +101,23 @@ export default function AtlasDock({
           <p className="eyebrow">{copy[atlas.mode]}</p>
           <p className="dock-guidance">{copy[`${atlas.mode}Prompt`]}</p>
         </div>
+        {atlas.mode === 'fault' && (
+          <button
+            type="button"
+            className="text-button"
+            data-testid="mode-plates"
+            onClick={onLearn}
+          >
+            {copy.whyShakes}
+            <ArrowUpRight {...icon} />
+          </button>
+        )}
+        {atlas.mode === 'plates' && (
+          <button type="button" className="text-button" onClick={onBack}>
+            {copy.backHistory}
+            <ArrowUpRight {...icon} />
+          </button>
+        )}
         <button
           type="button"
           className="dock-toggle"
@@ -254,6 +276,7 @@ export default function AtlasDock({
               <p className="eyebrow">02 / FAULT</p>
               <h2>{copy.catalogue}</h2>
               <p>{copy.catalogueNote}</p>
+              <p className="fine-print">{copy.tapQuake}</p>
               <p className="snapshot-note">
                 {copy.snapshot} <strong>{CATALOGUE_CUTOFF} UTC</strong>
               </p>
@@ -354,6 +377,21 @@ export default function AtlasDock({
             </div>
             <p className="motion-note">{copy.motionNote}</p>
             <div className="quake-record">
+              <label htmlFor="magnitude-filter">{copy.magnitudeFilter}</label>
+              <select
+                id="magnitude-filter"
+                value={atlas.minimumMagnitude}
+                onChange={(e) =>
+                  setAtlas((a) => ({
+                    ...a,
+                    minimumMagnitude: Number(e.target.value) as 5 | 6 | 7,
+                  }))
+                }
+              >
+                <option value="5">M5+</option>
+                <option value="6">M6+</option>
+                <option value="7">M7+</option>
+              </select>
               <label htmlFor="quake-record">{copy.records}</label>
               <select
                 id="quake-record"

@@ -16,6 +16,8 @@ import {
   Check,
   Move,
   Rotate3D,
+  BookOpen,
+  X,
 } from 'lucide-react';
 import { ATLAS_COPY } from '../shared/i18n/atlas.js';
 import { FLOOD_HISTORY } from '../shared/flood-history.js';
@@ -42,6 +44,8 @@ import AtlasDialog from './AtlasDialog.js';
 import AtlasDock from './AtlasDock.js';
 import { createAtlasStory, downloadImage, saveAtlasImage } from './saveAtlasImage.js';
 import FlowSection from './FlowSection.js';
+import { DistrictStory, EventRecord } from './ExplorationPanels.js';
+import { recordPortraitVideo, canRecordPortraitVideo } from './recordPortraitVideo.js';
 
 const major = catalogue.events.reduce((a, b) => (a.magnitude > b.magnitude ? a : b));
 export default function App() {
@@ -53,7 +57,15 @@ export default function App() {
   const atlas = useUiStore((s) => s.atlas);
   const setAtlas = useUiStore((s) => s.setAtlas);
   const [drawer, setDrawer] = useState<
-    'sources' | 'safety' | 'layers' | 'history' | 'districts' | 'share' | null
+    | 'sources'
+    | 'safety'
+    | 'layers'
+    | 'history'
+    | 'districts'
+    | 'district-story'
+    | 'event'
+    | 'share'
+    | null
   >(null);
   const [focus, setFocus] = useState(false);
   const [level, setLevel] = useState(initialScene.level);
@@ -66,6 +78,25 @@ export default function App() {
   const [shareLink, setShareLink] = useState('');
   const [storyImage, setStoryImage] = useState('');
   const [storyBusy, setStoryBusy] = useState(false);
+  const [tour, setTour] = useState<number | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [finishVideo, setFinishVideo] = useState<(() => void) | null>(null);
+  useEffect(
+    () => () => finishVideo?.(),
+    [
+      finishVideo,
+      locale,
+      atlas.mode,
+      atlas.selectedDistrict,
+      atlas.flowView,
+      atlas.comparison,
+      atlas.minimumMagnitude,
+      level,
+      inflow,
+      view.areaId,
+    ],
+  );
+  const selectedEvent = catalogue.events.find((e) => e.id === atlas.selectedQuake);
   const selectedDistrict = districts.districts.find(
     (d) => d.id === atlas.selectedDistrict,
   );
@@ -77,6 +108,12 @@ export default function App() {
     : null;
   const sidecar = view.state.status.phase === 'ready' ? view.state.status.sidecar : null;
   const mode = atlas.mode;
+  useEffect(() => {
+    if (!view.pickedQuake) return;
+    setHistoryPlaying(false);
+    setAtlas((a) => ({ ...a, selectedQuake: view.pickedQuake!.id }));
+    setDrawer('event');
+  }, [view.pickedQuake, setAtlas]);
   // FAULT is always the full Assam view, including browser-history navigation.
   useEffect(() => {
     if (mode === 'fault' && view.areaId !== 'assam-overview')
@@ -183,6 +220,33 @@ export default function App() {
       ),
     );
   };
+  const startVideo = async () => {
+    const canvas = view.getCanvas();
+    if (!canvas || !storyImage) return;
+    if (!canRecordPortraitVideo() || typeof canvas.captureStream !== 'function') {
+      setNotice(copy.videoUnsupported);
+      return;
+    }
+    setRecording(true);
+    setDrawer(null);
+    try {
+      const result = await recordPortraitVideo(
+        canvas,
+        storyImage,
+        copy.videoStart,
+        (stop) => setFinishVideo(() => stop),
+      );
+      const url = URL.createObjectURL(result);
+      downloadImage(url, `fault-and-flow-${mode}-portrait.webm`);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setNotice(copy.videoSaved);
+    } catch {
+      setNotice(copy.videoFailed);
+    } finally {
+      setRecording(false);
+      setFinishVideo(null);
+    }
+  };
   const save = async () => {
     try {
       const png = view.captureImage();
@@ -237,7 +301,7 @@ export default function App() {
       attribution: sidecar?.attribution ?? '',
       note:
         mode === 'flow'
-          ? `${copy.level}: ${level.toFixed(1)} m · ${copy.inflowSettings}: ${inflow} m³/s · ${view.waterOn ? copy.scenario : copy.scenarioNotRun}${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}`
+          ? `${copy.level}: ${level.toFixed(1)} m · ${copy.inflowSettings}: ${inflow} m³/s · ${view.waterOn ? copy.scenario : copy.scenarioNotRun}${atlas.flowView === 'depth' ? ` · ${copy.depthExport}` : ''}${atlas.comparison && view.waterOn ? ` · ${copy.dryTerrain} | ${copy.chosenWater}` : ''}`
           : mode === 'fault'
             ? `${copy.year}: ${atlas.quakeYear} · ${copy.snapshot} ${CATALOGUE_CUTOFF} UTC · ${copy.magnitudeScale}: ${copy.magnitudeSmall} / ${copy.magnitudeMedium} / ${copy.magnitudeLarge}. ${copy.magnitudeHint}.`
             : copy.platesNote,
@@ -278,6 +342,18 @@ export default function App() {
         </label>
       ))}
       <p className="fine-print">{copy.riverCredit}</p>
+      <label htmlFor="display-quality">{copy.quality}</label>
+      <select
+        id="display-quality"
+        value={atlas.quality}
+        onChange={(e) =>
+          setAtlas((a) => ({ ...a, quality: e.target.value as 'full' | 'lite' }))
+        }
+      >
+        <option value="full">{copy.fullQuality}</option>
+        <option value="lite">{copy.liteQuality}</option>
+      </select>
+      <p className="fine-print">{copy.qualityNote}</p>
       <details className="terrain-details">
         <summary>{copy.terrain}</summary>
         <TerrainPanel
@@ -311,7 +387,14 @@ export default function App() {
             Fault <span>&</span> Flow
           </h1>
         </a>
-        <ModeRail mode={mode} onMode={setMode} copy={copy} />
+        <ModeRail
+          mode={mode}
+          onMode={(next) => {
+            setTour(null);
+            setMode(next);
+          }}
+          copy={copy}
+        />
         <div className="header-actions">
           <LangToggle />
           <button
@@ -326,6 +409,32 @@ export default function App() {
       </header>
       <main id="main" tabIndex={-1} className="atlas-map" data-testid="terrain-scene">
         <TerrainScene view={view} copy={copy} />
+        {mode === 'flow' && atlas.comparison && view.waterOn && view.water?.supported && (
+          <>
+            <div
+              className="comparison-line"
+              style={{ left: `${atlas.comparisonPosition * 100}%` }}
+              aria-hidden="true"
+            />
+            <input
+              className="comparison-map-slider"
+              aria-label={copy.dragDivider}
+              type="range"
+              min="0"
+              max="100"
+              value={Math.round(atlas.comparisonPosition * 100)}
+              onChange={(e) =>
+                setAtlas((a) => ({
+                  ...a,
+                  comparisonPosition: Math.max(
+                    0.05,
+                    Math.min(0.95, Number(e.target.value) / 100),
+                  ),
+                }))
+              }
+            />
+          </>
+        )}
         {!focus && (
           <div className="atlas-discovery">
             {mode !== 'plates' && (
@@ -339,6 +448,16 @@ export default function App() {
                 <MapPin {...icon} />
                 <span>{districtName ?? copy.districtExplore}</span>
                 <ArrowUpRight {...icon} />
+              </button>
+            )}
+            {selectedDistrict && mode !== 'plates' && (
+              <button
+                type="button"
+                className="story-launch"
+                onClick={() => setDrawer('district-story')}
+                aria-label={copy.districtStory}
+              >
+                <BookOpen {...icon} />
               </button>
             )}
             <button
@@ -527,6 +646,81 @@ export default function App() {
           <span>{copy.mapHint}</span>
         </div>
       </main>
+      {tour !== null && (
+        <aside className="guided-tour" aria-label={copy.guidedTour}>
+          <div aria-live="polite">
+            <strong>{[copy.tourRiver, copy.tourWater, copy.tourHistory][tour]}</strong>
+            <p>{[copy.tourRiverBody, copy.tourWaterBody, copy.tourHistoryBody][tour]}</p>
+          </div>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => {
+              if (tour === 2) {
+                setTour(null);
+                return;
+              }
+              setTour(tour + 1);
+              if (tour === 1) setMode('fault');
+            }}
+          >
+            {tour === 2 ? copy.finishTour : copy.nextTour}
+          </button>
+          <button
+            className="icon-button"
+            type="button"
+            aria-label={copy.exitTour}
+            onClick={() => setTour(null)}
+          >
+            <X {...icon} />
+          </button>
+        </aside>
+      )}
+      {recording && (
+        <aside className="recording-status" role="status">
+          <span>{copy.recording}</span>
+          <button
+            type="button"
+            className="primary-button"
+            disabled={!finishVideo}
+            onClick={() => finishVideo?.()}
+          >
+            {copy.stopRecording}
+          </button>
+        </aside>
+      )}
+      {!focus && mode === 'flow' && view.waterOn && (
+        <div className="comparison-toolbar">
+          <label title={copy.compareHint}>
+            <input
+              type="checkbox"
+              checked={atlas.comparison}
+              disabled={!view.waterOn || !view.water?.supported}
+              onChange={(e) => setAtlas((a) => ({ ...a, comparison: e.target.checked }))}
+            />
+            {copy.compare}
+          </label>
+          {atlas.comparison && view.waterOn && (
+            <>
+              <span>{copy.dryTerrain}</span>
+              <input
+                aria-label={copy.comparePosition}
+                type="range"
+                min="5"
+                max="95"
+                value={Math.round(atlas.comparisonPosition * 100)}
+                onChange={(e) =>
+                  setAtlas((a) => ({
+                    ...a,
+                    comparisonPosition: Number(e.target.value) / 100,
+                  }))
+                }
+              />
+              <span>{copy.chosenWater}</span>
+            </>
+          )}
+        </div>
+      )}
       {!focus && (
         <AtlasDock
           copy={copy}
@@ -543,6 +737,8 @@ export default function App() {
           setCollisionPlaying={setCollisionPlaying}
           onHistory={() => setDrawer('history')}
           onRiver={() => setMode('flow')}
+          onLearn={() => setMode('plates')}
+          onBack={() => setMode('fault')}
         />
       )}
       <footer className="atlas-footer">
@@ -564,6 +760,15 @@ export default function App() {
           {copy.sources}
           <ArrowUpRight {...icon} />
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode('flow');
+            setTour(0);
+          }}
+        >
+          {copy.guidedTour}
+        </button>
       </footer>
       <p className="sr-only" role="status">
         {drawer === 'share' ? '' : notice}
@@ -580,13 +785,45 @@ export default function App() {
                 ? copy.floodHistory
                 : drawer === 'districts'
                   ? copy.districtExplore
-                  : drawer === 'share'
-                    ? copy.share
-                    : copy.controls
+                  : drawer === 'district-story'
+                    ? (districtName ?? copy.districtStory)
+                    : drawer === 'event'
+                      ? copy.event
+                      : drawer === 'share'
+                        ? copy.share
+                        : copy.controls
         }
         closeLabel={copy.close}
       >
         {drawer === 'layers' && layerControls}
+        {drawer === 'event' && selectedEvent && (
+          <EventRecord
+            event={selectedEvent}
+            copy={copy}
+            focus={() => {
+              view.focusLocation(selectedEvent.longitude, selectedEvent.latitude);
+              setDrawer(null);
+            }}
+          />
+        )}
+        {drawer === 'district-story' && selectedDistrict && (
+          <DistrictStory
+            anchor={selectedDistrict}
+            name={districtName ?? selectedDistrict.name}
+            copy={copy}
+            select={(event) => {
+              setMode('fault');
+              setAtlas((a) => ({
+                ...a,
+                selectedDistrict: null,
+                selectedQuake: event.id,
+                quakeYear: CATALOGUE_END_YEAR,
+                minimumMagnitude: 5,
+              }));
+              setDrawer('event');
+            }}
+          />
+        )}
         {drawer === 'districts' && (
           <>
             <p>{copy.districtNote}</p>
@@ -680,7 +917,16 @@ export default function App() {
                 <Download {...icon} />
                 {copy.save}
               </button>
+              <button
+                type="button"
+                className="text-button"
+                disabled={!storyImage || storyBusy || recording}
+                onClick={() => void startVideo()}
+              >
+                {copy.recordVideo}
+              </button>
             </div>
+            <p className="fine-print">{copy.videoNote}</p>
             <p>{copy.shareNote}</p>
             <label htmlFor="view-link">{copy.viewLink}</label>
             <input

@@ -28,8 +28,9 @@ usable build, and every dataset is about the Brahmaputra valley and NE India spe
 ## 2. Goals
 
 1. **Make the coupling visible.** The Himalaya rises; the Brahmaputra carries the debris;
-   the delta floods. One plate pushes, one river answers. The three modes are three
-   windows onto a single coupled system, and the user should be able to feel that.
+   the delta floods. One plate pushes, one river answers. The two primary experiences, FLOW and FAULT, are
+   supported by the secondary "Why Assam shakes" plate explainer. The visitor can
+   explore the connections without three competing primary navigation choices.
 2. **Run on a phone.** A student on a ₹8,000 Android in Guwahati has the same access as
    someone on a laptop. Target: usable at 390px, 60fps on mid-range hardware.
 3. **Zero friction to entry.** A URL. No signup, no backend, no API keys, works offline

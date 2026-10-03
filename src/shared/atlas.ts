@@ -12,6 +12,12 @@ export interface AtlasPresentation {
   selectedDistrict: number | null;
   /** Primary drag gesture; two-finger movement always pans. */
   navigation: 'pan' | 'orbit';
+  /** Display resolution only; does not change the water solver. */
+  quality: 'full' | 'lite';
+  /** Same-camera dry terrain / chosen water scenario comparison. */
+  comparison: boolean;
+  comparisonPosition: number;
+  minimumMagnitude: 5 | 6 | 7;
   /** Procedural settlement in the collision diagram, not surveyed buildings. */
   buildings: boolean;
   /** User-chosen visual amplitude, not magnitude or an engineering calculation. */
@@ -38,6 +44,10 @@ export const INITIAL_ATLAS: AtlasPresentation = {
   districts: true,
   selectedDistrict: null,
   navigation: 'pan',
+  quality: 'full',
+  comparison: false,
+  comparisonPosition: 0.5,
+  minimumMagnitude: 5,
   buildings: true,
   buildingMotion: 'medium',
   flowView: 'surface',
